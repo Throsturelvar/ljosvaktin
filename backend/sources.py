@@ -51,23 +51,21 @@ def sott_kp_spa():
 
 
 # ---------------------------------------------------------------------
-# Open-Meteo - skýjahula (næstu 48 klst, hnitanet um allt land)
+# MET Noregur - skýjahula (locationforecast, sama veita og knýr yr.no).
+# Notað í stað Open-Meteo því Open-Meteo hafnar með 429 á deildu IP-tölu-
+# svæði ókeypis skýjahýsinga (Render o.fl.) - MET Noregur er hannað fyrir
+# einmitt svona forritsumferð, krefst bara auðkennds User-Agent.
 # ---------------------------------------------------------------------
 def sott_skyjahula(lat, lon):
-    url = (
-        "https://api.open-meteo.com/v1/forecast"
-        f"?latitude={lat}&longitude={lon}&hourly=cloudcover&forecast_days=2&timezone=UTC"
-    )
+    url = f"https://api.met.no/weatherapi/locationforecast/2.0/compact?lat={lat}&lon={lon}"
     try:
         data = _get_json(url)
-        timar = data["hourly"]["time"]
-        sky = data["hourly"]["cloudcover"]
         return {
-            datetime.fromisoformat(t).replace(tzinfo=timezone.utc): pct
-            for t, pct in zip(timar, sky)
+            datetime.fromisoformat(punktur["time"]): punktur["data"]["instant"]["details"]["cloud_area_fraction"]
+            for punktur in data["properties"]["timeseries"]
         }
     except Exception as e:
-        _warn(f"Open-Meteo ({lat},{lon})", e)
+        _warn(f"MET Noregur ({lat},{lon})", e)
         return None
 
 
