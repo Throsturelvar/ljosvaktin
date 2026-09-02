@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="is">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ljósvaktin</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: oklch(0.97 0.014 75);
+    --bg-card: oklch(0.995 0.006 75);
+    --bg-card-alt: oklch(0.945 0.018 75);
+    --text: oklch(0.24 0.02 265);
+    --text-muted: oklch(0.5 0.02 265);
+    --border: oklch(0.89 0.015 75);
+    --night-1: oklch(0.26 0.05 270);
+    --night-2: oklch(0.34 0.09 300);
+    --teal: oklch(0.72 0.14 165);
+    --teal-dark: oklch(0.46 0.1 165);
+    --amber: oklch(0.74 0.15 55);
+    --amber-dark: oklch(0.5 0.13 55);
+    --grey: oklch(0.65 0.02 265);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Work Sans", system-ui, sans-serif; background: var(--bg); color: var(--text); }
+  h1, h2, h3, .display { font-family: "Fredoka", system-ui, sans-serif; }
+  a { color: var(--teal-dark); text-decoration: none; }
+  a:hover { color: var(--amber-dark); }
+  .pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 14px 26px; border-radius: 999px; font-family: "Fredoka", system-ui, sans-serif; font-weight: 600; font-size: 16px; cursor: pointer; border: none; }
+  .wrap { max-width: 1320px; margin: 0 auto; padding: 0 32px; }
+
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 24px 0; border-bottom: 1px solid var(--border); }
+  nav .links { display: flex; gap: 32px; font-size: 15px; font-weight: 500; color: var(--text-muted); }
+  @media (max-width: 720px) { nav .links { display: none; } }
+
+  .hero { position: relative; margin: 36px 0 0; border-radius: 26px; overflow: hidden; background: linear-gradient(135deg, var(--night-1), var(--night-2)); padding: 48px; display: flex; align-items: center; justify-content: space-between; gap: 40px; flex-wrap: wrap; color: white; }
+  .hero-copy { max-width: 600px; z-index: 1; }
+  .hero-title { font-size: 38px; font-weight: 600; line-height: 1.2; margin: 16px 0; }
+  .hero-desc { font-size: 16px; color: rgba(255,255,255,0.78); line-height: 1.6; margin-bottom: 8px; }
+  .score-card { z-index: 1; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px; padding: 28px 34px; text-align: center; min-width: 180px; }
+  .score-num { font-size: 56px; font-weight: 700; color: var(--teal); line-height: 1; }
+
+  .row { display: flex; gap: 28px; margin: 40px 0 0; flex-wrap: wrap; }
+  .row > * { flex: 1; min-width: 320px; }
+  .panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: 22px; padding: 28px; }
+  .panel-dark { background: var(--night-1); border-radius: 22px; padding: 28px; color: white; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 40px; }
+  .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 18px; padding: 22px; }
+  .card-row { display: flex; align-items: center; gap: 10px; font-size: 13.5px; margin-top: 8px; }
+  .card-row span:first-of-type { color: var(--text-muted); width: 92px; }
+
+  .source-item { display: flex; gap: 12px; align-items: flex-start; background: rgba(255,255,255,0.06); border-radius: 14px; padding: 13px 15px; margin-top: 12px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 6px; }
+
+  footer { margin: 56px 0 40px; padding-top: 24px; border-top: 1px solid var(--border); font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+  .loading, .error { padding: 40px; text-align: center; color: var(--text-muted); }
+  .error { color: var(--amber-dark); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17c2-4 4-6 6-6s3 4 5 4 3-5 6-5"/><path d="M3 12c2-3.5 4-5 6-5s3 3.5 5 3.5 3-4.5 6-4.5"/></svg>
+      <div class="display" style="font-size:22px; font-weight:600;">Ljósvaktin</div>
+    </div>
+    <div class="links">
+      <a href="#stadir">Allir staðir</a>
+      <a href="#gogn">Um gögnin</a>
+    </div>
+  </nav>
+
+  <div id="content">
+    <div class="loading">Sæki nýjustu gögn …</div>
+  </div>
+
+  <footer>
+    Gögn frá NOAA SWPC (norðurljósavirkni), Open-Meteo (skýjahula) og sunrisesunset.io (myrkur og tungl). Öll gögn eru opin og aðgengileg án skráningar. · Ljósvaktin · frumgerð
+  </footer>
+</div>
+
+<script>
+const MAP_STADSETNING = {
+  akureyri:      { x: 230, y: 68,  lx: 240, ly: 66  },
+  kirkjufell:    { x: 78,  y: 108, lx: 20,  ly: 105 },
+  jokulsarlon:   { x: 300, y: 178, lx: 260, ly: 200 },
+  thingvellir:   { x: 148, y: 168, lx: 152, ly: 158 },
+  vik:           { x: 200, y: 210, lx: 215, ly: 225 },
+  reykjavik:     { x: 115, y: 188, lx: 60,  ly: 178 },
+  gullfoss:      { x: 175, y: 160, lx: 180, ly: 150 },
+  skogafoss:     { x: 175, y: 213, lx: 110, ly: 208 },
+  reynisfjara:   { x: 192, y: 222, lx: 175, ly: 245 },
+  myvatn:        { x: 265, y: 75,  lx: 272, ly: 72  },
+  dettifoss:     { x: 280, y: 65,  lx: 288, ly: 58  },
+  husavik:       { x: 245, y: 48,  lx: 190, ly: 40  },
+  hofn:          { x: 325, y: 195, lx: 290, ly: 215 },
+  seydisfjordur: { x: 350, y: 140, lx: 300, ly: 135 },
+  isafjordur:    { x: 60,  y: 55,  lx: 15,  ly: 48  },
+  reykjanesviti: { x: 95,  y: 225, lx: 45,  ly: 245 },
+  stykkisholmur: { x: 90,  y: 90,  lx: 15,  ly: 85  },
+};
+
+const HEIMILDIR = [
+  { heiti: "NOAA SWPC — norðurljósavirkni", lysing: "OVATION-líkanið og Kp-spá, uppfært á 30–60 mín fresti.", litur: "var(--teal)" },
+  { heiti: "Open-Meteo", lysing: "Skýjaspá fyrir hvern stað.", litur: "var(--amber)" },
+  { heiti: "sunrisesunset.io", lysing: "Nákvæmur myrkurgluggi og tunglbirta.", litur: "var(--amber)" },
+];
+
+function tier(skor) {
+  if (skor >= 65) return { litur: "var(--teal)", texti: "Frábært" };
+  if (skor >= 40) return { litur: "var(--amber)", texti: "Sæmilegt" };
+  return { litur: "var(--grey)", texti: "Óhagstætt" };
+}
+
+function birtaVirkni(v) {
+  return v == null ? "?" : `${v}/14`;
+}
+
+function birtaSky(s) {
+  return s == null ? "?" : `${Math.round(s)}%`;
+}
+
+function birtaMyrkur(fra, til) {
+  if (!fra || !til) return "?";
+  const t = (iso) => new Date(iso).toLocaleTimeString("is-IS", { hour: "2-digit", minute: "2-digit", timeZone: "UTC" });
+  return `${t(fra)}–${t(til)}`;
+}
+
+function teikna(gogn) {
+  const stadir = gogn.stadir;
+  const bestur = stadir[0];
+  const bestTier = tier(bestur.skor);
+  const uppfaert = new Date(gogn.reiknad);
+  const minAgo = Math.max(0, Math.round((Date.now() - uppfaert.getTime()) / 60000));
+
+  const html = `
+    <div class="hero">
+      <svg width="200" height="200" viewBox="0 0 220 220" style="position:absolute; top:-50px; right:30px; opacity:0.5;">
+        <path d="M10 150 C60 90 100 190 150 110 C170 80 190 100 210 60" stroke="var(--teal)" stroke-width="6" fill="none" stroke-linecap="round" opacity="0.7"/>
+        <path d="M0 170 C50 120 90 200 140 130 C165 95 185 120 215 90" stroke="var(--amber)" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.5"/>
+      </svg>
+      <div class="hero-copy">
+        <div class="pill" style="background: rgba(255,255,255,0.14); color:white;">Uppfært fyrir ${minAgo} mín</div>
+        <div class="hero-title">Í kvöld eru bestu líkurnar við ${bestur.nafn}</div>
+        <div class="hero-desc">${skyrsluText(bestur)}</div>
+      </div>
+      <div class="score-card">
+        <div style="font-size:13px; color:rgba(255,255,255,0.65); font-weight:500; margin-bottom:8px;">Norðurljósaskor</div>
+        <div class="score-num">${bestur.skor}</div>
+        <div class="pill" style="background:${bestTier.litur}; color:var(--night-1); margin-top:12px;">${bestTier.texti} tækifæri</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="panel">
+        <div class="display" style="font-size:19px; font-weight:600;">Skorið á kortinu</div>
+        <div style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">Litur sýnir gæði skilyrða í kvöld</div>
+        <svg viewBox="0 0 400 260" style="width:100%; height:280px;">
+          <path d="M55 150 C40 120 55 95 40 80 C25 65 30 45 55 45 C75 45 80 60 100 55 C120 50 130 35 155 40 C185 46 190 30 220 35 C255 42 250 20 285 30 C320 40 340 60 345 90 C350 118 330 120 335 145 C340 172 320 165 315 190 C310 212 325 225 300 235 C275 245 260 220 235 225 C212 230 210 210 185 212 C160 214 155 232 130 228 C105 224 110 200 90 195 C68 190 70 170 55 150 Z" fill="var(--bg-card-alt)" stroke="var(--border)" stroke-width="2"/>
+          ${stadir.map(s => {
+            const p = MAP_STADSETNING[s.id];
+            if (!p) return "";
+            const t = tier(s.skor);
+            return `<circle cx="${p.x}" cy="${p.y}" r="9" fill="${t.litur}" stroke="white" stroke-width="2.5"/>
+                    <text x="${p.lx}" y="${p.ly}" font-size="12" font-family="Work Sans, sans-serif" font-weight="500" fill="var(--text)">${s.nafn.split(" / ")[0]}</text>`;
+          }).join("")}
+        </svg>
+      </div>
+      <div class="panel-dark" id="gogn">
+        <div class="display" style="font-size:19px; font-weight:600;">Áreiðanleg, opin gögn</div>
+        <div style="font-size:13px; color:rgba(255,255,255,0.6);">Skorið reiknað úr þremur opinberum gagnaveitum</div>
+        ${HEIMILDIR.map(h => `
+          <div class="source-item">
+            <div class="dot" style="background:${h.litur};"></div>
+            <div>
+              <div style="font-weight:600; font-size:14px;">${h.heiti}</div>
+              <div style="font-size:12.5px; color:rgba(255,255,255,0.6); line-height:1.5;">${h.lysing}</div>
+            </div>
+          </div>`).join("")}
+      </div>
+    </div>
+
+    <div id="stadir" style="margin-top:48px;">
+      <div style="display:flex; align-items:baseline; justify-content:space-between;">
+        <div class="display" style="font-size:24px; font-weight:600;">Allir staðir í kvöld</div>
+        <div style="font-size:13px; color:var(--text-muted);">${stadir.length} staðir · reiknað kl. ${uppfaert.toLocaleTimeString("is-IS", { hour: "2-digit", minute: "2-digit", timeZone: "UTC" })}</div>
+      </div>
+      <div class="grid">
+        ${stadir.map(s => {
+          const t = tier(s.skor);
+          return `
+          <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px;">
+              <div class="display" style="font-size:17px; font-weight:600;">${s.nafn}</div>
+              <div class="pill" style="background:${t.litur}; color:var(--night-1);">${s.skor}</div>
+            </div>
+            <div class="card-row"><span>Virkni</span> ${birtaVirkni(s.hra_gogn.virkni_ovation)}</div>
+            <div class="card-row"><span>Skýjahula</span> ${birtaSky(s.hra_gogn.sky_hlutfall)}</div>
+            <div class="card-row"><span>Myrkur</span> ${birtaMyrkur(s.hra_gogn.myrkur_fra, s.hra_gogn.myrkur_til)}</div>
+          </div>`;
+        }).join("")}
+      </div>
+    </div>
+  `;
+  document.getElementById("content").innerHTML = html;
+}
+
+function skyrsluText(stadur) {
+  const sky = stadur.hra_gogn.sky_hlutfall;
+  if (sky == null) return "Gögn um skýjahulu vantar fyrir þennan stað.";
+  if (sky < 30) return "Heiðskírt og góð virkni í kvöld.";
+  if (sky < 70) return "Nokkur ský en enn raunhæft tækifæri.";
+  return "Þykk skýjahula dregur verulega úr líkum í kvöld.";
+}
+
+async function saekja() {
+  try {
+    const svar = await fetch("/api/skor");
+    if (!svar.ok) throw new Error("HTTP " + svar.status);
+    const gogn = await svar.json();
+    teikna(gogn);
+  } catch (villa) {
+    document.getElementById("content").innerHTML =
+      `<div class="error">Ekki tókst að sækja gögn frá bakendanum (${villa.message}). Athugaðu að server.py sé í gangi.</div>`;
+  }
+}
+
+saekja();
+setInterval(saekja, 5 * 60 * 1000);
+</script>
+</body>
+</html>

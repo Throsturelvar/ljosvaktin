@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: ljosvaktin
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: "true"
+    startCommand: python server.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.3"
