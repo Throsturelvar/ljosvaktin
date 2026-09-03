@@ -16,4 +16,7 @@ STADIR = [
     {"id": "isafjordur", "nafn": "Ísafjörður", "lat": 66.0748, "lon": -23.1200},
     {"id": "reykjanesviti", "nafn": "Reykjanesviti", "lat": 63.8151, "lon": -22.7014},
     {"id": "stykkisholmur", "nafn": "Stykkishólmur", "lat": 65.0761, "lon": -22.7266},
+    {"id": "oskjuhlid", "nafn": "Öskjuhlíð", "lat": 64.1276, "lon": -21.9186},
+    {"id": "mosfellsbaer", "nafn": "Mosfellsbæjarheiði", "lat": 64.1655, "lon": -21.6903},
+    {"id": "kleifarvatn", "nafn": "Kleifarvatn", "lat": 63.9169, "lon": -22.0503},
 ]
