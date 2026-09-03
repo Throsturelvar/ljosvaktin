@@ -42,10 +42,53 @@ def kp_leitni(kp_spa, myrkur_fra, myrkur_til):
 
 
 def medal_skyjahula(skyjahula, myrkur_fra, myrkur_til):
+    """Meðal heildarskýjahula (%) innan myrkurgluggans - notað til
+    BIRTINGAR ('Skýjahula 62%'), ekki í skorreikninginn sjálfan."""
     if not skyjahula or not myrkur_fra or not myrkur_til:
         return None
-    gildi = [pct for t, pct in skyjahula.items() if myrkur_fra <= t <= myrkur_til]
+    gildi = [
+        p["heild"] for t, p in skyjahula.items()
+        if myrkur_fra <= t <= myrkur_til and p.get("heild") is not None
+    ]
     return sum(gildi) / len(gildi) if gildi else None
+
+
+def medal_skyjaopacitet(skyjahula, myrkur_fra, myrkur_til):
+    """Vegið meðaltal skýjaþéttleika innan myrkurgluggans, notað í sjálfan
+    skorreikninginn. Lágský vega þyngst (60%), miðlungsský næst (30%) og
+    háský minnst (10%) - þunn háský hindra norðurljós miklu minna en þétt
+    lágský, svo flatt heildarhulu-meðaltal ofmetur áhrif háskýja."""
+    if not skyjahula or not myrkur_fra or not myrkur_til:
+        return None
+    gildi = []
+    for t, p in skyjahula.items():
+        if not (myrkur_fra <= t <= myrkur_til):
+            continue
+        lagt, midlungs, hatt = p.get("lagt"), p.get("midlungs"), p.get("hatt")
+        if lagt is None and midlungs is None and hatt is None:
+            if p.get("heild") is not None:
+                gildi.append(p["heild"])
+            continue
+        opacitet = 0.60 * (lagt or 0) + 0.30 * (midlungs or 0) + 0.10 * (hatt or 0)
+        gildi.append(min(opacitet, 100))
+    return sum(gildi) / len(gildi) if gildi else None
+
+
+def haestu_uv_dagsins(skyjahula, dags):
+    """Hæsta UV-gildi dagsins (ekki myrkurgluggans), leiðrétt gróflega
+    fyrir raunverulega skýjahulu (UV-gildið frá MET er miðað við heiðskírt)."""
+    if not skyjahula or not dags:
+        return None
+    upphaf = datetime.combine(dags, datetime.min.time(), tzinfo=timezone.utc)
+    lok = upphaf + timedelta(days=1)
+    gildi = []
+    for t, p in skyjahula.items():
+        if not (upphaf <= t < lok) or p.get("uv_heidskirt") is None:
+            continue
+        heild = p.get("heild")
+        leidrett = p["uv_heidskirt"] * (1 - (heild if heild is not None else 50) / 100)
+        gildi.append(leidrett)
+    return round(max(gildi), 1) if gildi else None
 
 
 def _tungl_bil_fyrir_dag(dagsfaersla):
@@ -94,11 +137,11 @@ def tungl_uppi_hlutfall(dagar_gogn, dagur, myrkur_fra, myrkur_til):
     return min(1.0, heild_sek / lengd_sek) if lengd_sek > 0 else None
 
 
-def reikna_skor(virkni, kp, sky_pct, tungl_pct, tungl_uppi, myrkur_fra, myrkur_til):
+def reikna_skor(virkni, kp, sky_opacitet, tungl_pct, tungl_uppi, myrkur_fra, myrkur_til):
     if myrkur_fra is None or myrkur_til is None or myrkur_til <= myrkur_fra:
         return {"skor": 0.0, "ástæða": "ekkert marktækt myrkur á tímabilinu"}
 
-    heidskirt_stig = 100 - (sky_pct if sky_pct is not None else 50)
+    heidskirt_stig = 100 - (sky_opacitet if sky_opacitet is not None else 50)
     tungl_birta = tungl_pct if tungl_pct is not None else 30
     tungl_upp_hlutf = tungl_uppi if tungl_uppi is not None else 1.0
     tungl_stig = 100 - (tungl_birta * tungl_upp_hlutf)

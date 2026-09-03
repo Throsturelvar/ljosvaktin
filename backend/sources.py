@@ -52,19 +52,29 @@ def sott_kp_spa():
 
 
 # ---------------------------------------------------------------------
-# MET Noregur - skýjahula (locationforecast, sama veita og knýr yr.no).
-# Notað í stað Open-Meteo því Open-Meteo hafnar með 429 á deildu IP-tölu-
-# svæði ókeypis skýjahýsinga (Render o.fl.) - MET Noregur er hannað fyrir
-# einmitt svona forritsumferð, krefst bara auðkennds User-Agent.
+# MET Noregur - skýjahula, skýjalög og UV (locationforecast/complete, sama
+# veita og knýr yr.no). Notað í stað Open-Meteo því Open-Meteo hafnar með
+# 429 á deildu IP-tölusvæði ókeypis skýjahýsinga (Render o.fl.) - MET
+# Noregur er hannað fyrir einmitt svona forritsumferð, krefst bara
+# auðkennds User-Agent. 'complete' varan (frekar en 'compact') skilar líka
+# skýjahulu eftir hæðarlögum og UV-vísitölu í heiðskíru.
 # ---------------------------------------------------------------------
 def sott_skyjahula(lat, lon):
-    url = f"https://api.met.no/weatherapi/locationforecast/2.0/compact?lat={lat}&lon={lon}"
+    url = f"https://api.met.no/weatherapi/locationforecast/2.0/complete?lat={lat}&lon={lon}"
     try:
         data = _get_json(url)
-        return {
-            datetime.fromisoformat(punktur["time"]): punktur["data"]["instant"]["details"]["cloud_area_fraction"]
-            for punktur in data["properties"]["timeseries"]
-        }
+        ut = {}
+        for punktur in data["properties"]["timeseries"]:
+            t = datetime.fromisoformat(punktur["time"])
+            smaatt = punktur["data"]["instant"]["details"]
+            ut[t] = {
+                "heild": smaatt.get("cloud_area_fraction"),
+                "lagt": smaatt.get("cloud_area_fraction_low"),
+                "midlungs": smaatt.get("cloud_area_fraction_medium"),
+                "hatt": smaatt.get("cloud_area_fraction_high"),
+                "uv_heidskirt": smaatt.get("ultraviolet_index_clear_sky"),
+            }
+        return ut
     except Exception as e:
         _warn(f"MET Noregur ({lat},{lon})", e)
         return None
