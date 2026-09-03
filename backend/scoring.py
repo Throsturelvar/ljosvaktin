@@ -105,7 +105,9 @@ def reikna_skor(virkni, kp, sky_pct, tungl_pct, tungl_uppi, myrkur_fra, myrkur_t
     kp_stig = min((kp or 0) / 9.0, 1.0) * 100 if kp is not None else 50.0
 
     if virkni is not None:
-        virkni_stig = min(virkni / 14.0, 1.0) * 100
+        # virkni er nú þegar prósentulíkur (0-100) á sýnilegum norðurljósum
+        # skv. NOAA - ekki tala á 0-14 kvarða eins og upprunalega skráin gerði ráð fyrir.
+        virkni_stig = min(max(virkni, 0.0), 100.0)
         skor = 0.35 * virkni_stig + 0.10 * kp_stig + 0.40 * heidskirt_stig + 0.15 * tungl_stig
         nakvaemni = "mæling"
     else:
