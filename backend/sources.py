@@ -4,6 +4,7 @@ skyndiminnisgildi eru notuð áfram."""
 
 import json
 import sys
+import time
 import urllib.request
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta, timezone
@@ -78,23 +79,27 @@ def _thattid(dagsetning, timastrengur):
     ).replace(tzinfo=timezone.utc)
 
 
-def sott_myrkur_tungl(lat, lon):
+def sott_myrkur_tungl(lat, lon, dagar=4):
+    """Skilar lista af {dags, dusk, dawn, tungl_birta_pct} - einn færsla á dag,
+    'dagar' dagar fram í tímann frá og með í dag. Tvær samliggjandi færslur
+    mynda eina nótt (dusk dags N til dawn dags N+1), svo 'dagar=4' dugar
+    fyrir 3 nætur fram í tímann."""
     idag = datetime.now(timezone.utc).date()
-    a_morgun = idag + timedelta(days=1)
+    ut = []
     try:
-        i_dag = _get_json(
-            f"https://api.sunrisesunset.io/json?lat={lat}&lng={lon}&timezone=UTC&date={idag.isoformat()}"
-        )["results"]
-        a_morgun_gogn = _get_json(
-            f"https://api.sunrisesunset.io/json?lat={lat}&lng={lon}&timezone=UTC&date={a_morgun.isoformat()}"
-        )["results"]
-        dusk = _thattid(idag.isoformat(), i_dag["dusk"])
-        dawn = _thattid(a_morgun.isoformat(), a_morgun_gogn["dawn"])
-        return {
-            "myrkur_fra": dusk,
-            "myrkur_til": dawn,
-            "tungl_birta_pct": float(i_dag["moon_illumination"]),
-        }
+        for i in range(dagar):
+            d = idag + timedelta(days=i)
+            gogn = _get_json(
+                f"https://api.sunrisesunset.io/json?lat={lat}&lng={lon}&timezone=UTC&date={d.isoformat()}"
+            )["results"]
+            ut.append({
+                "dags": d,
+                "dusk": _thattid(d.isoformat(), gogn["dusk"]),
+                "dawn": _thattid(d.isoformat(), gogn["dawn"]),
+                "tungl_birta_pct": float(gogn["moon_illumination"]),
+            })
+            time.sleep(0.3)
+        return ut
     except Exception as e:
         _warn(f"sunrisesunset.io ({lat},{lon})", e)
         return None

@@ -11,6 +11,7 @@ import time
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from urllib.parse import urlparse, parse_qs
 
 import scoring
 import sources
@@ -68,19 +69,31 @@ def sott_upphafsgogn():
         time.sleep(KURTEISISTOF)
 
 
-def reikna_alla_stadi():
-    ovation = CACHE.get("ovation")
+def reikna_alla_stadi(dagur=0):
+    # OVATION er bara núgildisspá (~30-60 mín fram í tímann) - á bara við
+    # um nótt 0. Fyrir síðari nætur er engin staðbundin virknimæling til.
+    ovation = CACHE.get("ovation") if dagur == 0 else None
     kp_spa = CACHE.get("kp")
     nidurstodur = []
 
     for stadur in STADIR:
-        sunmoon = CACHE.get(f"sunmoon:{stadur['id']}")
+        dagar_gogn = CACHE.get(f"sunmoon:{stadur['id']}")
         cloud = CACHE.get(f"cloud:{stadur['id']}")
-        myrkur_fra = sunmoon["myrkur_fra"] if sunmoon else None
-        myrkur_til = sunmoon["myrkur_til"] if sunmoon else None
-        tungl_pct = sunmoon["tungl_birta_pct"] if sunmoon else None
 
-        virkni = scoring.ovation_virkni(stadur["lat"], stadur["lon"], ovation)
+        nott = None
+        if dagar_gogn and len(dagar_gogn) > dagur + 1:
+            nott = {
+                "dags": dagar_gogn[dagur]["dags"],
+                "myrkur_fra": dagar_gogn[dagur]["dusk"],
+                "myrkur_til": dagar_gogn[dagur + 1]["dawn"],
+                "tungl_birta_pct": dagar_gogn[dagur]["tungl_birta_pct"],
+            }
+
+        myrkur_fra = nott["myrkur_fra"] if nott else None
+        myrkur_til = nott["myrkur_til"] if nott else None
+        tungl_pct = nott["tungl_birta_pct"] if nott else None
+
+        virkni = scoring.ovation_virkni(stadur["lat"], stadur["lon"], ovation) if ovation else None
         kp = scoring.kp_leitni(kp_spa, myrkur_fra, myrkur_til)
         sky_pct = scoring.medal_skyjahula(cloud, myrkur_fra, myrkur_til)
 
@@ -91,7 +104,10 @@ def reikna_alla_stadi():
             "nafn": stadur["nafn"],
             "lat": stadur["lat"],
             "lon": stadur["lon"],
+            "dagur": dagur,
+            "dags": nott["dags"].isoformat() if nott else None,
             "skor": ut["skor"],
+            "nakvaemni": ut.get("nakvaemni"),
             "sundurlidun": ut.get("sundurlidun"),
             "ástæða": ut.get("ástæða"),
             "hra_gogn": {
@@ -119,19 +135,27 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(payload)
 
     def do_GET(self):
-        if self.path == "/api/skor":
+        slod = urlparse(self.path)
+        if slod.path == "/api/skor":
+            fyrirspurn = parse_qs(slod.query)
+            try:
+                dagur = int(fyrirspurn.get("dagur", ["0"])[0])
+            except ValueError:
+                dagur = 0
+            dagur = max(0, min(2, dagur))
             self._senda_json({
                 "reiknad": datetime.now(timezone.utc).isoformat(),
-                "stadir": reikna_alla_stadi(),
+                "dagur": dagur,
+                "stadir": reikna_alla_stadi(dagur),
             })
-        elif self.path == "/api/heilsa":
+        elif slod.path == "/api/heilsa":
             self._senda_json({
                 "ok": True,
                 "aldur_sek": {
                     lykill: CACHE.age_seconds(lykill) for lykill in ("ovation", "kp", "vedur")
                 },
             })
-        elif self.path in ("/", "/index.html"):
+        elif slod.path in ("/", "/index.html"):
             self._senda_skra(STATIC_DIR / "index.html", "text/html; charset=utf-8")
         else:
             self._senda_json({"villa": "fannst ekki"}, stada=404)
