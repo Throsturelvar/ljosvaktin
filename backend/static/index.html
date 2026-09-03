@@ -71,6 +71,14 @@
   .day-tab { font-family: "Fredoka", system-ui, sans-serif; font-weight: 600; font-size: 14.5px; padding: 10px 18px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-muted); cursor: pointer; }
   .day-tab.virkur { background: var(--night-1); color: white; border-color: var(--night-1); }
   .forecast-note { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: rgba(255,255,255,0.6); margin-top: 10px; }
+
+  .loc-btn { display: inline-flex; align-items: center; gap: 7px; font-family: "Fredoka", system-ui, sans-serif; font-weight: 600; font-size: 14px; padding: 9px 16px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text); cursor: pointer; }
+  .loc-btn:hover { border-color: var(--teal-dark); }
+  .loc-btn.leita { opacity: 0.6; cursor: wait; }
+  .loc-result { margin-top: 16px; padding: 14px 18px; border-radius: 14px; background: var(--bg-card); border: 1px solid var(--border); font-size: 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .loc-result.villa { border-color: var(--amber); color: var(--amber-dark); }
+  .loc-result button { font-family: "Fredoka", system-ui, sans-serif; font-weight: 600; font-size: 13px; padding: 7px 14px; border-radius: 999px; border: none; background: var(--night-1); color: white; cursor: pointer; }
+  .card.i-fokus { outline: 3px solid var(--teal); outline-offset: 2px; }
 </style>
 </head>
 <body>
@@ -80,13 +88,20 @@
       <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17c2-4 4-6 6-6s3 4 5 4 3-5 6-5"/><path d="M3 12c2-3.5 4-5 6-5s3 3.5 5 3.5 3-4.5 6-4.5"/></svg>
       <div class="display" style="font-size:22px; font-weight:600;">Ljósvaktin</div>
     </div>
-    <div class="links">
-      <a href="#stadir">Allir staðir</a>
-      <a href="#gogn">Um gögnin</a>
+    <div style="display:flex; align-items:center; gap:24px;">
+      <div class="links">
+        <a href="#stadir">Allir staðir</a>
+        <a href="#gogn">Um gögnin</a>
+      </div>
+      <button class="loc-btn" id="locBtn" onclick="finnaStadsetningu()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.5-7-11a7 7 0 1 1 14 0c0 4.5-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+        <span id="locBtnText">Nálægt mér</span>
+      </button>
     </div>
   </nav>
 
   <div class="day-tabs" id="dagatabs"></div>
+  <div id="locResult"></div>
 
   <div id="content">
     <div class="loading">Sæki nýjustu gögn …</div>
@@ -103,6 +118,8 @@ const COLOR_AMBER = "oklch(0.74 0.15 55)";
 const COLOR_GREY = "oklch(0.65 0.02 265)";
 
 let leafletMap = null;
+let markerarMap = {};
+let sidustuGognin = null;
 let valinnDagur = 0;
 
 const VIKUDAGA_KVOLD = ["sunnudagskvöld", "mánudagskvöld", "þriðjudagskvöld", "miðvikudagskvöld", "fimmtudagskvöld", "föstudagskvöld", "laugardagskvöld"];
@@ -234,7 +251,7 @@ function teikna(gogn) {
           const t = tier(s.skor);
           const vk = birtaVirkniEdaKp(s);
           return `
-          <div class="card">
+          <div class="card" id="stadur-${s.id}">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px;">
               <div class="display" style="font-size:17px; font-weight:600;">${s.nafn}</div>
               <div class="pill" style="background:${t.litur}; color:var(--night-1);">${s.skor}</div>
@@ -250,6 +267,7 @@ function teikna(gogn) {
     </div>
   `;
   document.getElementById("content").innerHTML = html;
+  sidustuGognin = gogn;
   initMap(stadir);
 }
 
@@ -258,6 +276,7 @@ function initMap(stadir) {
     leafletMap.remove();
     leafletMap = null;
   }
+  markerarMap = {};
   leafletMap = L.map("map", { scrollWheelZoom: false }).setView([64.95, -18.7], 6);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> framlagsaðilar',
@@ -267,7 +286,7 @@ function initMap(stadir) {
   stadir.forEach(s => {
     const t = tier(s.skor);
     const vk = birtaVirkniEdaKp(s);
-    L.circleMarker([s.lat, s.lon], {
+    const merki = L.circleMarker([s.lat, s.lon], {
       radius: 9,
       color: "white",
       weight: 2,
@@ -282,7 +301,86 @@ function initMap(stadir) {
           <div>${vk.merki} ${vk.gildi} · Ský ${birtaSky(s.hra_gogn.sky_hlutfall)}</div>
         </div>
       `);
+    markerarMap[s.id] = merki;
   });
+}
+
+function haversine(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const toRad = (d) => (d * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+
+function birtaLocResult(innihald, erVilla) {
+  const box = document.getElementById("locResult");
+  box.className = "loc-result" + (erVilla ? " villa" : "");
+  box.innerHTML = innihald;
+}
+
+function finnaStadsetningu() {
+  if (!navigator.geolocation) {
+    birtaLocResult("Vafrinn þinn styður ekki staðsetningu.", true);
+    return;
+  }
+  const takki = document.getElementById("locBtn");
+  const takkiTexti = document.getElementById("locBtnText");
+  takki.classList.add("leita");
+  takkiTexti.textContent = "Staðset...";
+
+  navigator.geolocation.getCurrentPosition(
+    (stada) => {
+      takki.classList.remove("leita");
+      takkiTexti.textContent = "Nálægt mér";
+      naestiStadur(stada.coords.latitude, stada.coords.longitude);
+    },
+    (villa) => {
+      takki.classList.remove("leita");
+      takkiTexti.textContent = "Nálægt mér";
+      const skilabod = villa.code === villa.PERMISSION_DENIED
+        ? "Leyfi til staðsetningar var hafnað."
+        : "Ekki tókst að finna staðsetningu þína.";
+      birtaLocResult(skilabod, true);
+    },
+    { enableHighAccuracy: false, timeout: 10000, maximumAge: 5 * 60 * 1000 }
+  );
+}
+
+function naestiStadur(lat, lon) {
+  if (!sidustuGognin || !sidustuGognin.stadir.length) {
+    birtaLocResult("Gögnin eru ekki tilbúin ennþá — reyndu aftur eftir smá stund.", true);
+    return;
+  }
+  let bestur = null;
+  let minFjarlaegd = Infinity;
+  sidustuGognin.stadir.forEach((s) => {
+    const d = haversine(lat, lon, s.lat, s.lon);
+    if (d < minFjarlaegd) {
+      minFjarlaegd = d;
+      bestur = s;
+    }
+  });
+
+  birtaLocResult(`
+    <span>Næst þér: <b>${bestur.nafn}</b> (${minFjarlaegd.toFixed(0)} km) — skor <b>${bestur.skor}</b></span>
+    <button onclick="skodaStad('${bestur.id}')">Skoða á korti</button>
+  `, false);
+}
+
+function skodaStad(id) {
+  const kort = document.getElementById(`stadur-${id}`);
+  if (kort) {
+    kort.scrollIntoView({ behavior: "smooth", block: "center" });
+    kort.classList.add("i-fokus");
+    setTimeout(() => kort.classList.remove("i-fokus"), 2500);
+  }
+  const merki = markerarMap[id];
+  if (merki && leafletMap) {
+    leafletMap.flyTo(merki.getLatLng(), 10);
+    merki.openPopup();
+  }
 }
 
 function skyrsluText(stadur) {
