@@ -96,8 +96,9 @@ def reikna_alla_stadi(dagur=0):
         virkni = scoring.ovation_virkni(stadur["lat"], stadur["lon"], ovation) if ovation else None
         kp = scoring.kp_leitni(kp_spa, myrkur_fra, myrkur_til)
         sky_pct = scoring.medal_skyjahula(cloud, myrkur_fra, myrkur_til)
+        tungl_uppi = scoring.tungl_uppi_hlutfall(dagar_gogn, dagur, myrkur_fra, myrkur_til)
 
-        ut = scoring.reikna_skor(virkni, kp, sky_pct, tungl_pct, myrkur_fra, myrkur_til)
+        ut = scoring.reikna_skor(virkni, kp, sky_pct, tungl_pct, tungl_uppi, myrkur_fra, myrkur_til)
 
         nidurstodur.append({
             "id": stadur["id"],
@@ -115,6 +116,7 @@ def reikna_alla_stadi(dagur=0):
                 "kp_leitni": kp,
                 "sky_hlutfall": sky_pct,
                 "tungl_birta_pct": tungl_pct,
+                "tungl_uppi_hlutfall": tungl_uppi,
                 "myrkur_fra": myrkur_fra.isoformat() if myrkur_fra else None,
                 "myrkur_til": myrkur_til.isoformat() if myrkur_til else None,
             },

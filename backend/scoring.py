@@ -6,7 +6,7 @@ nætur er engin staðbundin virknimæling til (OVATION er bara núgildisspá)
 fyrir allt landið, ekki staðbundin. Skýjahula vegur þyngst því norðurljós
 sjást einfaldlega ekki gegnum ský, óháð virkni."""
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 
 def ovation_virkni(lat, lon, ovation_data):
@@ -48,12 +48,60 @@ def medal_skyjahula(skyjahula, myrkur_fra, myrkur_til):
     return sum(gildi) / len(gildi) if gildi else None
 
 
-def reikna_skor(virkni, kp, sky_pct, tungl_pct, myrkur_fra, myrkur_til):
+def _tungl_bil_fyrir_dag(dagsfaersla):
+    """Skilar lista af (upphaf, endir) tímabilum sem tunglið er yfir
+    sjóndeildarhring innan almanaksdagsins sem dagsfaersla lýsir. Höndlar
+    daga þar sem tunglið sest fyrir uppkomu (uppi um miðnætti) og daga þar
+    sem annaðhvort uppkoma eða setur fellur ekki á daginn sjálfan."""
+    dags_upphaf = datetime.combine(dagsfaersla["dags"], datetime.min.time(), tzinfo=timezone.utc)
+    dags_lok = dags_upphaf + timedelta(days=1)
+    r = dagsfaersla["tungl_upp"]
+    s = dagsfaersla["tungl_nidur"]
+
+    if dagsfaersla["tungl_alltaf_uppi"]:
+        return [(dags_upphaf, dags_lok)]
+    if dagsfaersla["tungl_alltaf_nidri"]:
+        return []
+    if r and s:
+        return [(r, s)] if r <= s else [(dags_upphaf, s), (r, dags_lok)]
+    if r and not s:
+        return [(r, dags_lok)]
+    if s and not r:
+        return [(dags_upphaf, s)]
+    return []
+
+
+def tungl_uppi_hlutfall(dagar_gogn, dagur, myrkur_fra, myrkur_til):
+    """Hlutfall (0-1) af myrkurglugganum sem tunglið er yfir sjóndeildar-
+    hring. Notað til að refsa aðeins fyrir tunglbirtu þann tíma sem
+    tunglið er raunverulega uppi - ekki allan gluggann óháð því."""
+    if not dagar_gogn or not myrkur_fra or not myrkur_til or myrkur_til <= myrkur_fra:
+        return None
+
+    bil = []
+    for i in (dagur, dagur + 1):
+        if i < len(dagar_gogn):
+            bil.extend(_tungl_bil_fyrir_dag(dagar_gogn[i]))
+
+    heild_sek = 0.0
+    for upphaf, endir in bil:
+        skorun_upphaf = max(upphaf, myrkur_fra)
+        skorun_endir = min(endir, myrkur_til)
+        if skorun_endir > skorun_upphaf:
+            heild_sek += (skorun_endir - skorun_upphaf).total_seconds()
+
+    lengd_sek = (myrkur_til - myrkur_fra).total_seconds()
+    return min(1.0, heild_sek / lengd_sek) if lengd_sek > 0 else None
+
+
+def reikna_skor(virkni, kp, sky_pct, tungl_pct, tungl_uppi, myrkur_fra, myrkur_til):
     if myrkur_fra is None or myrkur_til is None or myrkur_til <= myrkur_fra:
         return {"skor": 0.0, "ástæða": "ekkert marktækt myrkur á tímabilinu"}
 
     heidskirt_stig = 100 - (sky_pct if sky_pct is not None else 50)
-    tungl_stig = 100 - (tungl_pct if tungl_pct is not None else 30)
+    tungl_birta = tungl_pct if tungl_pct is not None else 30
+    tungl_upp_hlutf = tungl_uppi if tungl_uppi is not None else 1.0
+    tungl_stig = 100 - (tungl_birta * tungl_upp_hlutf)
     kp_stig = min((kp or 0) / 9.0, 1.0) * 100 if kp is not None else 50.0
 
     if virkni is not None:

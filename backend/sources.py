@@ -97,6 +97,10 @@ def sott_myrkur_tungl(lat, lon, dagar=4):
                 "dusk": _thattid(d.isoformat(), gogn["dusk"]),
                 "dawn": _thattid(d.isoformat(), gogn["dawn"]),
                 "tungl_birta_pct": float(gogn["moon_illumination"]),
+                "tungl_upp": _thattid(d.isoformat(), gogn["moonrise"]) if gogn.get("moonrise") else None,
+                "tungl_nidur": _thattid(d.isoformat(), gogn["moonset"]) if gogn.get("moonset") else None,
+                "tungl_alltaf_uppi": bool(gogn.get("moon_always_up")),
+                "tungl_alltaf_nidri": bool(gogn.get("moon_always_down")),
             })
             time.sleep(0.3)
         return ut
