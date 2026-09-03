@@ -66,6 +66,11 @@
   footer { margin: 56px 0 40px; padding-top: 24px; border-top: 1px solid var(--border); font-size: 13px; color: var(--text-muted); line-height: 1.6; }
   .loading, .error { padding: 40px; text-align: center; color: var(--text-muted); }
   .error { color: var(--amber-dark); }
+
+  .day-tabs { display: flex; gap: 8px; margin-top: 32px; }
+  .day-tab { font-family: "Fredoka", system-ui, sans-serif; font-weight: 600; font-size: 14.5px; padding: 10px 18px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-muted); cursor: pointer; }
+  .day-tab.virkur { background: var(--night-1); color: white; border-color: var(--night-1); }
+  .forecast-note { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: rgba(255,255,255,0.6); margin-top: 10px; }
 </style>
 </head>
 <body>
@@ -80,6 +85,8 @@
       <a href="#gogn">Um gögnin</a>
     </div>
   </nav>
+
+  <div class="day-tabs" id="dagatabs"></div>
 
   <div id="content">
     <div class="loading">Sæki nýjustu gögn …</div>
@@ -96,6 +103,33 @@ const COLOR_AMBER = "oklch(0.74 0.15 55)";
 const COLOR_GREY = "oklch(0.65 0.02 265)";
 
 let leafletMap = null;
+let valinnDagur = 0;
+
+const VIKUDAGA_KVOLD = ["sunnudagskvöld", "mánudagskvöld", "þriðjudagskvöld", "miðvikudagskvöld", "fimmtudagskvöld", "föstudagskvöld", "laugardagskvöld"];
+
+function dagsMerki(offset) {
+  if (offset === 0) return "Í kvöld";
+  if (offset === 1) return "Annað kvöld";
+  const nu = new Date();
+  const d = new Date(Date.UTC(nu.getUTCFullYear(), nu.getUTCMonth(), nu.getUTCDate() + offset));
+  const orð = VIKUDAGA_KVOLD[d.getUTCDay()];
+  return orð.charAt(0).toUpperCase() + orð.slice(1);
+}
+
+function teiknaTabs() {
+  const html = [0, 1, 2].map(d =>
+    `<button class="day-tab ${d === valinnDagur ? "virkur" : ""}" onclick="setDagur(${d})">${dagsMerki(d)}</button>`
+  ).join("");
+  document.getElementById("dagatabs").innerHTML = html;
+}
+
+function setDagur(d) {
+  if (d === valinnDagur) return;
+  valinnDagur = d;
+  teiknaTabs();
+  document.getElementById("content").innerHTML = '<div class="loading">Sæki nýjustu gögn …</div>';
+  saekja();
+}
 
 const HEIMILDIR = [
   { heiti: "NOAA SWPC — norðurljósavirkni", lysing: "OVATION-líkanið og Kp-spá, uppfært á 30–60 mín fresti.", litur: "var(--teal)" },
@@ -109,8 +143,11 @@ function tier(skor) {
   return { litur: COLOR_GREY, texti: "Óhagstætt" };
 }
 
-function birtaVirkni(v) {
-  return v == null ? "?" : `${v}/14`;
+function birtaVirkniEdaKp(s) {
+  const v = s.hra_gogn.virkni_ovation;
+  if (v != null) return { merki: "Virkni", gildi: `${v}/14` };
+  const kp = s.hra_gogn.kp_leitni;
+  return { merki: "Kp-spá", gildi: kp != null ? `${kp.toFixed(1)}/9 (landsvísu)` : "?" };
 }
 
 function birtaSky(s) {
@@ -129,6 +166,7 @@ function teikna(gogn) {
   const bestTier = tier(bestur.skor);
   const uppfaert = new Date(gogn.reiknad);
   const minAgo = Math.max(0, Math.round((Date.now() - uppfaert.getTime()) / 60000));
+  const erSpa = bestur.nakvaemni === "spá";
 
   const html = `
     <div class="hero">
@@ -137,9 +175,10 @@ function teikna(gogn) {
         <path d="M0 170 C50 120 90 200 140 130 C165 95 185 120 215 90" stroke="var(--amber)" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.5"/>
       </svg>
       <div class="hero-copy">
-        <div class="pill" style="background: rgba(255,255,255,0.14); color:white;">Uppfært fyrir ${minAgo} mín</div>
-        <div class="hero-title">Í kvöld eru bestu líkurnar við ${bestur.nafn}</div>
+        <div class="pill" style="background: rgba(255,255,255,0.14); color:white;">${gogn.dagur === 0 ? `Uppfært fyrir ${minAgo} mín` : "Spá — ekki bein mæling"}</div>
+        <div class="hero-title">${dagsMerki(gogn.dagur)} eru bestu líkurnar við ${bestur.nafn}</div>
         <div class="hero-desc">${skyrsluText(bestur)}</div>
+        ${erSpa ? `<div class="forecast-note">Byggt á Kp-spá (landsvísu) + staðbundinni skýjaspá — ekki jafn nákvæmt og bein norðurljósamæling.</div>` : ""}
       </div>
       <div class="score-card">
         <div style="font-size:13px; color:rgba(255,255,255,0.65); font-weight:500; margin-bottom:8px;">Norðurljósaskor</div>
@@ -151,7 +190,7 @@ function teikna(gogn) {
     <div class="row">
       <div class="panel">
         <div class="display" style="font-size:19px; font-weight:600;">Skorið á kortinu</div>
-        <div style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">Litur sýnir gæði skilyrða í kvöld · smelltu á punkt fyrir nánar</div>
+        <div style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">Litur sýnir gæði skilyrða ${dagsMerki(gogn.dagur).toLowerCase()} · smelltu á punkt fyrir nánar</div>
         <div id="map"></div>
         <div class="legend">
           <span><i style="background:${COLOR_TEAL};"></i>Frábært</span>
@@ -175,19 +214,20 @@ function teikna(gogn) {
 
     <div id="stadir" style="margin-top:48px;">
       <div style="display:flex; align-items:baseline; justify-content:space-between;">
-        <div class="display" style="font-size:24px; font-weight:600;">Allir staðir í kvöld</div>
+        <div class="display" style="font-size:24px; font-weight:600;">Allir staðir ${dagsMerki(gogn.dagur).toLowerCase()}</div>
         <div style="font-size:13px; color:var(--text-muted);">${stadir.length} staðir · reiknað kl. ${uppfaert.toLocaleTimeString("is-IS", { hour: "2-digit", minute: "2-digit", timeZone: "UTC" })}</div>
       </div>
       <div class="grid">
         ${stadir.map(s => {
           const t = tier(s.skor);
+          const vk = birtaVirkniEdaKp(s);
           return `
           <div class="card">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px;">
               <div class="display" style="font-size:17px; font-weight:600;">${s.nafn}</div>
               <div class="pill" style="background:${t.litur}; color:var(--night-1);">${s.skor}</div>
             </div>
-            <div class="card-row"><span>Virkni</span> ${birtaVirkni(s.hra_gogn.virkni_ovation)}</div>
+            <div class="card-row"><span>${vk.merki}</span> ${vk.gildi}</div>
             <div class="card-row"><span>Skýjahula</span> ${birtaSky(s.hra_gogn.sky_hlutfall)}</div>
             <div class="card-row"><span>Myrkur</span> ${birtaMyrkur(s.hra_gogn.myrkur_fra, s.hra_gogn.myrkur_til)}</div>
           </div>`;
@@ -212,6 +252,7 @@ function initMap(stadir) {
 
   stadir.forEach(s => {
     const t = tier(s.skor);
+    const vk = birtaVirkniEdaKp(s);
     L.circleMarker([s.lat, s.lon], {
       radius: 9,
       color: "white",
@@ -224,7 +265,7 @@ function initMap(stadir) {
         <div class="map-popup">
           <div class="display">${s.nafn}</div>
           <div>Skor: <b>${s.skor}</b> · ${t.texti}</div>
-          <div>Virkni ${birtaVirkni(s.hra_gogn.virkni_ovation)} · Ský ${birtaSky(s.hra_gogn.sky_hlutfall)}</div>
+          <div>${vk.merki} ${vk.gildi} · Ský ${birtaSky(s.hra_gogn.sky_hlutfall)}</div>
         </div>
       `);
   });
@@ -240,7 +281,7 @@ function skyrsluText(stadur) {
 
 async function saekja() {
   try {
-    const svar = await fetch("/api/skor");
+    const svar = await fetch(`/api/skor?dagur=${valinnDagur}`);
     if (!svar.ok) throw new Error("HTTP " + svar.status);
     const gogn = await svar.json();
     teikna(gogn);
@@ -250,6 +291,7 @@ async function saekja() {
   }
 }
 
+teiknaTabs();
 saekja();
 setInterval(saekja, 5 * 60 * 1000);
 </script>
