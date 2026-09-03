@@ -145,7 +145,7 @@ function tier(skor) {
 
 function birtaVirkniEdaKp(s) {
   const v = s.hra_gogn.virkni_ovation;
-  if (v != null) return { merki: "Virkni", gildi: `${v}/14` };
+  if (v != null) return { merki: "Virkni", gildi: `${Math.round(v)}% líkur` };
   const kp = s.hra_gogn.kp_leitni;
   return { merki: "Kp-spá", gildi: kp != null ? `${kp.toFixed(1)}/9 (landsvísu)` : "?" };
 }
