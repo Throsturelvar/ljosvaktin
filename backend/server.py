@@ -99,6 +99,7 @@ def reikna_alla_stadi(dagur=0):
         sky_opacitet = scoring.medal_skyjaopacitet(cloud, myrkur_fra, myrkur_til)
         tungl_uppi = scoring.tungl_uppi_hlutfall(dagar_gogn, dagur, myrkur_fra, myrkur_til)
         uv_haest = scoring.haestu_uv_dagsins(cloud, nott["dags"]) if nott else None
+        hiti, hiti_finnst = scoring.hiti_vid_myrkur(cloud, myrkur_fra)
 
         ut = scoring.reikna_skor(virkni, kp, sky_opacitet, tungl_pct, tungl_uppi, myrkur_fra, myrkur_til)
 
@@ -120,6 +121,8 @@ def reikna_alla_stadi(dagur=0):
                 "tungl_birta_pct": tungl_pct,
                 "tungl_uppi_hlutfall": tungl_uppi,
                 "uv_haest_i_dag": uv_haest,
+                "hiti": hiti,
+                "hiti_finnst": hiti_finnst,
                 "myrkur_fra": myrkur_fra.isoformat() if myrkur_fra else None,
                 "myrkur_til": myrkur_til.isoformat() if myrkur_til else None,
             },

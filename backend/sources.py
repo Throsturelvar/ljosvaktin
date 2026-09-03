@@ -73,6 +73,8 @@ def sott_skyjahula(lat, lon):
                 "midlungs": smaatt.get("cloud_area_fraction_medium"),
                 "hatt": smaatt.get("cloud_area_fraction_high"),
                 "uv_heidskirt": smaatt.get("ultraviolet_index_clear_sky"),
+                "hiti": smaatt.get("air_temperature"),
+                "hiti_finnst": smaatt.get("apparent_air_temperature"),
             }
         return ut
     except Exception as e:

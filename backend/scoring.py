@@ -137,6 +137,17 @@ def tungl_uppi_hlutfall(dagar_gogn, dagur, myrkur_fra, myrkur_til):
     return min(1.0, heild_sek / lengd_sek) if lengd_sek > 0 else None
 
 
+def hiti_vid_myrkur(skyjahula, myrkur_fra):
+    """Hitastig og 'finnst eins og' á þeim tímapunkti sem næst kemur upphafi
+    myrkurgluggans (dusk) - eingöngu til upplýsinga, hefur ekki áhrif á
+    skorið sjálft."""
+    if not skyjahula or not myrkur_fra:
+        return None, None
+    naestur = min(skyjahula.items(), key=lambda kv: abs((kv[0] - myrkur_fra).total_seconds()))
+    p = naestur[1]
+    return p.get("hiti"), p.get("hiti_finnst")
+
+
 def reikna_skor(virkni, kp, sky_opacitet, tungl_pct, tungl_uppi, myrkur_fra, myrkur_til):
     if myrkur_fra is None or myrkur_til is None or myrkur_til <= myrkur_fra:
         return {"skor": 0.0, "ástæða": "ekkert marktækt myrkur á tímabilinu"}
