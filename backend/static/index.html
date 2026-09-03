@@ -154,6 +154,10 @@ function birtaSky(s) {
   return s == null ? "?" : `${Math.round(s)}%`;
 }
 
+function birtaUv(uv) {
+  return uv == null ? "?" : uv.toFixed(1);
+}
+
 function birtaMyrkur(fra, til) {
   if (!fra || !til) return "?";
   const t = (iso) => new Date(iso).toLocaleTimeString("is-IS", { hour: "2-digit", minute: "2-digit", timeZone: "UTC" });
@@ -230,6 +234,7 @@ function teikna(gogn) {
             <div class="card-row"><span>${vk.merki}</span> ${vk.gildi}</div>
             <div class="card-row"><span>Skýjahula</span> ${birtaSky(s.hra_gogn.sky_hlutfall)}</div>
             <div class="card-row"><span>Myrkur</span> ${birtaMyrkur(s.hra_gogn.myrkur_fra, s.hra_gogn.myrkur_til)}</div>
+            <div class="card-row"><span>UV í dag</span> ${birtaUv(s.hra_gogn.uv_haest_i_dag)}</div>
           </div>`;
         }).join("")}
       </div>
