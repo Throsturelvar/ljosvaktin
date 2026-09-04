@@ -1,508 +1,727 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="is">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ljósvaktin</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Work+Sans:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
-  :root {
-    --bg: oklch(0.17 0.028 270);
-    --bg-card: oklch(0.22 0.032 270);
-    --text: oklch(0.95 0.012 95);
-    --text-muted: oklch(0.68 0.025 270);
-    --border: oklch(0.34 0.03 270);
-    --night-1: oklch(0.13 0.035 270);
-    --night-2: oklch(0.24 0.09 300);
-    --teal: oklch(0.75 0.15 152);
-    --teal-dark: oklch(0.55 0.13 152);
-    --violet: oklch(0.68 0.17 305);
-    --violet-dark: oklch(0.5 0.15 305);
-    --amber: oklch(0.78 0.14 65);
-    --amber-dark: oklch(0.6 0.14 60);
-    --grey: oklch(0.55 0.02 270);
-  }
-  * { box-sizing: border-box; }
-  body { margin: 0; font-family: "Work Sans", system-ui, sans-serif; background: var(--bg); color: var(--text); }
-  h1, h2, h3, .display { font-family: "Instrument Serif", Georgia, serif; font-weight: 400; }
-  a { color: var(--teal); text-decoration: none; }
-  a:hover { color: var(--violet); }
-  .pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; }
-  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 14px 26px; border-radius: 999px; font-family: "Work Sans", system-ui, sans-serif; font-weight: 600; font-size: 16px; cursor: pointer; border: none; }
-  .wrap { max-width: 1320px; margin: 0 auto; padding: 0 32px; }
+  :root{
+    /* Nóttin: djúpt indigó frekar en svart — skjárinn á að vera læsilegur úti í myrkri */
+    --nott:        #0F1726;
+    --djup:        #0A101C;
+    --flotur:      #16202F;
+    --lina:        #23304400;
+    --lina-syn:    rgba(232,227,214,.13);
 
-  nav { position: sticky; top: 0; z-index: 50; display: flex; align-items: center; justify-content: space-between; padding: 20px 0; border-bottom: 1px solid var(--border); background: oklch(0.17 0.028 270 / 0.85); backdrop-filter: blur(10px); }
-  nav .links { display: flex; gap: 32px; font-size: 15px; font-weight: 500; color: var(--text-muted); }
-  @media (max-width: 720px) { nav .links { display: none; } }
+    /* Lampaljós: hlýtt beinhvítt í stað hreinhvíts */
+    --bein:        #EDE7D9;
+    --daufur:      #98A2B6;
+    --daufari:     #6B7689;
 
-  .hero { position: relative; margin: 36px 0 0; border-radius: 26px; overflow: hidden; background: linear-gradient(135deg, var(--night-1), var(--night-2)); padding: 48px; display: flex; align-items: center; justify-content: space-between; gap: 40px; flex-wrap: wrap; color: white; }
-  .aurora-bg { position: absolute; inset: 0; width: 100%; height: 100%; }
-  .aurora-wave { animation: auroraDrift 11s ease-in-out infinite; transform-origin: center; }
-  .aurora-wave.w2 { animation-duration: 15s; animation-delay: -4s; }
-  .aurora-wave.w3 { animation-duration: 19s; animation-delay: -8s; }
-  @keyframes auroraDrift {
-    0%, 100% { transform: translateY(0) scaleY(1); opacity: 0.55; }
-    50% { transform: translateY(-12px) scaleY(1.08); opacity: 0.9; }
-  }
-  .star { fill: white; animation: twinkle 3.6s ease-in-out infinite; }
-  @keyframes twinkle { 0%, 100% { opacity: 0.12; } 50% { opacity: 0.85; } }
-  .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--teal); display: inline-block; animation: pulseDot 2s ease-in-out infinite; }
-  @keyframes pulseDot {
-    0%, 100% { box-shadow: 0 0 0 0 oklch(0.75 0.15 152 / 0.55); }
-    50% { box-shadow: 0 0 0 5px oklch(0.75 0.15 152 / 0); }
-  }
-  .hero-copy { max-width: 600px; z-index: 1; }
-  .hero-title { font-family: "Instrument Serif", Georgia, serif; font-weight: 400; font-size: 44px; line-height: 1.15; margin: 16px 0; }
-  .hero-desc { font-size: 16px; color: rgba(255,255,255,0.78); line-height: 1.6; margin-bottom: 8px; }
-  .score-card { z-index: 1; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.16); border-radius: 20px; padding: 28px 34px; text-align: center; min-width: 180px; }
-  .score-num { font-family: "Instrument Serif", Georgia, serif; font-style: italic; font-weight: 400; font-size: 64px; color: var(--teal); line-height: 1; }
+    /* Grænt er GÖGN, ekki skraut. Það er eingöngu notað fyrir norðurljósavirkni. */
+    --aur-1:       #1F5A45;
+    --aur-2:       #2F8A65;
+    --aur-3:       #48C98C;
+    --aur-4:       #6FF0B4;
 
-  .row { display: flex; gap: 28px; margin: 40px 0 0; flex-wrap: wrap; }
-  .row > * { flex: 1; min-width: 320px; }
-  .panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: 22px; padding: 28px; }
-  .panel-dark { background: var(--night-1); border-radius: 22px; padding: 28px; color: white; }
+    /* Gull er aðgerðin — vitaljósið. */
+    --gull:        #E9C26B;
+    --gull-dimm:   #8A6F32;
 
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 40px; }
-  .card { position: relative; background: var(--bg-card); border: 1px solid var(--border); border-radius: 18px; padding: 22px; animation: cardIn 0.5s ease backwards; transition: transform 0.18s ease, box-shadow 0.18s ease; }
-  .card:hover { transform: translateY(-4px); box-shadow: 0 12px 26px -10px oklch(0.24 0.02 265 / 0.2); }
-  .card.besti { border-color: var(--teal); box-shadow: 0 0 0 1px var(--teal), 0 14px 30px -12px oklch(0.75 0.15 152 / 0.4); }
-  .besti-bordi { position: absolute; top: -11px; right: 18px; background: var(--teal); color: var(--night-1); font-family: "Work Sans", system-ui, sans-serif; font-weight: 700; font-size: 11.5px; padding: 4px 12px; border-radius: 999px; }
-  @keyframes cardIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
-  .card-row { display: flex; align-items: flex-start; gap: 10px; font-size: 13.5px; margin-top: 8px; }
-  .card-row span:first-of-type { color: var(--text-muted); min-width: 92px; flex-shrink: 0; }
+    --sky:         #7C89A0;
 
-  #content.fade-in { animation: contentFadeIn 0.35s ease; }
-  @keyframes contentFadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-  @media (prefers-reduced-motion: reduce) {
-    .aurora-wave, .star, .live-dot, .card, #content.fade-in { animation: none !important; }
+    --br:          3px;
   }
 
-  .source-item { display: flex; gap: 12px; align-items: flex-start; background: rgba(255,255,255,0.06); border-radius: 14px; padding: 13px 15px; margin-top: 12px; }
-  .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 6px; }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;
+    background:var(--nott);
+    color:var(--bein);
+    font-family:"IBM Plex Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+    font-size:16px;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  /* Mjög dauf hallandi birta efst — norðurljós sem umhverfi, ekki sem grafík */
+  body::before{
+    content:"";
+    position:fixed; inset:0 0 auto 0; height:60vh;
+    background:radial-gradient(120% 80% at 20% 0%, rgba(47,138,101,.20) 0%, rgba(47,138,101,.06) 38%, transparent 70%);
+    pointer-events:none; z-index:0;
+  }
+  .wrap{position:relative; z-index:1; max-width:1080px; margin:0 auto; padding:0 20px}
 
-  #map { width: 100%; height: 320px; border-radius: 14px; margin-top: 4px; }
-  .legend { display: flex; gap: 20px; margin-top: 12px; font-size: 13px; color: var(--text-muted); }
-  .legend span { display: flex; align-items: center; gap: 6px; }
-  .legend i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-  .map-popup { font-family: "Work Sans", sans-serif; color: var(--text); }
-  .map-popup .display { font-family: "Instrument Serif", Georgia, serif; font-size: 17px; font-weight: 400; margin-bottom: 4px; }
-  .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: var(--bg-card); color: var(--text); }
-  .leaflet-popup-close-button { color: var(--text-muted) !important; }
-  .leaflet-control-attribution { background: oklch(0.17 0.028 270 / 0.7) !important; color: rgba(255,255,255,0.55) !important; }
-  .leaflet-control-attribution a { color: rgba(255,255,255,0.8) !important; }
-  .leaflet-control-zoom a { background: var(--bg-card) !important; color: var(--text) !important; border-color: var(--border) !important; }
+  a{color:inherit}
+  :focus-visible{outline:2px solid var(--gull); outline-offset:3px; border-radius:2px}
 
-  footer { margin: 56px 0 40px; padding-top: 24px; border-top: 1px solid var(--border); font-size: 13px; color: var(--text-muted); line-height: 1.6; }
-  .loading, .error { padding: 40px; text-align: center; color: var(--text-muted); }
-  .error { color: var(--amber); }
+  /* ---------- Haus ---------- */
+  header{display:flex; align-items:baseline; justify-content:space-between; gap:16px; padding:22px 0 6px; flex-wrap:wrap}
+  .merki{display:flex; align-items:center; gap:10px; font-family:"Newsreader",Georgia,serif; font-size:24px; letter-spacing:.005em}
+  .viti{width:9px; height:9px; border-radius:50%; background:var(--gull); box-shadow:0 0 0 4px rgba(233,194,107,.14), 0 0 14px 2px rgba(233,194,107,.45); flex:none}
+  nav{display:flex; gap:22px; font-size:14px; color:var(--daufur)}
+  nav a{text-decoration:none; padding-bottom:2px; border-bottom:1px solid transparent}
+  nav a:hover{color:var(--bein); border-bottom-color:var(--gull-dimm)}
 
-  .day-tabs { display: flex; gap: 8px; margin-top: 32px; }
-  .day-tab { font-family: "Work Sans", system-ui, sans-serif; font-weight: 600; font-size: 14.5px; padding: 10px 18px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-muted); cursor: pointer; }
-  .day-tab.virkur { background: var(--teal); color: var(--night-1); border-color: var(--teal); }
-  .forecast-note { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: rgba(255,255,255,0.6); margin-top: 10px; }
+  /* ---------- Staðarval ---------- */
+  .stadarrod{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:26px 0 18px}
+  .veljari{position:relative}
+  select{
+    appearance:none; background:var(--flotur); color:var(--bein); border:1px solid var(--lina-syn);
+    border-radius:var(--br); padding:9px 38px 9px 13px; font:inherit; font-size:15px; cursor:pointer;
+  }
+  select:hover{border-color:rgba(233,194,107,.4)}
+  .veljari::after{content:""; position:absolute; right:14px; top:50%; width:7px; height:7px; margin-top:-5px;
+    border-right:1.5px solid var(--daufur); border-bottom:1.5px solid var(--daufur); transform:rotate(45deg); pointer-events:none}
+  .hnappur{
+    background:transparent; color:var(--gull); border:1px solid var(--gull-dimm); border-radius:var(--br);
+    padding:9px 14px; font:inherit; font-size:15px; cursor:pointer;
+  }
+  .hnappur:hover{background:rgba(233,194,107,.10)}
+  .hnappur[disabled]{opacity:.5; cursor:default}
+  .stadastada{font-size:13px; color:var(--daufari)}
 
-  .loc-btn { display: inline-flex; align-items: center; gap: 7px; font-family: "Work Sans", system-ui, sans-serif; font-weight: 600; font-size: 14px; padding: 9px 16px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text); cursor: pointer; }
-  .loc-btn:hover { border-color: var(--teal); }
-  .loc-btn.leita { opacity: 0.6; cursor: wait; }
-  .loc-result { margin-top: 16px; padding: 14px 18px; border-radius: 14px; background: var(--bg-card); border: 1px solid var(--border); font-size: 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-  .loc-result.villa { border-color: var(--amber); color: var(--amber); }
-  .loc-result button { font-family: "Work Sans", system-ui, sans-serif; font-weight: 600; font-size: 13px; padding: 7px 14px; border-radius: 999px; border: none; background: var(--teal); color: var(--night-1); cursor: pointer; }
-  .card.i-fokus { outline: 3px solid var(--teal); outline-offset: 2px; }
+  /* ---------- Dómurinn ---------- */
+  .domur{padding-bottom:6px}
+  .domlina{display:flex; align-items:flex-end; justify-content:space-between; gap:28px; flex-wrap:wrap}
+  .domlina h1{flex:1 1 auto}
+  .einkunn{text-align:right; padding-bottom:16px; flex:none}
+  .einkunn .tala{display:block; font-family:"Newsreader",Georgia,serif; font-size:clamp(3.2rem,10vw,5rem); line-height:.85; font-variant-numeric:tabular-nums; letter-spacing:-.02em}
+  .einkunn .undir{display:block; font-size:12.5px; color:var(--daufari); margin-top:8px}
+  .domur h1{
+    font-family:"Newsreader",Georgia,serif; font-weight:400;
+    font-size:clamp(2.9rem, 9vw, 4.6rem); line-height:1.0; margin:0 0 14px;
+    letter-spacing:-.015em;
+  }
+  .domur h1 .st{font-style:italic; color:var(--daufur); display:block; font-size:.34em; line-height:1.4; letter-spacing:0; margin-bottom:.5em}
+  .skyring{font-size:19px; line-height:1.5; max-width:36em; color:var(--bein); margin:0 0 4px}
+  .skyring .veik{color:var(--daufur)}
+
+  /* ---------- Vaktbandið ---------- */
+  .band{margin:34px 0 0}
+  .band-haus{display:flex; align-items:baseline; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:10px}
+  .band-titill{font-family:"Newsreader",Georgia,serif; font-size:20px}
+  .band-timi{font-size:13px; color:var(--daufari); font-variant-numeric:tabular-nums}
+
+  .sulur{display:flex; gap:3px; align-items:flex-end; background:var(--djup); border:1px solid var(--lina-syn); border-radius:var(--br); padding:10px 10px 8px}
+  .sula{flex:1 1 0; min-width:0; display:flex; flex-direction:column; align-items:stretch; gap:6px; cursor:default}
+  .staeda{position:relative; height:132px; background:linear-gradient(180deg, rgba(255,255,255,.030), rgba(255,255,255,.012)); border-radius:2px; overflow:hidden}
+  .fylli{position:absolute; left:0; right:0; bottom:0; border-radius:2px 2px 0 0}
+  .slaeda{position:absolute; inset:0;
+    background:
+      repeating-linear-gradient(115deg, rgba(124,137,160,.55) 0 2px, rgba(124,137,160,.16) 2px 6px);
+  }
+  .sula.bjart .staeda{box-shadow:inset 0 0 0 1px rgba(233,194,107,.55)}
+  .klst{font-size:12px; text-align:center; color:var(--daufur); font-variant-numeric:tabular-nums}
+  .sula.bjart .klst{color:var(--gull)}
+  .sula.utan .staeda{background:repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 1px, transparent 1px 5px)}
+
+  @media (prefers-reduced-motion: no-preference){
+    .fylli.lifandi{animation:bylgja 9s ease-in-out infinite}
+  }
+  @keyframes bylgja{0%,100%{opacity:.86} 50%{opacity:1}}
+
+  .gluggi{margin-top:12px; display:flex; align-items:center; gap:10px; font-size:15px}
+  .gluggi .bogi{flex:none; width:26px; height:10px; border:1px solid var(--gull); border-bottom:0; border-radius:6px 6px 0 0}
+  .skyringar{margin-top:12px; font-size:13.5px; color:var(--daufari); max-width:52em; line-height:1.6}
+
+  /* ---------- Virknin og kvarðinn ---------- */
+  .virknispjald{
+    display:grid; grid-template-columns:auto 1fr; gap:26px; align-items:start;
+    border:1px solid var(--lina-syn); border-radius:var(--br); padding:20px 20px 18px; margin:38px 0 12px;
+  }
+  .virknispjald .heiti{font-size:13.5px; color:var(--daufur); margin-bottom:6px}
+  .kptala{font-family:"Newsreader",Georgia,serif; font-size:46px; line-height:1; color:var(--aur-4); font-variant-numeric:tabular-nums; white-space:nowrap}
+  .kpstada{font-size:16.5px; margin-bottom:2px}
+  .kptexti{font-size:14.5px; color:var(--daufur); max-width:44em; margin:6px 0 0; line-height:1.55}
+  .kpaukagildi{font-size:13px; color:var(--daufari); margin-top:8px}
+
+  .kvardi{position:relative; margin-top:2px}
+  .reinar{display:flex; gap:2px; height:14px}
+  .reinar span{flex:1; border-radius:1px; background:rgba(255,255,255,.07)}
+  .kvardi-merki{position:absolute; top:-4px; bottom:-4px; width:1px; background:var(--bein); opacity:.55}
+  .kvardi-fotur{display:flex; justify-content:space-between; margin-top:5px; font-size:11.5px; color:var(--daufari); font-variant-numeric:tabular-nums}
+  .kvardi-mork{font-size:11.5px; color:var(--daufur); margin-top:4px}
+
+  /* ---------- Hin skilyrðin ---------- */
+  .skilyrdi{display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--lina-syn); border:1px solid var(--lina-syn); border-radius:var(--br); margin:0; overflow:hidden}
+  .reit{background:var(--nott); padding:16px 16px 15px}
+  .reit .heiti{font-size:13.5px; color:var(--daufur); margin-bottom:6px}
+  .reit .gildi{font-family:"Newsreader",Georgia,serif; font-size:30px; line-height:1.1; font-variant-numeric:tabular-nums}
+  .reit .aukagildi{font-size:13px; color:var(--daufari); margin-top:4px}
+  .reit .gildi.gron{color:var(--aur-4)}
+  .reit .gildi.gullin{color:var(--gull)}
+
+  /* ---------- Staðir ---------- */
+  section{padding-top:56px}
+  h2{font-family:"Newsreader",Georgia,serif; font-weight:400; font-size:28px; margin:0 0 8px}
+  .undirtexti{color:var(--daufur); font-size:15.5px; max-width:44em; margin:0 0 20px}
+
+  .listi{border-top:1px solid var(--lina-syn)}
+  .rod{
+    display:grid; grid-template-columns:1.4fr .7fr .8fr .9fr 82px; align-items:center; gap:14px;
+    padding:13px 4px; border-bottom:1px solid var(--lina-syn); width:100%;
+    background:none; border-left:0; border-right:0; border-top:0; color:inherit; font:inherit; text-align:left; cursor:pointer;
+  }
+  .rod:hover{background:rgba(255,255,255,.028)}
+  .rod.valin{background:rgba(233,194,107,.07)}
+  .rod .nafn{font-size:16.5px}
+  .rod .nafn small{display:block; color:var(--daufari); font-size:12.5px}
+  .rod .talna{font-size:14px; color:var(--daufur); font-variant-numeric:tabular-nums}
+  .maelir{height:6px; background:rgba(255,255,255,.07); border-radius:3px; overflow:hidden}
+  .maelir i{display:block; height:100%; border-radius:3px}
+  .einkunnsella{display:flex; flex-direction:column; gap:5px; align-items:stretch}
+  .einkunnsella b{font-weight:500; font-size:14px; text-align:right; font-variant-numeric:tabular-nums}
+  .haus-rod{display:grid; grid-template-columns:1.4fr .7fr .8fr .9fr 82px; gap:14px; padding:0 4px 8px; font-size:12.5px; color:var(--daufari)}
+  .rod .hiti{color:var(--bein)}
+  .rod .hiti small{display:block; color:var(--daufari); font-size:11.5px}
+
+  /* ---------- Kortið ---------- */
+  .kortumgerd{background:var(--djup); border:1px solid var(--lina-syn); border-radius:var(--br); padding:10px 10px 6px; margin-bottom:30px}
+  #kort{height:460px; border-radius:2px; background:var(--djup); z-index:0}
+  .leaflet-container{font-family:"IBM Plex Sans",system-ui,sans-serif; background:var(--djup); outline:none}
+  .leaflet-control-zoom a{background:rgba(22,32,47,.92); color:var(--bein); border-color:rgba(232,227,214,.14)}
+  .leaflet-control-zoom a:hover{background:rgba(35,48,68,.95); color:var(--gull)}
+  .leaflet-control-attribution{background:rgba(10,16,28,.78); color:var(--daufari); font-size:11px}
+  .leaflet-control-attribution a{color:var(--daufur)}
+  .merkitext{background:none; border:0; box-shadow:none; color:var(--daufur); font-size:12px; padding:0; font-weight:500; text-shadow:0 1px 3px rgba(10,16,28,.95)}
+  .merkitext.valin{color:var(--bein)}
+  .merkitext::before{display:none}
+  .kort-fotur{display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap; padding:8px 4px 4px; font-size:12.5px; color:var(--daufari)}
+
+  /* ---------- Um gögnin ---------- */
+  .gogn{display:grid; grid-template-columns:repeat(3,1fr); gap:26px; margin-top:8px}
+  .gogn h3{font-size:15px; font-weight:600; margin:0 0 6px}
+  .gogn p{margin:0; font-size:14.5px; color:var(--daufur); line-height:1.6}
+  .gogn a{color:var(--gull); text-decoration:none; border-bottom:1px solid var(--gull-dimm)}
+
+  footer{margin-top:64px; padding:22px 0 40px; border-top:1px solid var(--lina-syn); color:var(--daufari); font-size:13.5px; display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap}
+  .merkimidi{border:1px solid var(--lina-syn); border-radius:20px; padding:2px 10px; font-size:12px}
+
+  /* ---------- Símar ---------- */
+  @media (max-width:760px){
+    .skilyrdi{grid-template-columns:repeat(2,1fr)}
+    .gogn{grid-template-columns:1fr; gap:20px}
+    .staeda{height:110px}
+    .klst{font-size:10.5px}
+    .rod, .haus-rod{grid-template-columns:1.25fr .6fr .7fr 56px; gap:10px}
+    .virknispjald{grid-template-columns:1fr; gap:16px; padding:18px 16px}
+    .kptala{font-size:38px}
+    .einkunn{text-align:left; padding-bottom:4px}
+    #kort{height:340px}
+    .rod .gluggidalkur, .haus-rod .gluggidalkur{display:none}
+    .skyring{font-size:17.5px}
+  }
+  @media (max-width:420px){
+    .sulur{gap:2px; padding:8px 6px 6px}
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <nav>
-    <div style="display:flex; align-items:center; gap:12px;">
-      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17c2-4 4-6 6-6s3 4 5 4 3-5 6-5"/><path d="M3 12c2-3.5 4-5 6-5s3 3.5 5 3.5 3-4.5 6-4.5"/></svg>
-      <div class="display" style="font-size:22px;">Ljósvaktin</div>
-    </div>
-    <div style="display:flex; align-items:center; gap:24px;">
-      <div class="links">
-        <a href="#stadir">Allir staðir</a>
-        <a href="#gogn">Um gögnin</a>
-      </div>
-      <button class="loc-btn" id="locBtn" onclick="finnaStadsetningu()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.5-7-11a7 7 0 1 1 14 0c0 4.5-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>
-        <span id="locBtnText">Nálægt mér</span>
-      </button>
-    </div>
-  </nav>
 
-  <div class="day-tabs" id="dagatabs"></div>
-  <div id="locResult"></div>
+  <header>
+    <div class="merki"><span class="viti" aria-hidden="true"></span>Ljósvaktin</div>
+    <nav>
+      <a href="#stadir">Staðir</a>
+      <a href="#gogn">Um gögnin</a>
+    </nav>
+  </header>
 
-  <div id="content">
-    <div class="loading">Sæki nýjustu gögn …</div>
+  <div class="stadarrod">
+    <div class="veljari">
+      <select id="stadarval" aria-label="Veldu stað"></select>
+    </div>
+    <button class="hnappur" id="finnamig">Finna mig</button>
+    <span class="stadastada" id="stadastada"></span>
   </div>
 
+  <main>
+    <div class="domur">
+      <div class="domlina">
+        <h1><span class="st" id="stadur-lina">Reykjavík í nótt</span><span id="domur-texti">–</span></h1>
+        <div class="einkunn">
+          <span class="tala" id="einkunn-tala">–</span>
+          <span class="undir">einkunn af 100</span>
+        </div>
+      </div>
+      <p class="skyring" id="skyring">Sæki nýjustu gögn …</p>
+    </div>
+
+    <div class="band">
+      <div class="band-haus">
+        <div class="band-titill">Vaktin í nótt</div>
+        <div class="band-timi" id="band-timi"></div>
+      </div>
+      <div class="sulur" id="sulur"></div>
+      <div class="gluggi" id="gluggi"></div>
+      <p class="skyringar">Græna fyllingin sýnir norðurljósavirknina, gráa slæðan skýin yfir staðnum. Bandið spannar nóttina frá sólsetri til sólarupprásar.</p>
+    </div>
+
+    <div class="virknispjald" id="virkni"></div>
+    <div class="skilyrdi" id="skilyrdi"></div>
+
+    <section id="stadir">
+      <h2>Staðir á landinu</h2>
+      <p class="undirtexti">Virknin er sú sama um allt land í nótt. Það eru skýin sem ráða hvar hún sést. Einkunnin vegur saman virkni, skýjahulu, myrkur og tunglsljós — 100 væri fullkomin nótt.</p>
+      <div class="kortumgerd">
+        <div id="kort"></div>
+        <div class="kort-fotur">
+          <span>Stærð og litur punkts sýna einkunn næturinnar, gráa hringinn skýjahuluna.</span>
+          <span>Smelltu á stað til að sjá vaktina hans.</span>
+        </div>
+      </div>
+
+      <div class="haus-rod">
+        <span>Staður</span>
+        <span>Skýjahula</span>
+        <span>Hiti</span>
+        <span class="gluggidalkur">Besti glugginn</span>
+        <span style="text-align:right">Einkunn</span>
+      </div>
+      <div class="listi" id="listi"></div>
+    </section>
+
+    <section id="gogn">
+      <h2>Um gögnin</h2>
+      <p class="undirtexti">Þrjár opnar veitur, endurnýjaðar reglulega í bakendanum. Engin skráning, engin lykilorð.</p>
+      <div class="gogn">
+        <div>
+          <h3>Norðurljósavirkni</h3>
+          <p><a href="https://www.swpc.noaa.gov/" target="_blank" rel="noopener">NOAA SWPC</a> mælir truflanir í segulsviði jarðar og gefur út Kp-stuðulinn ásamt spá fyrir næstu klukkustundir.</p>
+        </div>
+        <div>
+          <h3>Skýjahula, hiti og vindur</h3>
+          <p><a href="https://api.met.no/" target="_blank" rel="noopener">MET Noregi</a> gefur út klukkustundarspá fyrir hvern stað. Vindkælingin er reiknuð úr hita og vindhraða með stöðluðu formúlunni.</p>
+        </div>
+        <div>
+          <h3>Myrkur og tungl</h3>
+          <p><a href="https://sunrisesunset.io/" target="_blank" rel="noopener">sunrisesunset.io</a> reiknar sólsetur, myrkur og tunglstöðu eftir hnitum staðarins.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
   <footer>
-    Gögn frá NOAA SWPC (norðurljósavirkni), MET Noregi (skýjahula) og sunrisesunset.io (myrkur og tungl). Öll gögn eru opin og aðgengileg án skráningar. · Ljósvaktin · frumgerð
+    <span>Ljósvaktin sýnir líkur, ekki loforð. Norðurljós fara sínu fram.</span>
+    <span class="merkimidi">frumgerð</span>
   </footer>
 </div>
 
 <script>
-const COLOR_TEAL = "oklch(0.75 0.15 152)";
-const COLOR_TEAL_LIGHT = "oklch(0.82 0.09 152)";
-const COLOR_TEAL_DARK = "oklch(0.55 0.15 152)";
-const COLOR_VIOLET = "oklch(0.68 0.17 305)";
-const COLOR_AMBER = "oklch(0.78 0.14 65)";
-const COLOR_GREY = "oklch(0.55 0.02 270)";
+/* =========================================================================
+   GÖGN — sótt frá bakendanum (server.py, /api/vakt). Formið sem kemur til
+   baka er nákvæmlega:
+     nott      { solsetur, solarupprás, myrkurFra, myrkurTil, klst[] }
+     kpSpa[]   ein tala fyrir hverja klukkustund í klst[] (línuleg brúun úr
+               3ja klst NOAA Kp-spánni)
+     tungl     { fasi 0-1, upprás, heiti }
+     stadir[]  { id, nafn, hluti, lat, lon, sky[] (raunveruleg klst-fyrir-
+               klst skýjahula frá MET Noregi - ekki ágiskuð eins og í
+               frumgerðinni), hiti, vindur }
+   ========================================================================= */
 
-let leafletMap = null;
-let markerarMap = {};
-let sidustuGognin = null;
-let valinnDagur = 0;
+let nott = null;
+let kpSpa = [];
+let tungl = null;
+let metnir = [];
+let n = 0;
+let valinn = null;
+let valinnNafn = null;
 
-const VIKUDAGA_KVOLD = ["sunnudagskvöld", "mánudagskvöld", "þriðjudagskvöld", "miðvikudagskvöld", "fimmtudagskvöld", "föstudagskvöld", "laugardagskvöld"];
+/* ---------- Útreikningar ---------- */
 
-function dagsMerki(offset) {
-  if (offset === 0) return "Í kvöld";
-  if (offset === 1) return "Annað kvöld";
-  const nu = new Date();
-  const d = new Date(Date.UTC(nu.getUTCFullYear(), nu.getUTCMonth(), nu.getUTCDate() + offset));
-  const orð = VIKUDAGA_KVOLD[d.getUTCDay()];
-  return orð.charAt(0).toUpperCase() + orð.slice(1);
+function myrkurStudull(klst){
+  // 0 = bjart, 1 = fullt myrkur, 0.45 = rökkur
+  const h = klst;
+  const inn = t => parseInt(t.slice(0,2),10);
+  const ss = inn(nott.solsetur), su = inn(nott.solarupprás);
+  const mf = inn(nott.myrkurFra), mt = inn(nott.myrkurTil);
+  const eftirMidnaetti = h < 12;
+  const m = eftirMidnaetti ? h + 24 : h;
+  const ssX = ss, suX = su + 24, mfX = mf, mtX = mt + 24;
+  if(m < ssX || m > suX) return 0;
+  if(m >= mfX && m <= mtX) return 1;
+  return 0.45;
 }
 
-function teiknaTabs() {
-  const html = [0, 1, 2].map(d =>
-    `<button class="day-tab ${d === valinnDagur ? "virkur" : ""}" onclick="setDagur(${d})">${dagsMerki(d)}</button>`
-  ).join("");
-  document.getElementById("dagatabs").innerHTML = html;
+function stig(kp, sky, myrkur){
+  const virkni = Math.min(kp / 7, 1);
+  const heidrikja = 1 - 0.92 * (sky / 100);
+  const tunglThattur = 1 - 0.22 * tungl.fasi;
+  return virkni * heidrikja * myrkur * tunglThattur;
 }
 
-function setDagur(d) {
-  if (d === valinnDagur) return;
-  valinnDagur = d;
-  teiknaTabs();
-  document.getElementById("content").innerHTML = '<div class="loading">Sæki nýjustu gögn …</div>';
-  saekja();
+function vindkaeling(hiti, vindur){
+  // Staðlaða vindkælingarformúlan. Gildir undir 10°C og yfir 1,3 m/s.
+  const v = vindur * 3.6;
+  if(hiti > 10 || v < 4.8) return hiti;
+  const p = Math.pow(v, 0.16);
+  return Math.round(13.12 + 0.6215*hiti - 11.37*p + 0.3965*hiti*p);
 }
 
-const HEIMILDIR = [
-  {
-    heiti: "NOAA SWPC — norðurljósavirkni",
-    lysing: "OVATION-líkanið og Kp-spá, uppfært á 30–60 mín fresti.",
-    litur: "var(--teal)",
-    utskyring: "Norðurljósavirkni er prósentulíkur á að norðurljós sjáist á hverjum stað. NOAA reiknar hana með OVATION-líkaninu út frá mælingum á sólvindi frá gervitungli í um 1,6 milljón km fjarlægð frá jörðu, og spáin nær 30–90 mínútur fram í tímann.",
-    stig: [
-      { heiti: "Lítil virkni", bil: "0–20%", litur: COLOR_GREY },
-      { heiti: "Meðal virkni", bil: "20–50%", litur: COLOR_TEAL_LIGHT },
-      { heiti: "Mikil virkni", bil: "50–80%", litur: COLOR_TEAL },
-      { heiti: "Mjög mikil virkni", bil: "80–100%", litur: COLOR_TEAL_DARK },
-    ],
-  },
-  { heiti: "MET Noregur", lysing: "Skýjaspá fyrir hvern stað.", litur: "var(--amber)" },
-  { heiti: "sunrisesunset.io", lysing: "Nákvæmur myrkurgluggi og tunglbirta.", litur: "var(--amber)" },
-];
+function kpLysing(kp){
+  if(kp < 2)  return { heiti:"Lítil virkni",
+    texti:"Daufur bogi lágt í norðri. Þarf myrkur, heiðskírt og fjarlægð frá bæjarljósum." };
+  if(kp < 3)  return { heiti:"Venjuleg virkni",
+    texti:"Sést vel utan þéttbýlis. Þetta er algengasta staðan á góðri norðurljósanótt." };
+  if(kp < 5)  return { heiti:"Töluverð virkni",
+    texti:"Ljósið nær hærra á himininn og sést víða um land, líka í útjaðri bæja." };
+  if(kp < 6)  return { heiti:"Segulstormur",
+    texti:"Ljósið liggur oft yfir öllu landinu og sést úr þéttbýli. Hreyfing og litir verða greinilegri." };
+  if(kp < 7)  return { heiti:"Sterkur segulstormur",
+    texti:"Bjart og kvikt ljós beint yfir höfði, jafnvel í miðri Reykjavík." };
+  return { heiti:"Mikill segulstormur",
+    texti:"Sjaldgæft. Ljósið getur fyllt himininn og sést langt suður fyrir Ísland." };
+}
 
-function stjornuSvg(fjoldi) {
-  let ut = "";
-  for (let i = 0; i < fjoldi; i++) {
-    const x = Math.round(Math.random() * 800);
-    const y = Math.round(Math.random() * 190);
-    const r = (Math.random() * 1.1 + 0.5).toFixed(1);
-    const seinkun = (Math.random() * 3.6).toFixed(1);
-    ut += `<circle class="star" cx="${x}" cy="${y}" r="${r}" style="animation-delay:${seinkun}s"/>`;
+function metaStad(s){
+  const sky = s.sky;
+  const stigin = nott.klst.map((h,i) => stig(kpSpa[i], sky[i], myrkurStudull(h)));
+  const best = Math.max(...stigin);
+  // Finnur samfellda gluggann þar sem stigin eru a.m.k. 80% af því besta
+  let fra = -1, til = -1;
+  for(let i=0;i<n;i++){
+    if(stigin[i] >= best*0.8 && best > 0.05){ if(fra<0) fra=i; til=i; }
+    else if(fra>=0 && stigin[i] < best*0.8 && til>=0 && i>til+0) { /* heldur fyrsta glugganum */ }
   }
-  return ut;
+  return { ...s, sky, stigin, best, gluggiFra:fra, gluggiTil:til };
 }
 
-function teiknaSkorTolu(elId, markgildi) {
-  const el = document.getElementById(elId);
-  if (!el) return;
-  const timi = 700;
-  const t0 = performance.now();
-  function stig(nu) {
-    const framvinda = Math.min(1, (nu - t0) / timi);
-    const mytkt = 1 - Math.pow(1 - framvinda, 3);
-    el.textContent = (markgildi * mytkt).toFixed(1);
-    if (framvinda < 1) requestAnimationFrame(stig);
+function domsordi(s){
+  if(s < 0.12) return "Litlar líkur";
+  if(s < 0.30) return "Sæmilegar líkur";
+  if(s < 0.55) return "Góðar líkur";
+  return "Kjöraðstæður";
+}
+
+function klstTexti(i){ return String(nott.klst[i]).padStart(2,"0") + ":00"; }
+function tala(x){ return x.toFixed(1).replace(".", ","); }
+
+function litur(v){
+  // v: 0-1 → græni skalinn. Grænt er eingöngu notað fyrir virkni.
+  if(v < 0.25) return "var(--aur-1)";
+  if(v < 0.5)  return "var(--aur-2)";
+  if(v < 0.75) return "var(--aur-3)";
+  return "var(--aur-4)";
+}
+
+/* ---------- Kortið (Leaflet + OpenStreetMap) ---------- */
+let kortObj = null, punktalag = null;
+
+function teiknaKort(){
+  if(typeof L === "undefined"){ return; }   // Leaflet náðist ekki — kortið er þá einfaldlega tómt
+
+  if(!kortObj){
+    kortObj = L.map("kort", { scrollWheelZoom:false, minZoom:5, maxZoom:11 });
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+      subdomains:"abcd", maxZoom:11,
+      attribution:'Kortagögn frá <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, flísar frá <a href="https://carto.com/attributions">CARTO</a>'
+    }).addTo(kortObj);
+    kortObj.fitBounds([[63.30,-24.60],[66.60,-13.40]], { padding:[12,12] });
+    punktalag = L.layerGroup().addTo(kortObj);
   }
-  requestAnimationFrame(stig);
-}
 
-function tier(skor) {
-  if (skor >= 65) return { litur: COLOR_TEAL, texti: "Frábært" };
-  if (skor >= 40) return { litur: COLOR_AMBER, texti: "Sæmilegt" };
-  return { litur: COLOR_GREY, texti: "Óhagstætt" };
-}
+  punktalag.clearLayers();
+  const bestur = metnir[0];
 
-function birtaVirkniEdaKp(s) {
-  const v = s.hra_gogn.virkni_ovation;
-  if (v != null) return { merki: "Norðurljósavirkni", gildi: `${Math.round(v)}%` };
-  const kp = s.hra_gogn.kp_leitni;
-  return { merki: "Kp-spá", gildi: kp != null ? `${kp.toFixed(1)}/9 (landsvísu)` : "?" };
-}
+  // Glóð undir besta staðnum
+  L.circleMarker([bestur.lat, bestur.lon], {
+    radius: 30, stroke:false, fillColor:"#6FF0B4", fillOpacity:.10, interactive:false
+  }).addTo(punktalag);
 
-function birtaSky(s) {
-  return s == null ? "?" : `${Math.round(s)}%`;
-}
+  metnir.slice().sort((a,b) => a.best - b.best).forEach(p => {
+    const medalsky = Math.round(p.sky.reduce((a,b)=>a+b,0)/n);
+    const einkunn  = Math.round(p.best * 100);
+    const r = 5 + p.best * 11;
 
-function birtaUv(uv) {
-  return uv == null ? "?" : uv.toFixed(1);
-}
-
-function birtaHiti(hiti, hitiFinnst) {
-  if (hiti == null) return "?";
-  const finnst = hitiFinnst != null && Math.round(hitiFinnst) !== Math.round(hiti)
-    ? ` (finnst ${Math.round(hitiFinnst)}°)`
-    : "";
-  return `${Math.round(hiti)}°C${finnst}`;
-}
-
-function birtaMyrkur(fra, til) {
-  if (!fra || !til) return "?";
-  const t = (iso) => new Date(iso).toLocaleTimeString("is-IS", { hour: "2-digit", minute: "2-digit", timeZone: "UTC" });
-  return `${t(fra)}–${t(til)}`;
-}
-
-function teikna(gogn) {
-  const stadir = gogn.stadir;
-  const bestur = stadir[0];
-  const bestTier = tier(bestur.skor);
-  const uppfaert = new Date(gogn.reiknad);
-  const minAgo = Math.max(0, Math.round((Date.now() - uppfaert.getTime()) / 60000));
-  const erSpa = bestur.nakvaemni === "spá";
-
-  const html = `
-    <div class="hero">
-      <svg class="aurora-bg" viewBox="0 0 800 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-        ${stjornuSvg(35)}
-        <path class="aurora-wave w1" d="M-50 190 C120 110 220 230 380 140 C480 90 560 150 650 100 C720 65 780 90 850 60" stroke="${COLOR_TEAL}" stroke-width="16" fill="none" stroke-linecap="round" opacity="0.55"/>
-        <path class="aurora-wave w2" d="M-50 225 C100 265 250 155 400 215 C520 260 600 185 700 215 C760 230 800 205 850 225" stroke="${COLOR_TEAL_LIGHT}" stroke-width="11" fill="none" stroke-linecap="round" opacity="0.4"/>
-        <path class="aurora-wave w3" d="M-50 150 C150 90 300 190 450 120 C560 75 650 130 850 80" stroke="${COLOR_VIOLET}" stroke-width="9" fill="none" stroke-linecap="round" opacity="0.4"/>
-      </svg>
-      <div class="hero-copy">
-        <div class="pill" style="background: rgba(255,255,255,0.14); color:white;">${gogn.dagur === 0 ? `<span class="live-dot"></span> Uppfært fyrir ${minAgo} mín` : "Spá — ekki bein mæling"}</div>
-        <div class="hero-title">${dagsMerki(gogn.dagur)} eru bestu líkurnar við ${bestur.nafn}</div>
-        <div class="hero-desc">${skyrsluText(bestur)}</div>
-        ${erSpa ? `<div class="forecast-note">Byggt á Kp-spá (landsvísu) + staðbundinni skýjaspá — ekki jafn nákvæmt og bein norðurljósamæling.</div>` : ""}
-      </div>
-      <div class="score-card">
-        <div style="font-size:13px; color:rgba(255,255,255,0.65); font-weight:500; margin-bottom:8px;">Norðurljósaskor</div>
-        <div class="score-num" id="heroSkor">0.0</div>
-        <div class="pill" style="background:${bestTier.litur}; color:var(--night-1); margin-top:12px;">${bestTier.texti} tækifæri</div>
-      </div>
-    </div>
-
-    <div class="row">
-      <div class="panel">
-        <div class="display" style="font-size:19px;">Skorið á kortinu</div>
-        <div style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">Litur sýnir gæði skilyrða ${dagsMerki(gogn.dagur).toLowerCase()} · smelltu á punkt fyrir nánar</div>
-        <div id="map"></div>
-        <div class="legend">
-          <span><i style="background:${COLOR_TEAL};"></i>Frábært</span>
-          <span><i style="background:${COLOR_AMBER};"></i>Sæmilegt</span>
-          <span><i style="background:${COLOR_GREY};"></i>Óhagstætt</span>
-        </div>
-      </div>
-    </div>
-
-    <div id="stadir" style="margin-top:48px;">
-      <div style="display:flex; align-items:baseline; justify-content:space-between;">
-        <div class="display" style="font-size:24px;">Allir staðir ${dagsMerki(gogn.dagur).toLowerCase()}</div>
-        <div style="font-size:13px; color:var(--text-muted);">${stadir.length} staðir · reiknað kl. ${uppfaert.toLocaleTimeString("is-IS", { hour: "2-digit", minute: "2-digit", timeZone: "UTC" })}</div>
-      </div>
-      <div class="grid">
-        ${stadir.map((s, i) => {
-          const t = tier(s.skor);
-          const vk = birtaVirkniEdaKp(s);
-          const erBestur = i === 0;
-          return `
-          <div class="card ${erBestur ? "besti" : ""}" id="stadur-${s.id}" style="animation-delay:${Math.min(i, 8) * 45}ms">
-            ${erBestur ? `<div class="besti-bordi">Besti staðurinn</div>` : ""}
-            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px;">
-              <div class="display" style="font-size:17px;">${s.nafn}</div>
-              <div class="pill" style="background:${t.litur}; color:var(--night-1);">${s.skor}</div>
-            </div>
-            <div class="card-row"><span>${vk.merki}</span> ${vk.gildi}</div>
-            <div class="card-row"><span>Skýjahula</span> ${birtaSky(s.hra_gogn.sky_hlutfall)}</div>
-            <div class="card-row"><span>Myrkur</span> ${birtaMyrkur(s.hra_gogn.myrkur_fra, s.hra_gogn.myrkur_til)}</div>
-            <div class="card-row"><span>Hiti</span> ${birtaHiti(s.hra_gogn.hiti, s.hra_gogn.hiti_finnst)}</div>
-            <div class="card-row"><span>UV í dag</span> ${birtaUv(s.hra_gogn.uv_haest_i_dag)}</div>
-          </div>`;
-        }).join("")}
-      </div>
-    </div>
-
-    <div class="panel-dark" id="gogn" style="margin-top:48px;">
-      <div class="display" style="font-size:19px;">Áreiðanleg, opin gögn</div>
-      <div style="font-size:13px; color:rgba(255,255,255,0.6);">Skorið reiknað úr þremur opinberum gagnaveitum</div>
-      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:12px; margin-top:12px;">
-        ${HEIMILDIR.map(h => `
-          <div class="source-item" style="margin-top:0;">
-            <div class="dot" style="background:${h.litur};"></div>
-            <div>
-              <div style="font-weight:600; font-size:14px;">${h.heiti}</div>
-              <div style="font-size:12.5px; color:rgba(255,255,255,0.6); line-height:1.5;">${h.lysing}</div>
-              ${h.utskyring ? `<div style="font-size:12px; color:rgba(255,255,255,0.55); line-height:1.55; margin-top:8px;">${h.utskyring}</div>` : ""}
-              ${h.stig ? `
-                <div style="display:flex; flex-direction:column; gap:7px; margin-top:10px;">
-                  ${h.stig.map(st => `
-                    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:12px; color:rgba(255,255,255,0.75);">
-                      <span style="display:flex; align-items:center; gap:7px; white-space:nowrap;">
-                        <span style="width:8px; height:8px; border-radius:50%; background:${st.litur}; flex-shrink:0;"></span>
-                        ${st.heiti}
-                      </span>
-                      <span style="color:rgba(255,255,255,0.45); white-space:nowrap;">${st.bil}</span>
-                    </div>`).join("")}
-                </div>` : ""}
-            </div>
-          </div>`).join("")}
-      </div>
-    </div>
-  `;
-  const content = document.getElementById("content");
-  content.innerHTML = html;
-  content.classList.remove("fade-in");
-  void content.offsetWidth;
-  content.classList.add("fade-in");
-  sidustuGognin = gogn;
-  initMap(stadir);
-  teiknaSkorTolu("heroSkor", bestur.skor);
-}
-
-function initMap(stadir) {
-  if (leafletMap) {
-    leafletMap.remove();
-    leafletMap = null;
-  }
-  markerarMap = {};
-  leafletMap = L.map("map", { scrollWheelZoom: false }).setView([64.95, -18.7], 6);
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> framlagsaðilar &copy; <a href="https://carto.com/attributions">CARTO</a>',
-    maxZoom: 19,
-    subdomains: "abcd",
-  }).addTo(leafletMap);
-
-  stadir.forEach(s => {
-    const t = tier(s.skor);
-    const vk = birtaVirkniEdaKp(s);
-    const merki = L.circleMarker([s.lat, s.lon], {
-      radius: 9,
-      color: "white",
-      weight: 2,
-      fillColor: t.litur,
-      fillOpacity: 0.9,
-    })
-      .addTo(leafletMap)
-      .bindPopup(`
-        <div class="map-popup">
-          <div class="display">${s.nafn}</div>
-          <div>Skor: <b>${s.skor}</b> · ${t.texti}</div>
-          <div>${vk.merki} ${vk.gildi} · Ský ${birtaSky(s.hra_gogn.sky_hlutfall)}</div>
-        </div>
-      `);
-    markerarMap[s.id] = merki;
-  });
-}
-
-function haversine(lat1, lon1, lat2, lon2) {
-  const R = 6371;
-  const toRad = (d) => (d * Math.PI) / 180;
-  const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
-  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
-  return 2 * R * Math.asin(Math.sqrt(a));
-}
-
-function birtaLocResult(innihald, erVilla) {
-  const box = document.getElementById("locResult");
-  box.className = "loc-result" + (erVilla ? " villa" : "");
-  box.innerHTML = innihald;
-}
-
-function finnaStadsetningu() {
-  if (!navigator.geolocation) {
-    birtaLocResult("Vafrinn þinn styður ekki staðsetningu.", true);
-    return;
-  }
-  const takki = document.getElementById("locBtn");
-  const takkiTexti = document.getElementById("locBtnText");
-  takki.classList.add("leita");
-  takkiTexti.textContent = "Staðset...";
-
-  navigator.geolocation.getCurrentPosition(
-    (stada) => {
-      takki.classList.remove("leita");
-      takkiTexti.textContent = "Nálægt mér";
-      naestiStadur(stada.coords.latitude, stada.coords.longitude);
-    },
-    (villa) => {
-      takki.classList.remove("leita");
-      takkiTexti.textContent = "Nálægt mér";
-      const skilabod = villa.code === villa.PERMISSION_DENIED
-        ? "Leyfi til staðsetningar var hafnað."
-        : "Ekki tókst að finna staðsetningu þína.";
-      birtaLocResult(skilabod, true);
-    },
-    { enableHighAccuracy: false, timeout: 10000, maximumAge: 5 * 60 * 1000 }
-  );
-}
-
-function naestiStadur(lat, lon) {
-  if (!sidustuGognin || !sidustuGognin.stadir.length) {
-    birtaLocResult("Gögnin eru ekki tilbúin ennþá — reyndu aftur eftir smá stund.", true);
-    return;
-  }
-  let bestur = null;
-  let minFjarlaegd = Infinity;
-  sidustuGognin.stadir.forEach((s) => {
-    const d = haversine(lat, lon, s.lat, s.lon);
-    if (d < minFjarlaegd) {
-      minFjarlaegd = d;
-      bestur = s;
+    if(p === valinn){
+      L.circleMarker([p.lat, p.lon], {
+        radius: r + 6, fill:false, color:"#E9C26B", weight:1.2, opacity:.9, interactive:false
+      }).addTo(punktalag);
     }
+
+    const merki = L.circleMarker([p.lat, p.lon], {
+      radius: r,
+      fillColor: litur(p.best),
+      fillOpacity: 0.35 + p.best * 0.6,
+      color: "#7C89A0",                       // grái hringurinn = skýjahulan
+      weight: 2.5,
+      opacity: medalsky / 100 * 0.9
+    }).addTo(punktalag);
+
+    merki.bindTooltip(
+      `${p.nafn} — einkunn ${einkunn}, ${medalsky}% skýjahula, ${p.hiti}°C`,
+      { direction:"top", offset:[0,-r] }
+    );
+
+    if(p === bestur || p === valinn){
+      L.tooltip({
+        permanent:true, direction: p.lon > -17.5 ? "left" : "right",
+        offset:[p.lon > -17.5 ? -(r+4) : r+4, 0],
+        className:"merkitext" + (p === valinn ? " valin" : ""), opacity:1
+      }).setContent(p.nafn).setLatLng([p.lat, p.lon]).addTo(punktalag);
+    }
+
+    merki.on("click", () => {
+      valinn = metnir.find(x => x.nafn === p.nafn);
+      valinnNafn = valinn.nafn;
+      teikna();
+      window.scrollTo({ top:0, behavior:"smooth" });
+    });
+  });
+}
+
+/* ---------- Teikning ---------- */
+
+function teikna(){
+  const s = valinn;
+
+  document.getElementById("stadur-lina").textContent = s.nafn + " í nótt";
+  document.getElementById("domur-texti").textContent = domsordi(s.best);
+
+  const einkunn = Math.round(s.best * 100);
+  const einkunnEl = document.getElementById("einkunn-tala");
+  einkunnEl.textContent = einkunn;
+  einkunnEl.style.color = litur(s.best);
+
+  // Skýringarsetning: hvað er það sem takmarkar nóttina?
+  const skyIGlugga = s.gluggiFra >= 0
+    ? Math.round(s.sky.slice(s.gluggiFra, s.gluggiTil+1).reduce((a,b)=>a+b,0) / (s.gluggiTil-s.gluggiFra+1))
+    : Math.round(s.sky.reduce((a,b)=>a+b,0)/n);
+  const hamarkKp = Math.max(...kpSpa);
+
+  let setning;
+  if(hamarkKp < 3){
+    setning = `Virknin nær aðeins Kp ${tala(hamarkKp)} í nótt. Það þarf heiðan himin og þolinmæði til að sjá nokkuð.`;
+  } else if(skyIGlugga > 70){
+    setning = `Virknin er góð, en skýin liggja yfir ${s.nafn.replace(/^Í/,"í")} nær alla nóttina. ${metnir[0].nafn} er heiðari — þar er útlitið best.`;
+  } else if(skyIGlugga > 40){
+    setning = `Skýjað að hluta, en það rofar til upp úr miðnætti. Virknin toppar í Kp ${tala(hamarkKp)} um sama leyti.`;
+  } else {
+    setning = `Heiðskírt að mestu og virknin toppar í Kp ${tala(hamarkKp)}. Þetta er nótt til að fara út.`;
+  }
+  const finnstNu = vindkaeling(s.hiti, s.vindur);
+  const hitasetning = finnstNu <= 0
+    ? `Það er ${s.hiti}° úti en finnst eins og ${finnstNu}° — það er frostmark á húð.`
+    : finnstNu < s.hiti
+      ? `Það er ${s.hiti}° úti og finnst eins og ${finnstNu}° í vindi.`
+      : `Það er ${s.hiti}° úti og nánast logn.`;
+  const tunglSetning = tungl.upprás
+    ? `Tunglið er ${Math.round(tungl.fasi*100)}% fullt og kemur upp ${tungl.upprás}.`
+    : `Tunglið er ${Math.round(tungl.fasi*100)}% fullt (${tungl.heiti}).`;
+  document.getElementById("skyring").innerHTML = setning +
+    ` <span class="veik">${hitasetning} ${tunglSetning}</span>`;
+
+  document.getElementById("band-timi").textContent =
+    `Sólsetur ${nott.solsetur} — sólarupprás ${nott.solarupprás}`;
+
+  // Súlurnar
+  const sulur = document.getElementById("sulur");
+  sulur.innerHTML = "";
+  nott.klst.forEach((h,i) => {
+    const myrkur = myrkurStudull(h);
+    const virkni = Math.min(kpSpa[i]/7, 1);
+    const hlutfall = Math.round(virkni * 100 * (myrkur > 0 ? 1 : 0.12));
+    const ibesta = s.gluggiFra >= 0 && i >= s.gluggiFra && i <= s.gluggiTil;
+
+    const sula = document.createElement("div");
+    sula.className = "sula" + (ibesta ? " bjart" : "") + (myrkur === 0 ? " utan" : "");
+    sula.title = `${klstTexti(i)} — Kp ${kpSpa[i].toFixed(1)}, ${s.sky[i]}% skýjahula`;
+
+    const staeda = document.createElement("div");
+    staeda.className = "staeda";
+
+    const fylli = document.createElement("div");
+    fylli.className = "fylli" + (ibesta ? " lifandi" : "");
+    fylli.style.height = hlutfall + "%";
+    fylli.style.background = `linear-gradient(180deg, ${litur(virkni)} 0%, rgba(31,90,69,.55) 100%)`;
+    fylli.style.opacity = myrkur === 0 ? .18 : (myrkur === 1 ? 1 : .55);
+    staeda.appendChild(fylli);
+
+    const slaeda = document.createElement("div");
+    slaeda.className = "slaeda";
+    slaeda.style.opacity = (s.sky[i]/100) * 0.9;
+    staeda.appendChild(slaeda);
+
+    const klst = document.createElement("div");
+    klst.className = "klst";
+    klst.textContent = String(h).padStart(2,"0");
+
+    sula.appendChild(staeda);
+    sula.appendChild(klst);
+    sulur.appendChild(sula);
   });
 
-  birtaLocResult(`
-    <span>Næst þér: <b>${bestur.nafn}</b> (${minFjarlaegd.toFixed(0)} km) — skor <b>${bestur.skor}</b></span>
-    <button onclick="skodaStad('${bestur.id}')">Skoða á korti</button>
-  `, false);
-}
-
-function skodaStad(id) {
-  const kort = document.getElementById(`stadur-${id}`);
-  if (kort) {
-    kort.scrollIntoView({ behavior: "smooth", block: "center" });
-    kort.classList.add("i-fokus");
-    setTimeout(() => kort.classList.remove("i-fokus"), 2500);
+  // Besti glugginn
+  const gl = document.getElementById("gluggi");
+  if(s.gluggiFra >= 0){
+    gl.innerHTML = `<span class="bogi" aria-hidden="true"></span>
+      <span>Besti glugginn er <strong>${klstTexti(s.gluggiFra)}–${klstTexti(s.gluggiTil)}</strong>,
+      með ${skyIGlugga}% skýjahulu.</span>`;
+  } else {
+    gl.innerHTML = `<span>Enginn nothæfur gluggi í nótt. Skoðaðu listann hér að neðan — annars staðar á landinu er heiðara.</span>`;
   }
-  const merki = markerarMap[id];
-  if (merki && leafletMap) {
-    leafletMap.flyTo(merki.getLatLng(), 10);
-    merki.openPopup();
+
+  // Virknin með kvarða
+  const kpNu = kpSpa[0];
+  const lys = kpLysing(hamarkKp);
+  const reinar = Array.from({length:9}, (_,i) => {
+    const gildi = i + 1;
+    const virk = hamarkKp >= gildi - 0.5;
+    return `<span${virk ? ` style="background:${litur(Math.min(gildi/7,1))}"` : ""}></span>`;
+  }).join("");
+
+  document.getElementById("virkni").innerHTML = `
+    <div>
+      <div class="heiti">Norðurljósavirkni í nótt</div>
+      <div class="kptala">Kp ${tala(hamarkKp)}</div>
+    </div>
+    <div>
+      <div class="kpstada">${lys.heiti}</div>
+      <div class="kvardi">
+        <div class="reinar">${reinar}</div>
+        <div class="kvardi-merki" style="left:${(2/9*100).toFixed(1)}%"></div>
+        <div class="kvardi-fotur"><span>Kp 0</span><span>Kp 9</span></div>
+      </div>
+      <div class="kvardi-mork">Strikið stendur við Kp 2. Þaðan sjást norðurljós yfirleitt héðan, enda liggur Ísland undir sjálfum norðurljósahringnum.</div>
+      <p class="kptexti">${lys.texti}</p>
+      <div class="kpaukagildi">Kp ${tala(kpNu)} núna, hæst um ${klstTexti(kpSpa.indexOf(hamarkKp))}.</div>
+    </div>`;
+
+  // Hin skilyrðin
+  const finnst = vindkaeling(s.hiti, s.vindur);
+  document.getElementById("skilyrdi").innerHTML = `
+    <div class="reit">
+      <div class="heiti">Skýjahula</div>
+      <div class="gildi">${s.sky[0]}%</div>
+      <div class="aukagildi">Meðaltal nætur: ${Math.round(s.sky.reduce((a,b)=>a+b,0)/n)}%</div>
+    </div>
+    <div class="reit">
+      <div class="heiti">Hiti</div>
+      <div class="gildi">${s.hiti}°C</div>
+      <div class="aukagildi">${finnst < s.hiti ? `Finnst eins og ${finnst}° í ${s.vindur} m/s vindi` : `Vindur ${s.vindur} m/s`}</div>
+    </div>
+    <div class="reit">
+      <div class="heiti">Myrkur</div>
+      <div class="gildi">${nott.myrkurFra}</div>
+      <div class="aukagildi">Fullt myrkur til ${nott.myrkurTil}</div>
+    </div>
+    <div class="reit">
+      <div class="heiti">Tungl</div>
+      <div class="gildi gullin">${Math.round(tungl.fasi*100)}%</div>
+      <div class="aukagildi">${tungl.heiti}${tungl.upprás ? `, upprás ${tungl.upprás}` : ""}</div>
+    </div>`;
+
+  teiknaKort();
+
+  // Staðalistinn
+  const listi = document.getElementById("listi");
+  listi.innerHTML = "";
+  metnir.forEach(p => {
+    const medalsky = Math.round(p.sky.reduce((a,b)=>a+b,0)/n);
+    const pf = vindkaeling(p.hiti, p.vindur);
+    const b = document.createElement("button");
+    b.className = "rod" + (p.nafn === s.nafn ? " valin" : "");
+    b.innerHTML = `
+      <span class="nafn">${p.nafn}<small>${p.hluti}</small></span>
+      <span class="talna">${medalsky}%</span>
+      <span class="talna hiti">${p.hiti}°${pf < p.hiti ? `<small>finnst ${pf}°</small>` : ""}</span>
+      <span class="talna gluggidalkur">${p.gluggiFra >= 0 ? klstTexti(p.gluggiFra)+"–"+klstTexti(p.gluggiTil) : "—"}</span>
+      <span class="einkunnsella">
+        <b>${Math.round(p.best*100)}</b>
+        <span class="maelir"><i style="width:${Math.round(p.best*100)}%; background:${litur(p.best)}"></i></span>
+      </span>`;
+    b.addEventListener("click", () => { valinn = p; valinnNafn = p.nafn; teikna(); window.scrollTo({top:0, behavior:"smooth"}); });
+    listi.appendChild(b);
+  });
+
+  // Staðarvalið
+  const val = document.getElementById("stadarval");
+  if(!val.options.length){
+    metnir.slice().sort((a,b)=>a.nafn.localeCompare(b.nafn,"is")).forEach(p => {
+      const o = document.createElement("option");
+      o.value = p.nafn; o.textContent = p.nafn;
+      val.appendChild(o);
+    });
+    val.addEventListener("change", () => {
+      valinn = metnir.find(p => p.nafn === val.value);
+      valinnNafn = valinn.nafn;
+      teikna();
+    });
   }
+  val.value = s.nafn;
 }
 
-function skyrsluText(stadur) {
-  const sky = stadur.hra_gogn.sky_hlutfall;
-  if (sky == null) return "Gögn um skýjahulu vantar fyrir þennan stað.";
-  if (sky < 30) return "Heiðskírt og góð virkni í kvöld.";
-  if (sky < 70) return "Nokkur ský en enn raunhæft tækifæri.";
-  return "Þykk skýjahula dregur verulega úr líkum í kvöld.";
-}
+/* ---------- Sækja gögn og halda þeim uppfærðum ---------- */
 
-async function saekja() {
+async function saekjaVakt(){
   try {
-    const svar = await fetch(`/api/skor?dagur=${valinnDagur}`);
-    if (!svar.ok) throw new Error("HTTP " + svar.status);
+    const svar = await fetch("/api/vakt?dagur=0");
+    if(!svar.ok) throw new Error("HTTP " + svar.status);
     const gogn = await svar.json();
-    teikna(gogn);
+
+    nott = gogn.nott;
+    kpSpa = gogn.kpSpa;
+    tungl = gogn.tungl;
+    n = nott.klst.length;
+
+    metnir = gogn.stadir.map(metaStad).sort((a,b) => b.best - a.best);
+    valinn = metnir.find(p => p.nafn === valinnNafn)
+      || metnir.find(p => p.nafn === "Reykjavík / Grótta")
+      || metnir[0];
+    valinnNafn = valinn.nafn;
+
+    teikna();
   } catch (villa) {
-    document.getElementById("content").innerHTML =
-      `<div class="error">Ekki tókst að sækja gögn frá bakendanum (${villa.message}). Athugaðu að server.py sé í gangi.</div>`;
+    document.getElementById("skyring").textContent =
+      `Ekki tókst að sækja gögn frá bakendanum (${villa.message}). Athugaðu að netþjónninn sé í gangi.`;
   }
 }
 
-teiknaTabs();
-saekja();
-setInterval(saekja, 5 * 60 * 1000);
+/* ---------- Finna mig ---------- */
+document.getElementById("finnamig").addEventListener("click", e => {
+  const stada = document.getElementById("stadastada");
+  if(!navigator.geolocation){
+    stada.textContent = "Vafrinn styður ekki staðsetningu. Veldu stað úr listanum.";
+    return;
+  }
+  if(!metnir.length){
+    stada.textContent = "Gögnin eru ekki tilbúin ennþá — reyndu aftur eftir smá stund.";
+    return;
+  }
+  e.target.disabled = true;
+  stada.textContent = "Leita að þér …";
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      const { latitude:la, longitude:lo } = pos.coords;
+      let nálægastur = metnir[0], minnst = Infinity;
+      metnir.forEach(p => {
+        const d = Math.hypot((p.lat-la)*111, (p.lon-lo)*47);
+        if(d < minnst){ minnst = d; nálægastur = p; }
+      });
+      valinn = nálægastur;
+      valinnNafn = nálægastur.nafn;
+      stada.textContent = `Næsti staður er ${nálægastur.nafn}, ${Math.round(minnst)} km frá þér.`;
+      e.target.disabled = false;
+      teikna();
+    },
+    () => {
+      stada.textContent = "Staðsetningin fékkst ekki. Veldu stað úr listanum.";
+      e.target.disabled = false;
+    },
+    { timeout: 8000 }
+  );
+});
+
+saekjaVakt();
+setInterval(saekjaVakt, 5 * 60 * 1000);
 </script>
 </body>
 </html>
