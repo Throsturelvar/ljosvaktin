@@ -186,6 +186,7 @@
   .kortumgerd{background:var(--djup); border:1px solid var(--lina-syn); border-radius:var(--br); padding:10px 10px 6px; margin-bottom:30px}
   #kort{height:460px; border-radius:2px; background:var(--djup); z-index:0}
   .leaflet-container{font-family:"IBM Plex Sans",system-ui,sans-serif; background:var(--djup); outline:none}
+  .karta-dokk{filter:invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9) saturate(0.65);}
   .leaflet-control-zoom a{background:rgba(22,32,47,.92); color:var(--bein); border-color:rgba(232,227,214,.14)}
   .leaflet-control-zoom a:hover{background:rgba(35,48,68,.95); color:var(--gull)}
   .leaflet-control-attribution{background:rgba(10,16,28,.78); color:var(--daufari); font-size:11px}
@@ -420,9 +421,9 @@ function teiknaKort(){
 
   if(!kortObj){
     kortObj = L.map("kort", { scrollWheelZoom:false, minZoom:5, maxZoom:11 });
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-      subdomains:"abcd", maxZoom:11,
-      attribution:'Kortagögn frá <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, flísar frá <a href="https://carto.com/attributions">CARTO</a>'
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom:19, className:"karta-dokk",
+      attribution:'Kortagögn frá <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
     }).addTo(kortObj);
     kortObj.fitBounds([[63.30,-24.60],[66.60,-13.40]], { padding:[12,12] });
     punktalag = L.layerGroup().addTo(kortObj);
