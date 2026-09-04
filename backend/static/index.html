@@ -4,35 +4,36 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ljósvaktin</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Work+Sans:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
   :root {
-    --bg: oklch(0.97 0.014 75);
-    --bg-card: oklch(0.995 0.006 75);
-    --bg-card-alt: oklch(0.945 0.018 75);
-    --text: oklch(0.24 0.02 265);
-    --text-muted: oklch(0.5 0.02 265);
-    --border: oklch(0.89 0.015 75);
-    --night-1: oklch(0.26 0.05 270);
-    --night-2: oklch(0.34 0.09 300);
-    --teal: oklch(0.72 0.14 165);
-    --teal-dark: oklch(0.46 0.1 165);
-    --amber: oklch(0.74 0.15 55);
-    --amber-dark: oklch(0.5 0.13 55);
-    --grey: oklch(0.65 0.02 265);
+    --bg: oklch(0.17 0.028 270);
+    --bg-card: oklch(0.22 0.032 270);
+    --text: oklch(0.95 0.012 95);
+    --text-muted: oklch(0.68 0.025 270);
+    --border: oklch(0.34 0.03 270);
+    --night-1: oklch(0.13 0.035 270);
+    --night-2: oklch(0.24 0.09 300);
+    --teal: oklch(0.75 0.15 152);
+    --teal-dark: oklch(0.55 0.13 152);
+    --violet: oklch(0.68 0.17 305);
+    --violet-dark: oklch(0.5 0.15 305);
+    --amber: oklch(0.78 0.14 65);
+    --amber-dark: oklch(0.6 0.14 60);
+    --grey: oklch(0.55 0.02 270);
   }
   * { box-sizing: border-box; }
   body { margin: 0; font-family: "Work Sans", system-ui, sans-serif; background: var(--bg); color: var(--text); }
-  h1, h2, h3, .display { font-family: "Fredoka", system-ui, sans-serif; }
-  a { color: var(--teal-dark); text-decoration: none; }
-  a:hover { color: var(--amber-dark); }
+  h1, h2, h3, .display { font-family: "Instrument Serif", Georgia, serif; font-weight: 400; }
+  a { color: var(--teal); text-decoration: none; }
+  a:hover { color: var(--violet); }
   .pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; }
-  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 14px 26px; border-radius: 999px; font-family: "Fredoka", system-ui, sans-serif; font-weight: 600; font-size: 16px; cursor: pointer; border: none; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 14px 26px; border-radius: 999px; font-family: "Work Sans", system-ui, sans-serif; font-weight: 600; font-size: 16px; cursor: pointer; border: none; }
   .wrap { max-width: 1320px; margin: 0 auto; padding: 0 32px; }
 
-  nav { position: sticky; top: 0; z-index: 50; display: flex; align-items: center; justify-content: space-between; padding: 20px 0; border-bottom: 1px solid var(--border); background: oklch(0.97 0.014 75 / 0.85); backdrop-filter: blur(10px); }
+  nav { position: sticky; top: 0; z-index: 50; display: flex; align-items: center; justify-content: space-between; padding: 20px 0; border-bottom: 1px solid var(--border); background: oklch(0.17 0.028 270 / 0.85); backdrop-filter: blur(10px); }
   nav .links { display: flex; gap: 32px; font-size: 15px; font-weight: 500; color: var(--text-muted); }
   @media (max-width: 720px) { nav .links { display: none; } }
 
@@ -49,14 +50,14 @@
   @keyframes twinkle { 0%, 100% { opacity: 0.12; } 50% { opacity: 0.85; } }
   .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--teal); display: inline-block; animation: pulseDot 2s ease-in-out infinite; }
   @keyframes pulseDot {
-    0%, 100% { box-shadow: 0 0 0 0 oklch(0.72 0.14 165 / 0.55); }
-    50% { box-shadow: 0 0 0 5px oklch(0.72 0.14 165 / 0); }
+    0%, 100% { box-shadow: 0 0 0 0 oklch(0.75 0.15 152 / 0.55); }
+    50% { box-shadow: 0 0 0 5px oklch(0.75 0.15 152 / 0); }
   }
   .hero-copy { max-width: 600px; z-index: 1; }
-  .hero-title { font-size: 38px; font-weight: 600; line-height: 1.2; margin: 16px 0; }
+  .hero-title { font-family: "Instrument Serif", Georgia, serif; font-weight: 400; font-size: 44px; line-height: 1.15; margin: 16px 0; }
   .hero-desc { font-size: 16px; color: rgba(255,255,255,0.78); line-height: 1.6; margin-bottom: 8px; }
-  .score-card { z-index: 1; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.18); border-radius: 20px; padding: 28px 34px; text-align: center; min-width: 180px; }
-  .score-num { font-size: 56px; font-weight: 700; color: var(--teal); line-height: 1; }
+  .score-card { z-index: 1; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.16); border-radius: 20px; padding: 28px 34px; text-align: center; min-width: 180px; }
+  .score-num { font-family: "Instrument Serif", Georgia, serif; font-style: italic; font-weight: 400; font-size: 64px; color: var(--teal); line-height: 1; }
 
   .row { display: flex; gap: 28px; margin: 40px 0 0; flex-wrap: wrap; }
   .row > * { flex: 1; min-width: 320px; }
@@ -66,8 +67,8 @@
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 40px; }
   .card { position: relative; background: var(--bg-card); border: 1px solid var(--border); border-radius: 18px; padding: 22px; animation: cardIn 0.5s ease backwards; transition: transform 0.18s ease, box-shadow 0.18s ease; }
   .card:hover { transform: translateY(-4px); box-shadow: 0 12px 26px -10px oklch(0.24 0.02 265 / 0.2); }
-  .card.besti { border-color: var(--teal); box-shadow: 0 0 0 1px var(--teal), 0 14px 30px -12px oklch(0.72 0.14 165 / 0.4); }
-  .besti-bordi { position: absolute; top: -11px; right: 18px; background: var(--teal); color: var(--night-1); font-family: "Fredoka", system-ui, sans-serif; font-weight: 700; font-size: 11.5px; padding: 4px 12px; border-radius: 999px; }
+  .card.besti { border-color: var(--teal); box-shadow: 0 0 0 1px var(--teal), 0 14px 30px -12px oklch(0.75 0.15 152 / 0.4); }
+  .besti-bordi { position: absolute; top: -11px; right: 18px; background: var(--teal); color: var(--night-1); font-family: "Work Sans", system-ui, sans-serif; font-weight: 700; font-size: 11.5px; padding: 4px 12px; border-radius: 999px; }
   @keyframes cardIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
   .card-row { display: flex; align-items: flex-start; gap: 10px; font-size: 13.5px; margin-top: 8px; }
   .card-row span:first-of-type { color: var(--text-muted); min-width: 92px; flex-shrink: 0; }
@@ -86,24 +87,29 @@
   .legend { display: flex; gap: 20px; margin-top: 12px; font-size: 13px; color: var(--text-muted); }
   .legend span { display: flex; align-items: center; gap: 6px; }
   .legend i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-  .map-popup { font-family: "Work Sans", sans-serif; }
-  .map-popup .display { font-family: "Fredoka", sans-serif; font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .map-popup { font-family: "Work Sans", sans-serif; color: var(--text); }
+  .map-popup .display { font-family: "Instrument Serif", Georgia, serif; font-size: 17px; font-weight: 400; margin-bottom: 4px; }
+  .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: var(--bg-card); color: var(--text); }
+  .leaflet-popup-close-button { color: var(--text-muted) !important; }
+  .leaflet-control-attribution { background: oklch(0.17 0.028 270 / 0.7) !important; color: rgba(255,255,255,0.55) !important; }
+  .leaflet-control-attribution a { color: rgba(255,255,255,0.8) !important; }
+  .leaflet-control-zoom a { background: var(--bg-card) !important; color: var(--text) !important; border-color: var(--border) !important; }
 
   footer { margin: 56px 0 40px; padding-top: 24px; border-top: 1px solid var(--border); font-size: 13px; color: var(--text-muted); line-height: 1.6; }
   .loading, .error { padding: 40px; text-align: center; color: var(--text-muted); }
-  .error { color: var(--amber-dark); }
+  .error { color: var(--amber); }
 
   .day-tabs { display: flex; gap: 8px; margin-top: 32px; }
-  .day-tab { font-family: "Fredoka", system-ui, sans-serif; font-weight: 600; font-size: 14.5px; padding: 10px 18px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-muted); cursor: pointer; }
-  .day-tab.virkur { background: var(--night-1); color: white; border-color: var(--night-1); }
+  .day-tab { font-family: "Work Sans", system-ui, sans-serif; font-weight: 600; font-size: 14.5px; padding: 10px 18px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-muted); cursor: pointer; }
+  .day-tab.virkur { background: var(--teal); color: var(--night-1); border-color: var(--teal); }
   .forecast-note { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: rgba(255,255,255,0.6); margin-top: 10px; }
 
-  .loc-btn { display: inline-flex; align-items: center; gap: 7px; font-family: "Fredoka", system-ui, sans-serif; font-weight: 600; font-size: 14px; padding: 9px 16px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text); cursor: pointer; }
-  .loc-btn:hover { border-color: var(--teal-dark); }
+  .loc-btn { display: inline-flex; align-items: center; gap: 7px; font-family: "Work Sans", system-ui, sans-serif; font-weight: 600; font-size: 14px; padding: 9px 16px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text); cursor: pointer; }
+  .loc-btn:hover { border-color: var(--teal); }
   .loc-btn.leita { opacity: 0.6; cursor: wait; }
   .loc-result { margin-top: 16px; padding: 14px 18px; border-radius: 14px; background: var(--bg-card); border: 1px solid var(--border); font-size: 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-  .loc-result.villa { border-color: var(--amber); color: var(--amber-dark); }
-  .loc-result button { font-family: "Fredoka", system-ui, sans-serif; font-weight: 600; font-size: 13px; padding: 7px 14px; border-radius: 999px; border: none; background: var(--night-1); color: white; cursor: pointer; }
+  .loc-result.villa { border-color: var(--amber); color: var(--amber); }
+  .loc-result button { font-family: "Work Sans", system-ui, sans-serif; font-weight: 600; font-size: 13px; padding: 7px 14px; border-radius: 999px; border: none; background: var(--teal); color: var(--night-1); cursor: pointer; }
   .card.i-fokus { outline: 3px solid var(--teal); outline-offset: 2px; }
 </style>
 </head>
@@ -112,7 +118,7 @@
   <nav>
     <div style="display:flex; align-items:center; gap:12px;">
       <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17c2-4 4-6 6-6s3 4 5 4 3-5 6-5"/><path d="M3 12c2-3.5 4-5 6-5s3 3.5 5 3.5 3-4.5 6-4.5"/></svg>
-      <div class="display" style="font-size:22px; font-weight:600;">Ljósvaktin</div>
+      <div class="display" style="font-size:22px;">Ljósvaktin</div>
     </div>
     <div style="display:flex; align-items:center; gap:24px;">
       <div class="links">
@@ -139,11 +145,12 @@
 </div>
 
 <script>
-const COLOR_TEAL = "oklch(0.72 0.14 165)";
-const COLOR_TEAL_LIGHT = "oklch(0.80 0.09 165)";
-const COLOR_TEAL_DARK = "oklch(0.55 0.15 165)";
-const COLOR_AMBER = "oklch(0.74 0.15 55)";
-const COLOR_GREY = "oklch(0.65 0.02 265)";
+const COLOR_TEAL = "oklch(0.75 0.15 152)";
+const COLOR_TEAL_LIGHT = "oklch(0.82 0.09 152)";
+const COLOR_TEAL_DARK = "oklch(0.55 0.15 152)";
+const COLOR_VIOLET = "oklch(0.68 0.17 305)";
+const COLOR_AMBER = "oklch(0.78 0.14 65)";
+const COLOR_GREY = "oklch(0.55 0.02 270)";
 
 let leafletMap = null;
 let markerarMap = {};
@@ -268,7 +275,7 @@ function teikna(gogn) {
         ${stjornuSvg(35)}
         <path class="aurora-wave w1" d="M-50 190 C120 110 220 230 380 140 C480 90 560 150 650 100 C720 65 780 90 850 60" stroke="${COLOR_TEAL}" stroke-width="16" fill="none" stroke-linecap="round" opacity="0.55"/>
         <path class="aurora-wave w2" d="M-50 225 C100 265 250 155 400 215 C520 260 600 185 700 215 C760 230 800 205 850 225" stroke="${COLOR_TEAL_LIGHT}" stroke-width="11" fill="none" stroke-linecap="round" opacity="0.4"/>
-        <path class="aurora-wave w3" d="M-50 150 C150 90 300 190 450 120 C560 75 650 130 850 80" stroke="${COLOR_AMBER}" stroke-width="9" fill="none" stroke-linecap="round" opacity="0.35"/>
+        <path class="aurora-wave w3" d="M-50 150 C150 90 300 190 450 120 C560 75 650 130 850 80" stroke="${COLOR_VIOLET}" stroke-width="9" fill="none" stroke-linecap="round" opacity="0.4"/>
       </svg>
       <div class="hero-copy">
         <div class="pill" style="background: rgba(255,255,255,0.14); color:white;">${gogn.dagur === 0 ? `<span class="live-dot"></span> Uppfært fyrir ${minAgo} mín` : "Spá — ekki bein mæling"}</div>
@@ -285,7 +292,7 @@ function teikna(gogn) {
 
     <div class="row">
       <div class="panel">
-        <div class="display" style="font-size:19px; font-weight:600;">Skorið á kortinu</div>
+        <div class="display" style="font-size:19px;">Skorið á kortinu</div>
         <div style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">Litur sýnir gæði skilyrða ${dagsMerki(gogn.dagur).toLowerCase()} · smelltu á punkt fyrir nánar</div>
         <div id="map"></div>
         <div class="legend">
@@ -298,7 +305,7 @@ function teikna(gogn) {
 
     <div id="stadir" style="margin-top:48px;">
       <div style="display:flex; align-items:baseline; justify-content:space-between;">
-        <div class="display" style="font-size:24px; font-weight:600;">Allir staðir ${dagsMerki(gogn.dagur).toLowerCase()}</div>
+        <div class="display" style="font-size:24px;">Allir staðir ${dagsMerki(gogn.dagur).toLowerCase()}</div>
         <div style="font-size:13px; color:var(--text-muted);">${stadir.length} staðir · reiknað kl. ${uppfaert.toLocaleTimeString("is-IS", { hour: "2-digit", minute: "2-digit", timeZone: "UTC" })}</div>
       </div>
       <div class="grid">
@@ -310,7 +317,7 @@ function teikna(gogn) {
           <div class="card ${erBestur ? "besti" : ""}" id="stadur-${s.id}" style="animation-delay:${Math.min(i, 8) * 45}ms">
             ${erBestur ? `<div class="besti-bordi">Besti staðurinn</div>` : ""}
             <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px;">
-              <div class="display" style="font-size:17px; font-weight:600;">${s.nafn}</div>
+              <div class="display" style="font-size:17px;">${s.nafn}</div>
               <div class="pill" style="background:${t.litur}; color:var(--night-1);">${s.skor}</div>
             </div>
             <div class="card-row"><span>${vk.merki}</span> ${vk.gildi}</div>
@@ -324,7 +331,7 @@ function teikna(gogn) {
     </div>
 
     <div class="panel-dark" id="gogn" style="margin-top:48px;">
-      <div class="display" style="font-size:19px; font-weight:600;">Áreiðanleg, opin gögn</div>
+      <div class="display" style="font-size:19px;">Áreiðanleg, opin gögn</div>
       <div style="font-size:13px; color:rgba(255,255,255,0.6);">Skorið reiknað úr þremur opinberum gagnaveitum</div>
       <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:12px; margin-top:12px;">
         ${HEIMILDIR.map(h => `
@@ -335,11 +342,14 @@ function teikna(gogn) {
               <div style="font-size:12.5px; color:rgba(255,255,255,0.6); line-height:1.5;">${h.lysing}</div>
               ${h.utskyring ? `<div style="font-size:12px; color:rgba(255,255,255,0.55); line-height:1.55; margin-top:8px;">${h.utskyring}</div>` : ""}
               ${h.stig ? `
-                <div style="display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:6px 14px; margin-top:10px;">
+                <div style="display:flex; flex-direction:column; gap:7px; margin-top:10px;">
                   ${h.stig.map(st => `
-                    <div style="display:flex; align-items:center; gap:7px; font-size:12px; color:rgba(255,255,255,0.75);">
-                      <span style="width:8px; height:8px; border-radius:50%; background:${st.litur}; flex-shrink:0;"></span>
-                      ${st.heiti} <span style="color:rgba(255,255,255,0.45);">${st.bil}</span>
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:12px; color:rgba(255,255,255,0.75);">
+                      <span style="display:flex; align-items:center; gap:7px; white-space:nowrap;">
+                        <span style="width:8px; height:8px; border-radius:50%; background:${st.litur}; flex-shrink:0;"></span>
+                        ${st.heiti}
+                      </span>
+                      <span style="color:rgba(255,255,255,0.45); white-space:nowrap;">${st.bil}</span>
                     </div>`).join("")}
                 </div>` : ""}
             </div>
@@ -364,9 +374,10 @@ function initMap(stadir) {
   }
   markerarMap = {};
   leafletMap = L.map("map", { scrollWheelZoom: false }).setView([64.95, -18.7], 6);
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> framlagsaðilar',
-    maxZoom: 18,
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> framlagsaðilar &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    maxZoom: 19,
+    subdomains: "abcd",
   }).addTo(leafletMap);
 
   stadir.forEach(s => {
