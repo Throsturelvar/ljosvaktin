@@ -149,6 +149,15 @@
   .kvardi-fotur{display:flex; justify-content:space-between; margin-top:5px; font-size:11.5px; color:var(--daufari); font-variant-numeric:tabular-nums}
   .kvardi-mork{font-size:11.5px; color:var(--daufur); margin-top:4px}
 
+  /* ---------- Geimveður núna ---------- */
+  .geimvedur{border:1px solid var(--lina-syn); border-radius:var(--br); padding:20px 20px 18px; margin:0 0 30px}
+  .geimvedur .heiti{font-size:13.5px; color:var(--daufur); margin-bottom:12px; display:flex; align-items:baseline; gap:8px; flex-wrap:wrap}
+  .geimvedur .heiti .maelt{font-size:12px; color:var(--daufari)}
+  .geimvedur-tolur{display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:12px}
+  .geimvedur-tolur .tala{display:block; font-family:"Newsreader",Georgia,serif; font-size:27px; line-height:1.1; font-variant-numeric:tabular-nums; color:var(--aur-4)}
+  .geimvedur-tolur .smaeti{display:block; font-size:11.5px; color:var(--daufari); margin-top:2px}
+  @media (max-width:760px){ .geimvedur-tolur{grid-template-columns:repeat(2,1fr); gap:14px 16px} }
+
   /* ---------- Hin skilyrðin ---------- */
   .skilyrdi{display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--lina-syn); border:1px solid var(--lina-syn); border-radius:var(--br); margin:0; overflow:hidden}
   .reit{background:var(--nott); padding:16px 16px 15px}
@@ -271,6 +280,7 @@
     </div>
 
     <div class="virknispjald" id="virkni"></div>
+    <div class="geimvedur" id="geimvedur"></div>
     <div class="skilyrdi" id="skilyrdi"></div>
 
     <section id="stadir">
@@ -677,6 +687,24 @@ function teikna(){
 
 /* ---------- Sækja gögn og halda þeim uppfærðum ---------- */
 
+function birtaGeimvedur(g){
+  const el = document.getElementById("geimvedur");
+  if(!g || g.bz == null){
+    el.innerHTML = `<div class="heiti">Geimveður núna</div><p class="kptexti">Rauntímagögn um sólvind ekki tiltæk í augnablikinu.</p>`;
+    return;
+  }
+  el.innerHTML = `
+    <div class="heiti">Geimveður núna <span class="maelt">· mælt kl. ${g.maelt ?? "?"}</span></div>
+    <div class="geimvedur-tolur">
+      <div><span class="tala">${g.bz}</span><span class="smaeti">nT · Bz</span></div>
+      <div><span class="tala">${g.bt}</span><span class="smaeti">nT · Bt</span></div>
+      <div><span class="tala">${g.hradi ?? "–"}</span><span class="smaeti">km/s · hraði</span></div>
+      <div><span class="tala">${g.thettleiki ?? "–"}</span><span class="smaeti">agnir/cm³</span></div>
+    </div>
+    <p class="kptexti">${g.tulkun}</p>
+    <p class="kpaukagildi">Rauntímamæling frá <a href="https://www.swpc.noaa.gov/products/real-time-solar-wind" target="_blank" rel="noopener">NOAA SWPC</a> (gervihnöttur við L1-jafnvægispunktinn) — sama gagnaveita og norðurljósavirknin í nótt byggir á, en hér óunnin og ferskari. Fyrir staðbundnar segultruflanir, sjá <a href="http://cygnus.rhi.hi.is/~halo/leirv.png" target="_blank" rel="noopener">rauntímamælingar frá Leirvogi</a> (Raunvísindastofnun HÍ).</p>`;
+}
+
 async function saekjaVakt(){
   try {
     const svar = await fetch("/api/vakt?dagur=0");
@@ -695,6 +723,7 @@ async function saekjaVakt(){
     valinnNafn = valinn.nafn;
 
     teikna();
+    birtaGeimvedur(gogn.geimvedur);
   } catch (villa) {
     document.getElementById("skyring").textContent =
       `Ekki tókst að sækja gögn frá bakendanum (${villa.message}). Athugaðu að netþjónninn sé í gangi.`;
