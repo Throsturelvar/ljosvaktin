@@ -227,18 +227,6 @@ function teikna(gogn) {
           <span><i style="background:${COLOR_GREY};"></i>Óhagstætt</span>
         </div>
       </div>
-      <div class="panel-dark" id="gogn">
-        <div class="display" style="font-size:19px; font-weight:600;">Áreiðanleg, opin gögn</div>
-        <div style="font-size:13px; color:rgba(255,255,255,0.6);">Skorið reiknað úr þremur opinberum gagnaveitum</div>
-        ${HEIMILDIR.map(h => `
-          <div class="source-item">
-            <div class="dot" style="background:${h.litur};"></div>
-            <div>
-              <div style="font-weight:600; font-size:14px;">${h.heiti}</div>
-              <div style="font-size:12.5px; color:rgba(255,255,255,0.6); line-height:1.5;">${h.lysing}</div>
-            </div>
-          </div>`).join("")}
-      </div>
     </div>
 
     <div id="stadir" style="margin-top:48px;">
@@ -263,6 +251,21 @@ function teikna(gogn) {
             <div class="card-row"><span>UV í dag</span> ${birtaUv(s.hra_gogn.uv_haest_i_dag)}</div>
           </div>`;
         }).join("")}
+      </div>
+    </div>
+
+    <div class="panel-dark" id="gogn" style="margin-top:48px;">
+      <div class="display" style="font-size:19px; font-weight:600;">Áreiðanleg, opin gögn</div>
+      <div style="font-size:13px; color:rgba(255,255,255,0.6);">Skorið reiknað úr þremur opinberum gagnaveitum</div>
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap:12px; margin-top:12px;">
+        ${HEIMILDIR.map(h => `
+          <div class="source-item" style="margin-top:0;">
+            <div class="dot" style="background:${h.litur};"></div>
+            <div>
+              <div style="font-weight:600; font-size:14px;">${h.heiti}</div>
+              <div style="font-size:12.5px; color:rgba(255,255,255,0.6); line-height:1.5;">${h.lysing}</div>
+            </div>
+          </div>`).join("")}
       </div>
     </div>
   `;
