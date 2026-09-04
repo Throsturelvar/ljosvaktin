@@ -162,6 +162,11 @@
   section{padding-top:56px}
   h2{font-family:"Newsreader",Georgia,serif; font-weight:400; font-size:28px; margin:0 0 8px}
   .undirtexti{color:var(--daufur); font-size:15.5px; max-width:44em; margin:0 0 20px}
+  .besti-lina{display:flex; align-items:center; gap:8px; font-size:14.5px; color:var(--gull); margin:-8px 0 22px; font-weight:500}
+  .besti-lina a{color:var(--gull); text-decoration:underline; text-decoration-color:var(--gull-dimm); cursor:pointer; border:0}
+  .besti-lina a:hover{text-decoration-color:var(--gull)}
+  .besti-merki{display:inline-flex; align-items:center; gap:5px; margin-left:9px; font-size:10.5px; font-weight:500; color:var(--gull); border:1px solid var(--gull-dimm); border-radius:20px; padding:2px 9px 2px 7px; vertical-align:middle}
+  .besti-merki .viti{width:6px; height:6px}
 
   .listi{border-top:1px solid var(--lina-syn)}
   .rod{
@@ -271,6 +276,7 @@
     <section id="stadir">
       <h2>Staðir á landinu</h2>
       <p class="undirtexti">Virknin er sú sama um allt land í nótt. Það eru skýin sem ráða hvar hún sést. Einkunnin vegur saman virkni, skýjahulu, myrkur og tunglsljós — 100 væri fullkomin nótt.</p>
+      <p class="besti-lina" id="bestiLina"></p>
       <div class="kortumgerd">
         <div id="kort"></div>
         <div class="kort-fotur">
@@ -470,22 +476,30 @@ function teiknaKort(){
       }).setContent(p.nafn).setLatLng([p.lat, p.lon]).addTo(punktalag);
     }
 
-    merki.on("click", () => {
-      valinn = metnir.find(x => x.nafn === p.nafn);
-      valinnNafn = valinn.nafn;
-      teikna();
-      window.scrollTo({ top:0, behavior:"smooth" });
-    });
+    merki.on("click", () => veljaStad(p.nafn));
   });
 }
 
 /* ---------- Teikning ---------- */
 
+function veljaStad(nafn){
+  const p = metnir.find(x => x.nafn === nafn);
+  if(!p) return;
+  valinn = p;
+  valinnNafn = p.nafn;
+  teikna();
+  window.scrollTo({ top:0, behavior:"smooth" });
+}
+
 function teikna(){
   const s = valinn;
+  const besti = metnir[0];
 
   document.getElementById("stadur-lina").textContent = s.nafn + " í nótt";
   document.getElementById("domur-texti").textContent = domsordi(s.best);
+
+  document.getElementById("bestiLina").innerHTML =
+    `<span class="viti" aria-hidden="true"></span> Í kvöld eru bestu líkurnar við <a onclick="veljaStad('${besti.nafn}')">${besti.nafn}</a> — einkunn ${Math.round(besti.best*100)}.`;
 
   const einkunn = Math.round(s.best * 100);
   const einkunnEl = document.getElementById("einkunn-tala");
@@ -628,10 +642,11 @@ function teikna(){
   metnir.forEach(p => {
     const medalsky = Math.round(p.sky.reduce((a,b)=>a+b,0)/n);
     const pf = vindkaeling(p.hiti, p.vindur);
+    const erBestur = p === metnir[0];
     const b = document.createElement("button");
     b.className = "rod" + (p.nafn === s.nafn ? " valin" : "");
     b.innerHTML = `
-      <span class="nafn">${p.nafn}<small>${p.hluti}</small></span>
+      <span class="nafn">${p.nafn}${erBestur ? '<span class="besti-merki"><span class="viti" aria-hidden="true"></span>Besti staðurinn í kvöld</span>' : ""}<small>${p.hluti}</small></span>
       <span class="talna">${medalsky}%</span>
       <span class="talna hiti">${p.hiti}°${pf < p.hiti ? `<small>finnst ${pf}°</small>` : ""}</span>
       <span class="talna gluggidalkur">${p.gluggiFra >= 0 ? klstTexti(p.gluggiFra)+"–"+klstTexti(p.gluggiTil) : "—"}</span>
@@ -639,7 +654,7 @@ function teikna(){
         <b>${Math.round(p.best*100)}</b>
         <span class="maelir"><i style="width:${Math.round(p.best*100)}%; background:${litur(p.best)}"></i></span>
       </span>`;
-    b.addEventListener("click", () => { valinn = p; valinnNafn = p.nafn; teikna(); window.scrollTo({top:0, behavior:"smooth"}); });
+    b.addEventListener("click", () => veljaStad(p.nafn));
     listi.appendChild(b);
   });
 
