@@ -26,6 +26,7 @@ KP_INTERVAL = 3 * 60 * 60
 CLOUD_INTERVAL = 30 * 60
 SUNMOON_INTERVAL = 6 * 60 * 60
 VEDUR_INTERVAL = 60 * 60
+SOLVINDUR_INTERVAL = 3 * 60
 KURTEISISTOF = 1  # sek. milli kalla á sama veitu fyrir mismunandi staði
 
 
@@ -51,6 +52,8 @@ def hefja_baksvidsuppfaerslur():
     threading.Thread(target=_refresh_loop, args=("ovation", OVATION_INTERVAL, sources.sott_ovation), daemon=True).start()
     threading.Thread(target=_refresh_loop, args=("kp", KP_INTERVAL, sources.sott_kp_spa), daemon=True).start()
     threading.Thread(target=_refresh_loop, args=("vedur", VEDUR_INTERVAL, sources.sott_vedurstofa_nordurljos), daemon=True).start()
+    threading.Thread(target=_refresh_loop, args=("solvindur_mag", SOLVINDUR_INTERVAL, sources.sott_solvindur_segulsvid), daemon=True).start()
+    threading.Thread(target=_refresh_loop, args=("solvindur_wind", SOLVINDUR_INTERVAL, sources.sott_solvindur_plasma), daemon=True).start()
     threading.Thread(target=_refresh_per_stad, args=("cloud", CLOUD_INTERVAL, sources.sott_skyjahula), daemon=True).start()
     threading.Thread(target=_refresh_per_stad, args=("sunmoon", SUNMOON_INTERVAL, sources.sott_myrkur_tungl), daemon=True).start()
 
@@ -59,6 +62,8 @@ def sott_upphafsgogn():
     CACHE.set("ovation", sources.sott_ovation())
     CACHE.set("kp", sources.sott_kp_spa())
     CACHE.set("vedur", sources.sott_vedurstofa_nordurljos())
+    CACHE.set("solvindur_mag", sources.sott_solvindur_segulsvid())
+    CACHE.set("solvindur_wind", sources.sott_solvindur_plasma())
     for stadur in STADIR:
         cloud = sources.sott_skyjahula(stadur["lat"], stadur["lon"])
         if cloud is not None:
@@ -187,7 +192,29 @@ def reikna_vakt(dagur=0):
             "vindur": round(vid_myrkur["vindur"], 1) if vid_myrkur.get("vindur") is not None else None,
         })
 
-    return {"nott": nott, "kpSpa": kp_klst, "tungl": tungl, "stadir": stadir_ut}
+    mag = CACHE.get("solvindur_mag")
+    plasma = CACHE.get("solvindur_wind")
+    bz = mag.get("bz_gsm") if mag else None
+    bt = mag.get("bt") if mag else None
+    hradi = plasma.get("proton_speed") if plasma else None
+    thettleiki = plasma.get("proton_density") if plasma else None
+    maelt = None
+    if mag and mag.get("time_tag"):
+        try:
+            maelt = datetime.fromisoformat(mag["time_tag"]).replace(tzinfo=timezone.utc).strftime("%H:%M")
+        except ValueError:
+            maelt = None
+
+    geimvedur = {
+        "bz": round(bz, 1) if bz is not None else None,
+        "bt": round(bt, 1) if bt is not None else None,
+        "hradi": round(hradi) if hradi is not None else None,
+        "thettleiki": round(thettleiki, 1) if thettleiki is not None else None,
+        "tulkun": scoring.solvindur_tulkun(bz, hradi),
+        "maelt": maelt,
+    }
+
+    return {"nott": nott, "kpSpa": kp_klst, "tungl": tungl, "stadir": stadir_ut, "geimvedur": geimvedur}
 
 
 class Handler(BaseHTTPRequestHandler):

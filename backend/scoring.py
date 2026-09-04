@@ -231,6 +231,33 @@ TUNGLFASA_HEITI = {
 }
 
 
+def solvindur_tulkun(bz, hradi):
+    """Einföld, mannlesanleg túlkun á núverandi sólvindsaðstæðum - eingöngu
+    til upplýsinga (OVATION er þegar reiknað út frá þessum sömu gögnum,
+    svo þetta breytir ekki skorinu)."""
+    if bz is None:
+        return "Gögn um sólvind ekki tiltæk í augnablikinu."
+
+    if bz <= -10:
+        domur = "mjög hagstætt fyrir norðurljós núna"
+    elif bz <= -5:
+        domur = "hagstætt fyrir norðurljós núna"
+    elif bz < 0:
+        domur = "hlutlaust til hagstætt núna"
+    elif bz < 5:
+        domur = "hlutlaust núna"
+    else:
+        domur = "óhagstætt fyrir norðurljós núna"
+
+    setning = f"Bz-gildið er {bz:.1f} nT — {domur}."
+    if hradi is not None:
+        if hradi >= 500:
+            setning += " Sólvindshraði er hár, sem magnar áhrifin."
+        elif hradi < 350:
+            setning += " Sólvindshraði er lágur."
+    return setning
+
+
 def reikna_skor(virkni, kp, sky_opacitet, tungl_pct, tungl_uppi, myrkur_fra, myrkur_til):
     if myrkur_fra is None or myrkur_til is None or myrkur_til <= myrkur_fra:
         return {"skor": 0.0, "ástæða": "ekkert marktækt myrkur á tímabilinu"}

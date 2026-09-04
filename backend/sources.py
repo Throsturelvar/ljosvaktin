@@ -51,6 +51,42 @@ def sott_kp_spa():
         return None
 
 
+def _sidasta_virka(gogn):
+    """Nýjasta 'active' færslan í rauntíma-sólvindsröðum NOAA - fleiri en
+    einn gervihnöttur (t.d. IMAP, DSCOVR) getur átt færslu á sama tímamarki,
+    en bara ein er merkt 'active' (sú sem NOAA treystir best hverju sinni)."""
+    if not gogn:
+        return None
+    for row in reversed(gogn):
+        if row.get("active"):
+            return row
+    return gogn[-1]
+
+
+# ---------------------------------------------------------------------
+# NOAA SWPC - rauntíma sólvindur (segulsvið: Bz/Bt). Þetta er hráa gagnið
+# sem OVATION er sjálft reiknað út frá - notað hér til gagnsæis ("af hverju
+# er skorið svona núna"), ekki sem nýtt inntak í skorreikninginn.
+# ---------------------------------------------------------------------
+def sott_solvindur_segulsvid():
+    try:
+        return _sidasta_virka(_get_json("https://services.swpc.noaa.gov/json/rtsw/rtsw_mag_1m.json"))
+    except Exception as e:
+        _warn("NOAA rauntíma segulsvið", e)
+        return None
+
+
+# ---------------------------------------------------------------------
+# NOAA SWPC - rauntíma sólvindur (hraði, þéttleiki)
+# ---------------------------------------------------------------------
+def sott_solvindur_plasma():
+    try:
+        return _sidasta_virka(_get_json("https://services.swpc.noaa.gov/json/rtsw/rtsw_wind_1m.json"))
+    except Exception as e:
+        _warn("NOAA rauntíma sólvindsplasma", e)
+        return None
+
+
 # ---------------------------------------------------------------------
 # MET Noregur - skýjahula, skýjalög og UV (locationforecast/complete, sama
 # veita og knýr yr.no). Notað í stað Open-Meteo því Open-Meteo hafnar með
