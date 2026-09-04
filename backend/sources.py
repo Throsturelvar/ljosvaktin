@@ -75,6 +75,7 @@ def sott_skyjahula(lat, lon):
                 "uv_heidskirt": smaatt.get("ultraviolet_index_clear_sky"),
                 "hiti": smaatt.get("air_temperature"),
                 "hiti_finnst": smaatt.get("apparent_air_temperature"),
+                "vindur": smaatt.get("wind_speed"),
             }
         return ut
     except Exception as e:
@@ -106,9 +107,12 @@ def sott_myrkur_tungl(lat, lon, dagar=4):
             )["results"]
             ut.append({
                 "dags": d,
+                "solsetur": _thattid(d.isoformat(), gogn["sunset"]),
+                "solarupprás": _thattid(d.isoformat(), gogn["sunrise"]),
                 "dusk": _thattid(d.isoformat(), gogn["dusk"]),
                 "dawn": _thattid(d.isoformat(), gogn["dawn"]),
                 "tungl_birta_pct": float(gogn["moon_illumination"]),
+                "tungl_fasi_heiti": gogn.get("moon_phase"),
                 "tungl_upp": _thattid(d.isoformat(), gogn["moonrise"]) if gogn.get("moonrise") else None,
                 "tungl_nidur": _thattid(d.isoformat(), gogn["moonset"]) if gogn.get("moonset") else None,
                 "tungl_alltaf_uppi": bool(gogn.get("moon_always_up")),

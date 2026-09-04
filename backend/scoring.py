@@ -148,6 +148,89 @@ def hiti_vid_myrkur(skyjahula, myrkur_fra):
     return p.get("hiti"), p.get("hiti_finnst")
 
 
+def naestigildi(skyjahula, timi):
+    """Næsta klukkustundargildi (heild/hiti/vindur o.fl.) við tiltekinn
+    tímapunkt - almennt uppflettifall fyrir vaktarskjáinn."""
+    if not skyjahula or not timi:
+        return {}
+    naestur = min(skyjahula.items(), key=lambda kv: abs((kv[0] - timi).total_seconds()))
+    return naestur[1]
+
+
+def naeturklukkustundir(fra, til):
+    """Listi af heilum klukkustundum (dagsetningar-hlutir) frá og með
+    fyrstu heilu stund eftir 'fra' til og með síðustu heilu stund fyrir
+    eða á 'til'."""
+    if not fra or not til or til <= fra:
+        return []
+    fyrsta = fra.replace(minute=0, second=0, microsecond=0)
+    if fyrsta < fra:
+        fyrsta += timedelta(hours=1)
+    ut = []
+    t = fyrsta
+    while t <= til:
+        ut.append(t)
+        t += timedelta(hours=1)
+    return ut
+
+
+def kp_a_klukkustund(kp_spa, klst_timar):
+    """Kp-spá NOAA er á 3ja klst upplausn - línuleg brúun gefur eina tölu
+    fyrir hverja klukkustund í klst_timar."""
+    if not klst_timar:
+        return []
+    if not kp_spa:
+        return [None] * len(klst_timar)
+
+    punktar = []
+    for row in kp_spa:
+        try:
+            t = datetime.fromisoformat(row["time_tag"]).replace(tzinfo=timezone.utc)
+            punktar.append((t, float(row["kp"])))
+        except (ValueError, KeyError, TypeError):
+            continue
+    punktar.sort(key=lambda p: p[0])
+    if not punktar:
+        return [None] * len(klst_timar)
+
+    ut = []
+    for klst in klst_timar:
+        if klst <= punktar[0][0]:
+            ut.append(round(punktar[0][1], 2))
+            continue
+        if klst >= punktar[-1][0]:
+            ut.append(round(punktar[-1][1], 2))
+            continue
+        for i in range(len(punktar) - 1):
+            t0, v0 = punktar[i]
+            t1, v1 = punktar[i + 1]
+            if t0 <= klst <= t1:
+                hlutfall = (klst - t0).total_seconds() / (t1 - t0).total_seconds()
+                ut.append(round(v0 + (v1 - v0) * hlutfall, 2))
+                break
+    return ut
+
+
+def sky_a_klukkustund(skyjahula, klst_timar):
+    """Heildarskýjahula (%) fyrir hverja klukkustund - notað í súlurit."""
+    return [
+        (round(p["heild"]) if p.get("heild") is not None else None)
+        for p in (naestigildi(skyjahula, klst) for klst in klst_timar)
+    ]
+
+
+TUNGLFASA_HEITI = {
+    "New Moon": "Nýtt tungl",
+    "Waxing Crescent": "Vaxandi mánasigð",
+    "First Quarter": "Fyrsta kvartil",
+    "Waxing Gibbous": "Vaxandi tungl",
+    "Full Moon": "Fullt tungl",
+    "Waning Gibbous": "Dvínandi tungl",
+    "Last Quarter": "Síðasta kvartil",
+    "Waning Crescent": "Dvínandi mánasigð",
+}
+
+
 def reikna_skor(virkni, kp, sky_opacitet, tungl_pct, tungl_uppi, myrkur_fra, myrkur_til):
     if myrkur_fra is None or myrkur_til is None or myrkur_til <= myrkur_fra:
         return {"skor": 0.0, "ástæða": "ekkert marktækt myrkur á tímabilinu"}

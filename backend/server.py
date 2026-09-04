@@ -132,6 +132,64 @@ def reikna_alla_stadi(dagur=0):
     return nidurstodur
 
 
+def reikna_vakt(dagur=0):
+    """Klukkustund-fyrir-klukkustund gögn fyrir eina nótt - notað af vaktar-
+    skjánum (Kp per klst + skýjahula per klst per stað). Myrkurgluggi og
+    tungl miðast við Reykjavík (fyrsti staður í STADIR) - sami einfaldi
+    háttur og restin af forritinu notar fyrir landsvísu-gildi."""
+    tilvisun = STADIR[0]
+    dagar_gogn = CACHE.get(f"sunmoon:{tilvisun['id']}")
+    kp_spa = CACHE.get("kp")
+
+    if not dagar_gogn or len(dagar_gogn) <= dagur + 1:
+        return None
+
+    i_kvold = dagar_gogn[dagur]
+    a_morgun = dagar_gogn[dagur + 1]
+
+    solsetur = i_kvold["solsetur"]
+    solarupprás = a_morgun["solarupprás"]
+    myrkur_fra = i_kvold["dusk"]
+    myrkur_til = a_morgun["dawn"]
+
+    klst_timar = scoring.naeturklukkustundir(solsetur, solarupprás)
+    if not klst_timar:
+        return None
+    kp_klst = scoring.kp_a_klukkustund(kp_spa, klst_timar)
+
+    upprás_dt = i_kvold["tungl_upp"] or a_morgun["tungl_upp"]
+
+    nott = {
+        "solsetur": solsetur.strftime("%H:%M"),
+        "solarupprás": solarupprás.strftime("%H:%M"),
+        "myrkurFra": myrkur_fra.strftime("%H:%M"),
+        "myrkurTil": myrkur_til.strftime("%H:%M"),
+        "klst": [t.hour for t in klst_timar],
+    }
+    tungl = {
+        "fasi": round(i_kvold["tungl_birta_pct"] / 100, 3),
+        "upprás": upprás_dt.strftime("%H:%M") if upprás_dt else None,
+        "heiti": scoring.TUNGLFASA_HEITI.get(i_kvold["tungl_fasi_heiti"], i_kvold["tungl_fasi_heiti"]),
+    }
+
+    stadir_ut = []
+    for stadur in STADIR:
+        cloud = CACHE.get(f"cloud:{stadur['id']}")
+        vid_myrkur = scoring.naestigildi(cloud, myrkur_fra)
+        stadir_ut.append({
+            "id": stadur["id"],
+            "nafn": stadur["nafn"],
+            "hluti": stadur["hluti"],
+            "lat": stadur["lat"],
+            "lon": stadur["lon"],
+            "sky": scoring.sky_a_klukkustund(cloud, klst_timar),
+            "hiti": round(vid_myrkur["hiti"]) if vid_myrkur.get("hiti") is not None else None,
+            "vindur": round(vid_myrkur["vindur"], 1) if vid_myrkur.get("vindur") is not None else None,
+        })
+
+    return {"nott": nott, "kpSpa": kp_klst, "tungl": tungl, "stadir": stadir_ut}
+
+
 class Handler(BaseHTTPRequestHandler):
     def _senda_json(self, gogn, stada=200):
         payload = json.dumps(gogn, ensure_ascii=False).encode("utf-8")
@@ -156,6 +214,18 @@ class Handler(BaseHTTPRequestHandler):
                 "dagur": dagur,
                 "stadir": reikna_alla_stadi(dagur),
             })
+        elif slod.path == "/api/vakt":
+            fyrirspurn = parse_qs(slod.query)
+            try:
+                dagur = int(fyrirspurn.get("dagur", ["0"])[0])
+            except ValueError:
+                dagur = 0
+            dagur = max(0, min(2, dagur))
+            vakt = reikna_vakt(dagur)
+            if vakt is None:
+                self._senda_json({"villa": "gögn ekki tilbúin ennþá"}, stada=503)
+            else:
+                self._senda_json({"reiknad": datetime.now(timezone.utc).isoformat(), "dagur": dagur, **vakt})
         elif slod.path == "/api/heilsa":
             self._senda_json({
                 "ok": True,
