@@ -149,12 +149,21 @@
   .kvardi-fotur{display:flex; justify-content:space-between; margin-top:5px; font-size:11.5px; color:var(--daufari); font-variant-numeric:tabular-nums}
   .kvardi-mork{font-size:11.5px; color:var(--daufur); margin-top:4px}
 
-  /* ---------- Geimveður núna ---------- */
+  /* ---------- Staðan núna ---------- */
   .geimvedur{border:1px solid var(--lina-syn); border-radius:var(--br); padding:20px 20px 18px; margin:0 0 30px}
-  .geimvedur .heiti{font-size:13.5px; color:var(--daufur); margin-bottom:12px; display:flex; align-items:baseline; gap:8px; flex-wrap:wrap}
+  .geimvedur .heiti{font-size:13.5px; color:var(--daufur); margin-bottom:10px; display:flex; align-items:center; gap:8px; flex-wrap:wrap}
   .geimvedur .heiti .maelt{font-size:12px; color:var(--daufari)}
+  .stada-dot{width:9px; height:9px; border-radius:50%; flex:none; box-shadow:0 0 8px 1px currentColor}
+  .stada-heiti{font-family:"Newsreader",Georgia,serif; font-size:27px; line-height:1.15; margin-bottom:6px}
+  .bz-linurit{margin:4px 0 2px}
+  .bz-bil{font-size:11px; color:var(--daufari); margin-bottom:8px}
+  .tolur-hnappur{background:none; border:0; padding:0; margin-top:12px; color:var(--daufur); font:inherit; font-size:13px;
+    text-decoration:underline; text-decoration-color:var(--lina-syn); cursor:pointer}
+  .tolur-hnappur:hover{color:var(--bein); text-decoration-color:var(--gull-dimm)}
+  .tolur-nanar{margin-top:14px; padding-top:14px; border-top:1px solid var(--lina-syn)}
+  .tolur-nanar[hidden]{display:none}
   .geimvedur-tolur{display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:12px}
-  .geimvedur-tolur .tala{display:block; font-family:"Newsreader",Georgia,serif; font-size:27px; line-height:1.1; font-variant-numeric:tabular-nums; color:var(--aur-4)}
+  .geimvedur-tolur .tala{display:block; font-family:"Newsreader",Georgia,serif; font-size:23px; line-height:1.1; font-variant-numeric:tabular-nums; color:var(--aur-4)}
   .geimvedur-tolur .smaeti{display:block; font-size:11.5px; color:var(--daufari); margin-top:2px}
   @media (max-width:760px){ .geimvedur-tolur{grid-template-columns:repeat(2,1fr); gap:14px 16px} }
 
@@ -166,35 +175,39 @@
   .reit .aukagildi{font-size:13px; color:var(--daufari); margin-top:4px}
   .reit .gildi.gron{color:var(--aur-4)}
   .reit .gildi.gullin{color:var(--gull)}
+  .reit .slaedustika{height:4px; border-radius:2px; background:rgba(255,255,255,.08); margin-top:9px; overflow:hidden}
+  .reit .slaedustika i{display:block; height:100%; background:var(--sky)}
+  .reit .braut{position:relative; height:3px; border-radius:2px; background:rgba(255,255,255,.10); margin:11px 1px 6px}
+  .reit .punktur-nu{position:absolute; top:50%; width:7px; height:7px; margin:-3.5px 0 0 -3.5px; border-radius:50%; background:var(--gull); box-shadow:0 0 5px 1px rgba(233,194,107,.5)}
+  .reit .timar{display:flex; justify-content:space-between; font-size:11px; color:var(--daufari)}
+  .tungl-rod{display:flex; align-items:center; gap:10px}
+  .tungl-hringur{flex:none}
 
   /* ---------- Staðir ---------- */
   section{padding-top:56px}
   h2{font-family:"Newsreader",Georgia,serif; font-weight:400; font-size:28px; margin:0 0 8px}
   .undirtexti{color:var(--daufur); font-size:15.5px; max-width:44em; margin:0 0 20px}
   .besti-lina{display:flex; align-items:center; gap:8px; font-size:14.5px; color:var(--gull); margin:-8px 0 22px; font-weight:500}
-  .besti-lina a{color:var(--gull); text-decoration:underline; text-decoration-color:var(--gull-dimm); cursor:pointer; border:0}
-  .besti-lina a:hover{text-decoration-color:var(--gull)}
-  .besti-merki{display:inline-flex; align-items:center; gap:5px; margin-left:9px; font-size:10.5px; font-weight:500; color:var(--gull); border:1px solid var(--gull-dimm); border-radius:20px; padding:2px 9px 2px 7px; vertical-align:middle}
+  .besti-lina button{background:none; border:0; padding:0; font:inherit; color:var(--gull); text-decoration:underline; text-decoration-color:var(--gull-dimm); cursor:pointer}
+  .besti-lina button:hover{text-decoration-color:var(--gull)}
+  .besti-merki{display:inline-flex; align-items:center; gap:5px; width:fit-content; font-size:10.5px; font-weight:500; color:var(--gull); border:1px solid var(--gull-dimm); border-radius:20px; padding:2px 9px 2px 7px}
   .besti-merki .viti{width:6px; height:6px}
 
-  .listi{border-top:1px solid var(--lina-syn)}
-  .rod{
-    display:grid; grid-template-columns:1.4fr .7fr .8fr .9fr 82px; align-items:center; gap:14px;
-    padding:13px 4px; border-bottom:1px solid var(--lina-syn); width:100%;
-    background:none; border-left:0; border-right:0; border-top:0; color:inherit; font:inherit; text-align:left; cursor:pointer;
+  .listi{display:grid; grid-template-columns:repeat(auto-fill, minmax(230px,1fr)); gap:10px}
+  .stadakort{
+    background:var(--nott); border:1px solid var(--lina-syn); border-radius:var(--br); padding:16px 16px 15px;
+    display:flex; flex-direction:column; gap:10px; text-align:left; color:inherit; font:inherit; cursor:pointer;
   }
-  .rod:hover{background:rgba(255,255,255,.028)}
-  .rod.valin{background:rgba(233,194,107,.07)}
-  .rod .nafn{font-size:16.5px}
-  .rod .nafn small{display:block; color:var(--daufari); font-size:12.5px}
-  .rod .talna{font-size:14px; color:var(--daufur); font-variant-numeric:tabular-nums}
-  .maelir{height:6px; background:rgba(255,255,255,.07); border-radius:3px; overflow:hidden}
-  .maelir i{display:block; height:100%; border-radius:3px}
-  .einkunnsella{display:flex; flex-direction:column; gap:5px; align-items:stretch}
-  .einkunnsella b{font-weight:500; font-size:14px; text-align:right; font-variant-numeric:tabular-nums}
-  .haus-rod{display:grid; grid-template-columns:1.4fr .7fr .8fr .9fr 82px; gap:14px; padding:0 4px 8px; font-size:12.5px; color:var(--daufari)}
-  .rod .hiti{color:var(--bein)}
-  .rod .hiti small{display:block; color:var(--daufari); font-size:11.5px}
+  .stadakort:hover{border-color:rgba(233,194,107,.35)}
+  .stadakort.valin{background:rgba(233,194,107,.07); border-color:rgba(233,194,107,.4)}
+  .stadakort .kort-haus{display:flex; align-items:flex-start; justify-content:space-between; gap:10px}
+  .stadakort .nafn{font-size:16px}
+  .stadakort .nafn small{display:block; color:var(--daufari); font-size:12px; font-weight:400}
+  .stadakort .einkunn-stor{font-family:"Newsreader",Georgia,serif; font-size:32px; line-height:1; flex:none}
+  .stadakort .slaedustika{height:4px; border-radius:2px; background:rgba(255,255,255,.08); overflow:hidden}
+  .stadakort .slaedustika i{display:block; height:100%; background:var(--sky)}
+  .stadakort .undirrod{display:flex; justify-content:space-between; gap:10px; font-size:12.5px; color:var(--daufur); font-variant-numeric:tabular-nums}
+  .stadakort .undirrod span:last-child{color:var(--bein)}
 
   /* ---------- Kortið ---------- */
   .kortumgerd{background:var(--djup); border:1px solid var(--lina-syn); border-radius:var(--br); padding:10px 10px 6px; margin-bottom:30px}
@@ -225,12 +238,11 @@
     .gogn{grid-template-columns:1fr; gap:20px}
     .staeda{height:110px}
     .klst{font-size:10.5px}
-    .rod, .haus-rod{grid-template-columns:1.25fr .6fr .7fr 56px; gap:10px}
+    .listi{grid-template-columns:1fr}
     .virknispjald{grid-template-columns:1fr; gap:16px; padding:18px 16px}
     .kptala{font-size:38px}
     .einkunn{text-align:left; padding-bottom:4px}
     #kort{height:340px}
-    .rod .gluggidalkur, .haus-rod .gluggidalkur{display:none}
     .skyring{font-size:17.5px}
   }
   @media (max-width:420px){
@@ -276,7 +288,7 @@
       </div>
       <div class="sulur" id="sulur"></div>
       <div class="gluggi" id="gluggi"></div>
-      <p class="skyringar">Græna fyllingin sýnir norðurljósavirknina, gráa slæðan skýin yfir staðnum. Bandið spannar nóttina frá sólsetri til sólarupprásar.</p>
+      <p class="skyringar">Grænt sýnir virknina, grátt skýin — bandið nær frá sólsetri til sólarupprásar.</p>
     </div>
 
     <div class="virknispjald" id="virkni"></div>
@@ -285,7 +297,7 @@
 
     <section id="stadir">
       <h2>Staðir á landinu</h2>
-      <p class="undirtexti">Virknin er sú sama um allt land í nótt. Það eru skýin sem ráða hvar hún sést. Einkunnin vegur saman virkni, skýjahulu, myrkur og tunglsljós — 100 væri fullkomin nótt.</p>
+      <p class="undirtexti">Virknin er sú sama um allt land — skýin ráða hvar hún sést. Einkunnin vegur saman virkni, ský, myrkur og tungl; 100 er fullkomin nótt.</p>
       <p class="besti-lina" id="bestiLina"></p>
       <div class="kortumgerd">
         <div id="kort"></div>
@@ -295,13 +307,6 @@
         </div>
       </div>
 
-      <div class="haus-rod">
-        <span>Staður</span>
-        <span>Skýjahula</span>
-        <span>Hiti</span>
-        <span class="gluggidalkur">Besti glugginn</span>
-        <span style="text-align:right">Einkunn</span>
-      </div>
       <div class="listi" id="listi"></div>
     </section>
 
@@ -398,15 +403,86 @@ function kpLysing(kp){
     texti:"Sjaldgæft. Ljósið getur fyllt himininn og sést langt suður fyrir Ísland." };
 }
 
+/* Bz (segulsvið sólvindsins, suður-neikvætt) er gagnlegri rauntímavísbending en Kp —
+   sjá icelandatnight.is/is/bz-gildid. Þrepin hér fylgja viðmiðunum þaðan. */
+function flokkaGeimvedur(bz){
+  if(bz == null) return null;
+  if(bz > -1) return { stig:0, heiti:"Rólegt núna", litur:"var(--aur-1)",
+    texti:"Segulsvið sólvindsins vísar að mestu í norður — lítil kveikja fyrir norðurljós eins og er." };
+  if(bz > -5) return { stig:1, heiti:"Að glæðast", litur:"var(--aur-2)",
+    texti:"Bz vísar í suður, sem er hagstætt — færi gefst á norðurljósum ef annað er í lagi." };
+  if(bz > -10) return { stig:2, heiti:"Líflegt núna", litur:"var(--aur-3)",
+    texti:"Bz er vel neikvætt — góðar líkur á kvikum norðurljósum næstu klukkustund." };
+  return { stig:3, heiti:"Mikil hreyfing", litur:"var(--aur-4)",
+    texti:"Bz er mjög neikvætt — óvenjulegt ástand, norðurljós geta orðið björt og sést víða um land." };
+}
+
+/* ---------- Bz-sagan ----------
+   Bakendinn skilar bara einu Bz-gildi í einu, enga sögu. Í stað þess að bíða
+   eftir að bakendinn safni sögu, safnar vafrinn sjálfur punktum jafnóðum og
+   síðan sækir ný gögn (á 5 mín fresti). Geymt í localStorage svo sagan lifi
+   yfir enduríhlöðun, en með minnisafriti ef geymslan er ekki tiltæk. */
+const BZ_LYKILL = "ljosvaktin_bz_saga";
+const BZ_GLUGGI_KLST = 6;
+let bzSagaMinni = null;
+
+function saekjaBzSogu(){
+  if(bzSagaMinni) return bzSagaMinni;
+  try{
+    const hra = localStorage.getItem(BZ_LYKILL);
+    bzSagaMinni = hra ? JSON.parse(hra) : [];
+  }catch(villa){ bzSagaMinni = []; }
+  return bzSagaMinni;
+}
+
+function vistaBzLestur(bz){
+  const nu = Date.now();
+  const saga = saekjaBzSogu();
+  saga.push({ t:nu, bz });
+  const mork = nu - BZ_GLUGGI_KLST*60*60*1000;
+  bzSagaMinni = saga.filter(p => p.t >= mork);
+  try{ localStorage.setItem(BZ_LYKILL, JSON.stringify(bzSagaMinni)); }
+  catch(villa){ /* geymsla ekki tiltæk — sagan lifir samt í minni á meðan síðan er opin */ }
+  return bzSagaMinni;
+}
+
+function bzBilTexti(saga){
+  const span = saga[saga.length-1].t - saga[0].t;
+  const minutur = Math.round(span/60000);
+  if(minutur < 2) return null;
+  if(minutur < 60) return `síðustu ${minutur} mín`;
+  return `síðustu ${tala(minutur/60)} klst`;
+}
+
+function bzLinuritSvg(saga){
+  if(saga.length < 2) return "";
+  const w=220, h=48, pad=4;
+  // Hærra á myndinni = hagstæðara, því neikvætt Bz er hagstætt norðurljósum
+  const vals = saga.map(p => -p.bz);
+  const min = Math.min(...vals), max = Math.max(...vals);
+  const sponn = (max-min) || 1;
+  const x = i => pad + i*(w-2*pad)/(vals.length-1);
+  const y = v => (h-pad) - (v-min)/sponn*(h-2*pad);
+  const pts = vals.map((v,i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`);
+  const linePath = "M" + pts.join(" L ");
+  const grunnY = (h-pad).toFixed(1);
+  const areaPath = `M${x(0).toFixed(1)},${grunnY} L ${pts.join(" L ")} L ${x(vals.length-1).toFixed(1)},${grunnY} Z`;
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" role="img" aria-label="Þróun Bz-gildis frá því síðan var opnuð">
+    <path d="${areaPath}" fill="var(--aur-4)" opacity=".14"/>
+    <path d="${linePath}" fill="none" stroke="var(--aur-4)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  </svg>`;
+}
+
 function metaStad(s){
   const sky = s.sky;
   const stigin = nott.klst.map((h,i) => stig(kpSpa[i], sky[i], myrkurStudull(h)));
   const best = Math.max(...stigin);
-  // Finnur samfellda gluggann þar sem stigin eru a.m.k. 80% af því besta
+  // Finnur fyrsta samfellda gluggann þar sem stigin eru a.m.k. 80% af því besta
   let fra = -1, til = -1;
   for(let i=0;i<n;i++){
-    if(stigin[i] >= best*0.8 && best > 0.05){ if(fra<0) fra=i; til=i; }
-    else if(fra>=0 && stigin[i] < best*0.8 && til>=0 && i>til+0) { /* heldur fyrsta glugganum */ }
+    const naerBesta = stigin[i] >= best*0.8 && best > 0.05;
+    if(naerBesta){ if(fra<0) fra=i; til=i; }
+    else if(fra>=0){ break; }
   }
   return { ...s, sky, stigin, best, gluggiFra:fra, gluggiTil:til };
 }
@@ -420,6 +496,20 @@ function domsordi(s){
 
 function klstTexti(i){ return String(nott.klst[i]).padStart(2,"0") + ":00"; }
 function tala(x){ return x.toFixed(1).replace(".", ","); }
+
+function brotOnottu(fraStr, tilStr){
+  // Hlutfall (0–1) af því hvar klukkan er stödd milli fraStr og tilStr í kvöld,
+  // eða null ef klukkan er utan þess bils. Notar raunverulega klukku vafrans,
+  // óháð því hvernig nott.klst er raðað — svo þetta er alltaf rétt.
+  const min = t => { const [h,m] = t.split(":").map(Number); return h*60+m; };
+  let fra = min(fraStr), til = min(tilStr);
+  const nuna = new Date();
+  let nu = nuna.getHours()*60 + nuna.getMinutes();
+  if(til <= fra) til += 24*60;
+  if(nu < fra) nu += 24*60;
+  if(nu < fra || nu > til) return null;
+  return (nu - fra) / (til - fra);
+}
 
 function litur(v){
   // v: 0-1 → græni skalinn. Grænt er eingöngu notað fyrir virkni.
@@ -509,7 +599,7 @@ function teikna(){
   document.getElementById("domur-texti").textContent = domsordi(s.best);
 
   document.getElementById("bestiLina").innerHTML =
-    `<span class="viti" aria-hidden="true"></span> Í kvöld eru bestu líkurnar við <a onclick="veljaStad('${besti.nafn}')">${besti.nafn}</a> — einkunn ${Math.round(besti.best*100)}.`;
+    `<span class="viti" aria-hidden="true"></span> Í kvöld eru bestu líkurnar við <button type="button" onclick="veljaStad('${besti.nafn}')">${besti.nafn}</button> — einkunn ${Math.round(besti.best*100)}.`;
 
   const einkunn = Math.round(s.best * 100);
   const einkunnEl = document.getElementById("einkunn-tala");
@@ -615,17 +705,20 @@ function teikna(){
         <div class="kvardi-merki" style="left:${(2/9*100).toFixed(1)}%"></div>
         <div class="kvardi-fotur"><span>Kp 0</span><span>Kp 9</span></div>
       </div>
-      <div class="kvardi-mork">Strikið stendur við Kp 2. Þaðan sjást norðurljós yfirleitt héðan, enda liggur Ísland undir sjálfum norðurljósahringnum.</div>
+      <div class="kvardi-mork">Strikið er við Kp 2 — þaðan sjást norðurljós hér að jafnaði, því Ísland liggur undir norðurljósahringnum sjálfum.</div>
       <p class="kptexti">${lys.texti}</p>
-      <div class="kpaukagildi">Kp ${tala(kpNu)} núna, hæst um ${klstTexti(kpSpa.indexOf(hamarkKp))}.</div>
+      <div class="kpaukagildi">Kp ${tala(kpNu)} núna, hæst um ${klstTexti(kpSpa.indexOf(hamarkKp))}. Þetta er spá fyrir nóttina, ekki rauntímamæling — sjá „Staðan núna" hér að neðan.</div>
     </div>`;
 
   // Hin skilyrðin
   const finnst = vindkaeling(s.hiti, s.vindur);
+  const bfrac = brotOnottu(nott.myrkurFra, nott.myrkurTil);
+  const tunglC = 81.68; // ummál hrings r=13
   document.getElementById("skilyrdi").innerHTML = `
     <div class="reit">
       <div class="heiti">Skýjahula</div>
       <div class="gildi">${s.sky[0]}%</div>
+      <div class="slaedustika"><i style="width:${s.sky[0]}%"></i></div>
       <div class="aukagildi">Meðaltal nætur: ${Math.round(s.sky.reduce((a,b)=>a+b,0)/n)}%</div>
     </div>
     <div class="reit">
@@ -636,12 +729,22 @@ function teikna(){
     <div class="reit">
       <div class="heiti">Myrkur</div>
       <div class="gildi">${nott.myrkurFra}</div>
-      <div class="aukagildi">Fullt myrkur til ${nott.myrkurTil}</div>
+      <div class="braut">${bfrac != null ? `<div class="punktur-nu" style="left:${(bfrac*100).toFixed(1)}%"></div>` : ""}</div>
+      <div class="timar"><span>${nott.myrkurFra}</span><span>${nott.myrkurTil}</span></div>
     </div>
     <div class="reit">
       <div class="heiti">Tungl</div>
-      <div class="gildi gullin">${Math.round(tungl.fasi*100)}%</div>
-      <div class="aukagildi">${tungl.heiti}${tungl.upprás ? `, upprás ${tungl.upprás}` : ""}</div>
+      <div class="tungl-rod">
+        <svg class="tungl-hringur" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="${Math.round(tungl.fasi*100)}% upplýst tungl">
+          <circle cx="16" cy="16" r="13" fill="none" stroke="rgba(255,255,255,.10)" stroke-width="3"/>
+          <circle cx="16" cy="16" r="13" fill="none" stroke="var(--gull)" stroke-width="3" stroke-linecap="round"
+            stroke-dasharray="${(tungl.fasi*tunglC).toFixed(1)} ${tunglC}" transform="rotate(-90 16 16)"/>
+        </svg>
+        <div>
+          <div class="gildi gullin">${Math.round(tungl.fasi*100)}%</div>
+          <div class="aukagildi">${tungl.heiti}${tungl.upprás ? `, upprás ${tungl.upprás}` : ""}</div>
+        </div>
+      </div>
     </div>`;
 
   teiknaKort();
@@ -654,16 +757,19 @@ function teikna(){
     const pf = vindkaeling(p.hiti, p.vindur);
     const erBestur = p === metnir[0];
     const b = document.createElement("button");
-    b.className = "rod" + (p.nafn === s.nafn ? " valin" : "");
+    b.type = "button";
+    b.className = "stadakort" + (p.nafn === s.nafn ? " valin" : "");
     b.innerHTML = `
-      <span class="nafn">${p.nafn}${erBestur ? '<span class="besti-merki"><span class="viti" aria-hidden="true"></span>Besti staðurinn í kvöld</span>' : ""}<small>${p.hluti}</small></span>
-      <span class="talna">${medalsky}%</span>
-      <span class="talna hiti">${p.hiti}°${pf < p.hiti ? `<small>finnst ${pf}°</small>` : ""}</span>
-      <span class="talna gluggidalkur">${p.gluggiFra >= 0 ? klstTexti(p.gluggiFra)+"–"+klstTexti(p.gluggiTil) : "—"}</span>
-      <span class="einkunnsella">
-        <b>${Math.round(p.best*100)}</b>
-        <span class="maelir"><i style="width:${Math.round(p.best*100)}%; background:${litur(p.best)}"></i></span>
-      </span>`;
+      <div class="kort-haus">
+        <span class="nafn">${p.nafn}<small>${p.hluti}</small></span>
+        <span class="einkunn-stor" style="color:${litur(p.best)}">${Math.round(p.best*100)}</span>
+      </div>
+      ${erBestur ? `<span class="besti-merki"><span class="viti" aria-hidden="true"></span>Besti staðurinn í kvöld</span>` : ""}
+      <div>
+        <div class="slaedustika"><i style="width:${medalsky}%"></i></div>
+        <div class="undirrod"><span>${medalsky}% ský</span><span>${p.hiti}°${pf < p.hiti ? ` · finnst ${pf}°` : ""}</span></div>
+      </div>
+      <div class="undirrod"><span>Besti glugginn</span><span>${p.gluggiFra >= 0 ? klstTexti(p.gluggiFra)+"–"+klstTexti(p.gluggiTil) : "—"}</span></div>`;
     b.addEventListener("click", () => veljaStad(p.nafn));
     listi.appendChild(b);
   });
@@ -690,19 +796,47 @@ function teikna(){
 function birtaGeimvedur(g){
   const el = document.getElementById("geimvedur");
   if(!g || g.bz == null){
-    el.innerHTML = `<div class="heiti">Geimveður núna</div><p class="kptexti">Rauntímagögn um sólvind ekki tiltæk í augnablikinu.</p>`;
+    el.innerHTML = `<div class="heiti">Staðan núna</div><p class="kptexti">Rauntímagögn um sólvind ekki tiltæk í augnablikinu.</p>`;
     return;
   }
+
+  const f = flokkaGeimvedur(g.bz);
+  let texti = f.texti;
+  if(f.stig > 0 && g.hradi != null && g.hradi >= 500){
+    texti += " Sólvindshraðinn er líka óvenju hraður, sem breikkar norðurljósabeltið og færir ljósin sunnar.";
+  }
+  if(f.stig > 0 && g.thettleiki != null && g.thettleiki >= 10){
+    texti += " Þéttleikinn er líka hár, sem gefur meiri og bjartari liti.";
+  }
+
+  const saga = vistaBzLestur(g.bz);
+  const linurit = bzLinuritSvg(saga);
+  const bilTexti = linurit ? bzBilTexti(saga) : null;
+
   el.innerHTML = `
-    <div class="heiti">Geimveður núna <span class="maelt">· mælt kl. ${g.maelt ?? "?"}</span></div>
-    <div class="geimvedur-tolur">
-      <div><span class="tala">${g.bz}</span><span class="smaeti">nT · Bz</span></div>
-      <div><span class="tala">${g.bt}</span><span class="smaeti">nT · Bt</span></div>
-      <div><span class="tala">${g.hradi ?? "–"}</span><span class="smaeti">km/s · hraði</span></div>
-      <div><span class="tala">${g.thettleiki ?? "–"}</span><span class="smaeti">agnir/cm³</span></div>
-    </div>
-    <p class="kptexti">${g.tulkun}</p>
-    <p class="kpaukagildi">Rauntímamæling frá <a href="https://www.swpc.noaa.gov/products/real-time-solar-wind" target="_blank" rel="noopener">NOAA SWPC</a> (gervihnöttur við L1-jafnvægispunktinn) — sama gagnaveita og norðurljósavirknin í nótt byggir á, en hér óunnin og ferskari. Fyrir staðbundnar segultruflanir, sjá <a href="http://cygnus.rhi.hi.is/~halo/leirv.png" target="_blank" rel="noopener">rauntímamælingar frá Leirvogi</a> (Raunvísindastofnun HÍ).</p>`;
+    <div class="heiti"><span class="stada-dot" style="background:${f.litur}"></span>Staðan núna <span class="maelt">· mælt kl. ${g.maelt ?? "?"}</span></div>
+    <div class="stada-heiti" style="color:${f.litur}">${f.heiti}</div>
+    ${linurit ? `<div class="bz-linurit">${linurit}</div>${bilTexti ? `<div class="bz-bil">${bilTexti}</div>` : ""}` : ""}
+    <p class="kptexti">${texti}</p>
+    <p class="kpaukagildi">Getur tekið 30–60 mínútur fyrir breytingar í sólvindinum að skila sér á himininn hér.</p>
+    <button class="tolur-hnappur" id="tolurHnappur" type="button" aria-expanded="false">Sjá tölurnar</button>
+    <div class="tolur-nanar" id="tolurNanar" hidden>
+      <div class="geimvedur-tolur">
+        <div><span class="tala">${g.bz}</span><span class="smaeti">nT · Bz</span></div>
+        <div><span class="tala">${g.bt}</span><span class="smaeti">nT · Bt</span></div>
+        <div><span class="tala">${g.hradi ?? "–"}</span><span class="smaeti">km/s · hraði</span></div>
+        <div><span class="tala">${g.thettleiki ?? "–"}</span><span class="smaeti">agnir/cm³</span></div>
+      </div>
+      <p class="kpaukagildi">Mælt af DSCOVR-gervitunglinu milli jarðar og sólar, endurbirt af <a href="https://www.swpc.noaa.gov/products/real-time-solar-wind" target="_blank" rel="noopener">NOAA SWPC</a>. Fyrir staðbundnar segultruflanir, sjá <a href="http://cygnus.rhi.hi.is/~halo/leirv.png" target="_blank" rel="noopener">rauntímamælingar frá Leirvogi</a> (Raunvísindastofnun HÍ).</p>
+    </div>`;
+
+  const hnappur = document.getElementById("tolurHnappur");
+  const nanar = document.getElementById("tolurNanar");
+  hnappur.addEventListener("click", () => {
+    nanar.hidden = !nanar.hidden;
+    hnappur.textContent = nanar.hidden ? "Sjá tölurnar" : "Fela tölurnar";
+    hnappur.setAttribute("aria-expanded", String(!nanar.hidden));
+  });
 }
 
 async function saekjaVakt(){
