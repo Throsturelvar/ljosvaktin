@@ -1,906 +1,586 @@
 <!DOCTYPE html>
-<html lang="is">
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Ljósvaktin</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<style>
-  :root{
-    /* Nóttin: djúpt indigó frekar en svart — skjárinn á að vera læsilegur úti í myrkri */
-    --nott:        #0F1726;
-    --djup:        #0A101C;
-    --flotur:      #16202F;
-    --lina:        #23304400;
-    --lina-syn:    rgba(232,227,214,.13);
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ljósvaktin — Aurora forecast for Iceland</title>
+  <style>
+    /* Grunnstillingar og útlit Ljósvaktarinnar */
+    :root {
+      --bakgrunnur: #0d1117;
+      --flotur: #161b22;
+      --bein: #c9d1d9;
+      --daufur: #8b949e;
+      --gull: #e9c26b;
+      --lina-syn: #30363d;
+      --br: 6px;
+    }
+    
+    body {
+      background: var(--bakgrunnur);
+      color: var(--bein);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      line-height: 1.5;
+    }
 
-    /* Lampaljós: hlýtt beinhvítt í stað hreinhvíts */
-    --bein:        #EDE7D9;
-    --daufur:      #98A2B6;
-    --daufari:     #6B7689;
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--lina-syn);
+      background: var(--flotur);
+    }
 
-    /* Grænt er GÖGN, ekki skraut. Það er eingöngu notað fyrir norðurljósavirkni. */
-    --aur-1:       #1F5A45;
-    --aur-2:       #2F8A65;
-    --aur-3:       #48C98C;
-    --aur-4:       #6FF0B4;
+    .merki {
+      font-weight: bold;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-    /* Gull er aðgerðin — vitaljósið. */
-    --gull:        #E9C26B;
-    --gull-dimm:   #8A6F32;
+    .viti {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      background: #58a6ff;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #58a6ff;
+    }
 
-    --sky:         #7C89A0;
+    nav a {
+      color: var(--daufur);
+      text-decoration: none;
+      margin-right: 16px;
+      font-size: 14px;
+    }
 
-    --br:          3px;
-  }
+    nav a:hover {
+      color: var(--bein);
+    }
 
-  *{box-sizing:border-box}
-  html{-webkit-text-size-adjust:100%}
-  body{
-    margin:0;
-    background:var(--nott);
-    color:var(--bein);
-    font-family:"IBM Plex Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
-    font-size:16px;
-    line-height:1.55;
-    -webkit-font-smoothing:antialiased;
-  }
-  /* Mjög dauf hallandi birta efst — norðurljós sem umhverfi, ekki sem grafík */
-  body::before{
-    content:"";
-    position:fixed; inset:0 0 auto 0; height:60vh;
-    background:radial-gradient(120% 80% at 20% 0%, rgba(47,138,101,.20) 0%, rgba(47,138,101,.06) 38%, transparent 70%);
-    pointer-events:none; z-index:0;
-  }
-  .wrap{position:relative; z-index:1; max-width:1080px; margin:0 auto; padding:0 20px}
+    main {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 0 24px;
+    }
 
-  a{color:inherit}
-  :focus-visible{outline:2px solid var(--gull); outline-offset:3px; border-radius:2px}
+    h1, h2, h3 {
+      color: #fff;
+    }
 
-  /* ---------- Haus ---------- */
-  header{display:flex; align-items:baseline; justify-content:space-between; gap:16px; padding:22px 0 6px; flex-wrap:wrap}
-  .merki{display:flex; align-items:center; gap:10px; font-family:"Newsreader",Georgia,serif; font-size:24px; letter-spacing:.005em}
-  .viti{width:9px; height:9px; border-radius:50%; background:var(--gull); box-shadow:0 0 0 4px rgba(233,194,107,.14), 0 0 14px 2px rgba(233,194,107,.45); flex:none}
-  nav{display:flex; gap:22px; font-size:14px; color:var(--daufur)}
-  nav a{text-decoration:none; padding-bottom:2px; border-bottom:1px solid transparent}
-  nav a:hover{color:var(--bein); border-bottom-color:var(--gull-dimm)}
+    .kort-hermir {
+      background: #000;
+      border: 1px solid var(--lina-syn);
+      border-radius: var(--br);
+      padding: 40px;
+      text-align: center;
+      margin: 24px 0;
+      color: var(--daufur);
+    }
 
-  /* ---------- Staðarval ---------- */
-  .stadarrod{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:26px 0 18px}
-  .veljari{position:relative}
-  select{
-    appearance:none; background:var(--flotur); color:var(--bein); border:1px solid var(--lina-syn);
-    border-radius:var(--br); padding:9px 38px 9px 13px; font:inherit; font-size:15px; cursor:pointer;
-  }
-  select:hover{border-color:rgba(233,194,107,.4)}
-  .veljari::after{content:""; position:absolute; right:14px; top:50%; width:7px; height:7px; margin-top:-5px;
-    border-right:1.5px solid var(--daufur); border-bottom:1.5px solid var(--daufur); transform:rotate(45deg); pointer-events:none}
-  .hnappur{
-    background:transparent; color:var(--gull); border:1px solid var(--gull-dimm); border-radius:var(--br);
-    padding:9px 14px; font:inherit; font-size:15px; cursor:pointer;
-  }
-  .hnappur:hover{background:rgba(233,194,107,.10)}
-  .hnappur[disabled]{opacity:.5; cursor:default}
-  .stadastada{font-size:13px; color:var(--daufari)}
+    .stada-box {
+      background: var(--flotur);
+      border: 1px solid var(--lina-syn);
+      border-radius: var(--br);
+      padding: 20px;
+      margin-bottom: 24px;
+    }
 
-  /* ---------- Dómurinn ---------- */
-  .domur{padding-bottom:6px}
-  .domlina{display:flex; align-items:flex-end; justify-content:space-between; gap:28px; flex-wrap:wrap}
-  .domlina h1{flex:1 1 auto}
-  .einkunn{text-align:right; padding-bottom:16px; flex:none}
-  .einkunn .tala{display:block; font-family:"Newsreader",Georgia,serif; font-size:clamp(3.2rem,10vw,5rem); line-height:.85; font-variant-numeric:tabular-nums; letter-spacing:-.02em}
-  .einkunn .undir{display:block; font-size:12.5px; color:var(--daufari); margin-top:8px}
-  .domur h1{
-    font-family:"Newsreader",Georgia,serif; font-weight:400;
-    font-size:clamp(2.9rem, 9vw, 4.6rem); line-height:1.0; margin:0 0 14px;
-    letter-spacing:-.015em;
-  }
-  .domur h1 .st{font-style:italic; color:var(--daufur); display:block; font-size:.34em; line-height:1.4; letter-spacing:0; margin-bottom:.5em}
-  .skyring{font-size:19px; line-height:1.5; max-width:36em; color:var(--bein); margin:0 0 4px}
-  .skyring .veik{color:var(--daufur)}
+    .takki {
+      background: #21262d;
+      color: var(--bein);
+      border: 1px solid var(--lina-syn);
+      padding: 8px 16px;
+      border-radius: var(--br);
+      cursor: pointer;
+      font: inherit;
+    }
 
-  /* ---------- Vaktbandið ---------- */
-  .band{margin:34px 0 0}
-  .band-haus{display:flex; align-items:baseline; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:10px}
-  .band-titill{font-family:"Newsreader",Georgia,serif; font-size:20px}
-  .band-timi{font-size:13px; color:var(--daufari); font-variant-numeric:tabular-nums}
+    .takki:hover {
+      background: #30363d;
+    }
 
-  .sulur{display:flex; gap:3px; align-items:flex-end; background:var(--djup); border:1px solid var(--lina-syn); border-radius:var(--br); padding:10px 10px 8px}
-  .sula{flex:1 1 0; min-width:0; display:flex; flex-direction:column; align-items:stretch; gap:6px; cursor:default}
-  .staeda{position:relative; height:132px; background:linear-gradient(180deg, rgba(255,255,255,.030), rgba(255,255,255,.012)); border-radius:2px; overflow:hidden}
-  .fylli{position:absolute; left:0; right:0; bottom:0; border-radius:2px 2px 0 0}
-  .slaeda{position:absolute; inset:0;
-    background:
-      repeating-linear-gradient(115deg, rgba(124,137,160,.55) 0 2px, rgba(124,137,160,.16) 2px 6px);
-  }
-  .sula.bjart .staeda{box-shadow:inset 0 0 0 1px rgba(233,194,107,.55)}
-  .klst{font-size:12px; text-align:center; color:var(--daufur); font-variant-numeric:tabular-nums}
-  .sula.bjart .klst{color:var(--gull)}
-  .sula.utan .staeda{background:repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 1px, transparent 1px 5px)}
+    footer {
+      text-align: center;
+      padding: 40px 24px;
+      color: var(--daufur);
+      font-size: 13px;
+      border-top: 1px solid var(--lina-syn);
+      margin-top: 60px;
+    }
 
-  @media (prefers-reduced-motion: no-preference){
-    .fylli.lifandi{animation:bylgja 9s ease-in-out infinite}
-  }
-  @keyframes bylgja{0%,100%{opacity:.86} 50%{opacity:1}}
+    /* =========================================================================
+       HÖNNUN FYRIR TUNGUMÁLAVAL
+       ========================================================================= */
+    .haus-haegri {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
 
-  .gluggi{margin-top:12px; display:flex; align-items:center; gap:10px; font-size:15px}
-  .gluggi .bogi{flex:none; width:26px; height:10px; border:1px solid var(--gull); border-bottom:0; border-radius:6px 6px 0 0}
-  .skyringar{margin-top:12px; font-size:13.5px; color:var(--daufari); max-width:52em; line-height:1.6}
+    .tungumal {
+      position: relative;
+    }
 
-  /* ---------- Virknin og kvarðinn ---------- */
-  .virknispjald{
-    display:grid; grid-template-columns:auto 1fr; gap:26px; align-items:start;
-    border:1px solid var(--lina-syn); border-radius:var(--br); padding:20px 20px 18px; margin:38px 0 12px;
-  }
-  .virknispjald .heiti{font-size:13.5px; color:var(--daufur); margin-bottom:6px}
-  .kptala{font-family:"Newsreader",Georgia,serif; font-size:46px; line-height:1; color:var(--aur-4); font-variant-numeric:tabular-nums; white-space:nowrap}
-  .kpstada{font-size:16.5px; margin-bottom:2px}
-  .kptexti{font-size:14.5px; color:var(--daufur); max-width:44em; margin:6px 0 0; line-height:1.55}
-  .kpaukagildi{font-size:13px; color:var(--daufari); margin-top:8px}
+    .tungumal-hnappur {
+      background: transparent;
+      color: var(--daufur);
+      border: 1px solid var(--lina-syn);
+      border-radius: var(--br);
+      padding: 7px 14px;
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
 
-  .kvardi{position:relative; margin-top:2px}
-  .reinar{display:flex; gap:2px; height:14px}
-  .reinar span{flex:1; border-radius:1px; background:rgba(255,255,255,.07)}
-  .kvardi-merki{position:absolute; top:-4px; bottom:-4px; width:1px; background:var(--bein); opacity:.55}
-  .kvardi-fotur{display:flex; justify-content:space-between; margin-top:5px; font-size:11.5px; color:var(--daufari); font-variant-numeric:tabular-nums}
-  .kvardi-mork{font-size:11.5px; color:var(--daufur); margin-top:4px}
+    .tungumal-hnappur:hover {
+      color: var(--bein);
+      border-color: rgba(233, 194, 107, .4);
+    }
 
-  /* ---------- Staðan núna ---------- */
-  .geimvedur{border:1px solid var(--lina-syn); border-radius:var(--br); padding:20px 20px 18px; margin:0 0 30px}
-  .geimvedur .heiti{font-size:13.5px; color:var(--daufur); margin-bottom:10px; display:flex; align-items:center; gap:8px; flex-wrap:wrap}
-  .geimvedur .heiti .maelt{font-size:12px; color:var(--daufari)}
-  .stada-dot{width:9px; height:9px; border-radius:50%; flex:none; box-shadow:0 0 8px 1px currentColor}
-  .stada-heiti{font-family:"Newsreader",Georgia,serif; font-size:27px; line-height:1.15; margin-bottom:6px}
-  .bz-linurit{margin:4px 0 2px}
-  .bz-bil{font-size:11px; color:var(--daufari); margin-bottom:8px}
-  .tolur-hnappur{background:none; border:0; padding:0; margin-top:12px; color:var(--daufur); font:inherit; font-size:13px;
-    text-decoration:underline; text-decoration-color:var(--lina-syn); cursor:pointer}
-  .tolur-hnappur:hover{color:var(--bein); text-decoration-color:var(--gull-dimm)}
-  .tolur-nanar{margin-top:14px; padding-top:14px; border-top:1px solid var(--lina-syn)}
-  .tolur-nanar[hidden]{display:none}
-  .geimvedur-tolur{display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:12px}
-  .geimvedur-tolur .tala{display:block; font-family:"Newsreader",Georgia,serif; font-size:23px; line-height:1.1; font-variant-numeric:tabular-nums; color:var(--aur-4)}
-  .geimvedur-tolur .smaeti{display:block; font-size:11.5px; color:var(--daufari); margin-top:2px}
-  @media (max-width:760px){ .geimvedur-tolur{grid-template-columns:repeat(2,1fr); gap:14px 16px} }
+    .tungumal-hnappur::after {
+      content: "▾";
+      font-size: 10px;
+      opacity: 0.7;
+    }
 
-  /* ---------- Hin skilyrðin ---------- */
-  .skilyrdi{display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--lina-syn); border:1px solid var(--lina-syn); border-radius:var(--br); margin:0; overflow:hidden}
-  .reit{background:var(--nott); padding:16px 16px 15px}
-  .reit .heiti{font-size:13.5px; color:var(--daufur); margin-bottom:6px}
-  .reit .gildi{font-family:"Newsreader",Georgia,serif; font-size:30px; line-height:1.1; font-variant-numeric:tabular-nums}
-  .reit .aukagildi{font-size:13px; color:var(--daufari); margin-top:4px}
-  .reit .gildi.gron{color:var(--aur-4)}
-  .reit .gildi.gullin{color:var(--gull)}
-  .reit .slaedustika{height:4px; border-radius:2px; background:rgba(255,255,255,.08); margin-top:9px; overflow:hidden}
-  .reit .slaedustika i{display:block; height:100%; background:var(--sky)}
-  .reit .braut{position:relative; height:3px; border-radius:2px; background:rgba(255,255,255,.10); margin:11px 1px 6px}
-  .reit .punktur-nu{position:absolute; top:50%; width:7px; height:7px; margin:-3.5px 0 0 -3.5px; border-radius:50%; background:var(--gull); box-shadow:0 0 5px 1px rgba(233,194,107,.5)}
-  .reit .timar{display:flex; justify-content:space-between; font-size:11px; color:var(--daufari)}
-  .tungl-rod{display:flex; align-items:center; gap:10px}
-  .tungl-hringur{flex:none}
+    .tungumal-val {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 7px);
+      z-index: 100;
+      min-width: 130px;
+      background: var(--flotur);
+      border: 1px solid var(--lina-syn);
+      border-radius: var(--br);
+      padding: 5px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, .35);
+    }
 
-  /* ---------- Staðir ---------- */
-  section{padding-top:56px}
-  h2{font-family:"Newsreader",Georgia,serif; font-weight:400; font-size:28px; margin:0 0 8px}
-  .undirtexti{color:var(--daufur); font-size:15.5px; max-width:44em; margin:0 0 20px}
-  .besti-lina{display:flex; align-items:center; gap:8px; font-size:14.5px; color:var(--gull); margin:-8px 0 22px; font-weight:500}
-  .besti-lina button{background:none; border:0; padding:0; font:inherit; color:var(--gull); text-decoration:underline; text-decoration-color:var(--gull-dimm); cursor:pointer}
-  .besti-lina button:hover{text-decoration-color:var(--gull)}
-  .besti-merki{display:inline-flex; align-items:center; gap:5px; width:fit-content; font-size:10.5px; font-weight:500; color:var(--gull); border:1px solid var(--gull-dimm); border-radius:20px; padding:2px 9px 2px 7px}
-  .besti-merki .viti{width:6px; height:6px}
+    .tungumal-val[hidden] {
+      display: none;
+    }
 
-  .listi{display:grid; grid-template-columns:repeat(auto-fill, minmax(230px,1fr)); gap:10px}
-  .stadakort{
-    background:var(--nott); border:1px solid var(--lina-syn); border-radius:var(--br); padding:16px 16px 15px;
-    display:flex; flex-direction:column; gap:10px; text-align:left; color:inherit; font:inherit; cursor:pointer;
-  }
-  .stadakort:hover{border-color:rgba(233,194,107,.35)}
-  .stadakort.valin{background:rgba(233,194,107,.07); border-color:rgba(233,194,107,.4)}
-  .stadakort .kort-haus{display:flex; align-items:flex-start; justify-content:space-between; gap:10px}
-  .stadakort .nafn{font-size:16px}
-  .stadakort .nafn small{display:block; color:var(--daufari); font-size:12px; font-weight:400}
-  .stadakort .einkunn-stor{font-family:"Newsreader",Georgia,serif; font-size:32px; line-height:1; flex:none}
-  .stadakort .slaedustika{height:4px; border-radius:2px; background:rgba(255,255,255,.08); overflow:hidden}
-  .stadakort .slaedustika i{display:block; height:100%; background:var(--sky)}
-  .stadakort .undirrod{display:flex; justify-content:space-between; gap:10px; font-size:12.5px; color:var(--daufur); font-variant-numeric:tabular-nums}
-  .stadakort .undirrod span:last-child{color:var(--bein)}
+    .tungumal-val button {
+      display: block;
+      width: 100%;
+      background: none;
+      border: 0;
+      color: var(--bein);
+      text-align: left;
+      padding: 8px 12px;
+      border-radius: 2px;
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+    }
 
-  /* ---------- Kortið ---------- */
-  .kortumgerd{background:var(--djup); border:1px solid var(--lina-syn); border-radius:var(--br); padding:10px 10px 6px; margin-bottom:30px}
-  #kort{height:460px; border-radius:2px; background:var(--djup); z-index:0}
-  .leaflet-container{font-family:"IBM Plex Sans",system-ui,sans-serif; background:var(--djup); outline:none}
-  .karta-dokk{filter:invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9) saturate(0.65);}
-  .leaflet-control-zoom a{background:rgba(22,32,47,.92); color:var(--bein); border-color:rgba(232,227,214,.14)}
-  .leaflet-control-zoom a:hover{background:rgba(35,48,68,.95); color:var(--gull)}
-  .leaflet-control-attribution{background:rgba(10,16,28,.78); color:var(--daufari); font-size:11px}
-  .leaflet-control-attribution a{color:var(--daufur)}
-  .merkitext{background:none; border:0; box-shadow:none; color:var(--daufur); font-size:12px; padding:0; font-weight:500; text-shadow:0 1px 3px rgba(10,16,28,.95)}
-  .merkitext.valin{color:var(--bein)}
-  .merkitext::before{display:none}
-  .kort-fotur{display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap; padding:8px 4px 4px; font-size:12.5px; color:var(--daufari)}
+    .tungumal-val button:hover {
+      background: rgba(233, 194, 107, .10);
+      color: var(--gull);
+    }
 
-  /* ---------- Um gögnin ---------- */
-  .gogn{display:grid; grid-template-columns:repeat(3,1fr); gap:26px; margin-top:8px}
-  .gogn h3{font-size:15px; font-weight:600; margin:0 0 6px}
-  .gogn p{margin:0; font-size:14.5px; color:var(--daufur); line-height:1.6}
-  .gogn a{color:var(--gull); text-decoration:none; border-bottom:1px solid var(--gull-dimm)}
-
-  footer{margin-top:64px; padding:22px 0 40px; border-top:1px solid var(--lina-syn); color:var(--daufari); font-size:13.5px; display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap}
-  .merkimidi{border:1px solid var(--lina-syn); border-radius:20px; padding:2px 10px; font-size:12px}
-
-  /* ---------- Símar ---------- */
-  @media (max-width:760px){
-    .skilyrdi{grid-template-columns:repeat(2,1fr)}
-    .gogn{grid-template-columns:1fr; gap:20px}
-    .staeda{height:110px}
-    .klst{font-size:10.5px}
-    .listi{grid-template-columns:1fr}
-    .virknispjald{grid-template-columns:1fr; gap:16px; padding:18px 16px}
-    .kptala{font-size:38px}
-    .einkunn{text-align:left; padding-bottom:4px}
-    #kort{height:340px}
-    .skyring{font-size:17.5px}
-  }
-  @media (max-width:420px){
-    .sulur{gap:2px; padding:8px 6px 6px}
-  }
-</style>
+    @media (max-width: 760px) {
+      .haus-haegri {
+        width: 100%;
+        justify-content: space-between;
+        gap: 12px;
+      }
+    }
+  </style>
 </head>
 <body>
-<div class="wrap">
 
-  <header>
-    <div class="merki"><span class="viti" aria-hidden="true"></span>Ljósvaktin</div>
-    <nav>
-      <a href="#stadir">Staðir</a>
-      <a href="#gogn">Um gögnin</a>
-    </nav>
-  </header>
-
-  <div class="stadarrod">
-    <div class="veljari">
-      <select id="stadarval" aria-label="Veldu stað"></select>
-    </div>
-    <button class="hnappur" id="finnamig">Finna mig</button>
-    <span class="stadastada" id="stadastada"></span>
+<header>
+  <div class="merki">
+    <span class="viti" aria-hidden="true"></span>Ljósvaktin
   </div>
 
-  <main>
-    <div class="domur">
-      <div class="domlina">
-        <h1><span class="st" id="stadur-lina">Reykjavík í nótt</span><span id="domur-texti">–</span></h1>
-        <div class="einkunn">
-          <span class="tala" id="einkunn-tala">–</span>
-          <span class="undir">einkunn af 100</span>
-        </div>
+  <div class="haus-haegri">
+    <nav>
+      <a href="#stadir" data-i18n="nav_places">Places</a>
+      <a href="#gogn" data-i18n="nav_data">Data sources</a>
+    </nav>
+
+    <div class="tungumal">
+      <button type="button" class="tungumal-hnappur" id="tungumalHnappur" aria-expanded="false">
+        English
+      </button>
+
+      <div class="tungumal-val" id="tungumalVal" hidden>
+        <button type="button" data-lang="en">English</button>
+        <button type="button" data-lang="is">Íslenska</button>
+        <button type="button" data-lang="pl">Polski</button>
       </div>
-      <p class="skyring" id="skyring">Sæki nýjustu gögn …</p>
     </div>
+  </div>
+</header>
 
-    <div class="band">
-      <div class="band-haus">
-        <div class="band-titill">Vaktin í nótt</div>
-        <div class="band-timi" id="band-timi"></div>
-      </div>
-      <div class="sulur" id="sulur"></div>
-      <div class="gluggi" id="gluggi"></div>
-      <p class="skyringar">Grænt sýnir virknina, grátt skýin — bandið nær frá sólsetri til sólarupprásar.</p>
+<main>
+  <section class="stada-box">
+    <h1 data-i18n="watch_tonight">Tonight's watch</h1>
+    <p><span data-i18n="score">score out of 100</span>: <strong style="color: var(--gull);">85/100</strong></p>
+    
+    <!-- Dynamic JavaScript hlutinn sem hermir eftir API og staðsetningu -->
+    <div id="dynamic-stada"></div>
+    
+    <p>
+      <button class="takki" id="finna-mig-hnappur" onclick="hermaStaðsetningu()">
+        <span data-i18n="find_me">Find me</span>
+      </button>
+    </p>
+  </section>
+
+  <section id="stadir">
+    <h2 data-i18n="places_title">Places around Iceland</h2>
+    <p data-i18n="places_intro">Aurora activity is the same across Iceland — clouds determine where it can be seen. The score combines activity, clouds, darkness and moonlight; 100 is a perfect night.</p>
+    
+    <div class="kort-hermir">
+      <p><strong>[ Reykjavík — 85/100 ]</strong></p>
+      <p><strong>[ Grótta — 88/100 ]</strong></p>
+      <p data-i18n="map_click">Click a location to see its forecast.</p>
     </div>
+  </section>
 
-    <div class="virknispjald" id="virkni"></div>
-    <div class="geimvedur" id="geimvedur"></div>
-    <div class="skilyrdi" id="skilyrdi"></div>
+  <section id="gogn">
+    <h2 data-i18n="data_title">About the data</h2>
+    <p data-i18n="data_intro">Three open data services, refreshed regularly in the background. No registration, no password.</p>
+    
+    <ul>
+      <li><strong data-i18n="aurora_data">Aurora activity</strong> — <span data-i18n="aurora_data_text">NOAA SWPC measures disturbances in Earth's field...</span></li>
+    </ul>
+  </section>
+</main>
 
-    <section id="stadir">
-      <h2>Staðir á landinu</h2>
-      <p class="undirtexti">Virknin er sú sama um allt land — skýin ráða hvar hún sést. Einkunnin vegur saman virkni, ský, myrkur og tungl; 100 er fullkomin nótt.</p>
-      <p class="besti-lina" id="bestiLina"></p>
-      <div class="kortumgerd">
-        <div id="kort"></div>
-        <div class="kort-fotur">
-          <span>Stærð og litur punkts sýna einkunn næturinnar, gráa hringinn skýjahuluna.</span>
-          <span>Smelltu á stað til að sjá vaktina hans.</span>
-        </div>
-      </div>
-
-      <div class="listi" id="listi"></div>
-    </section>
-
-    <section id="gogn">
-      <h2>Um gögnin</h2>
-      <p class="undirtexti">Þrjár opnar veitur, endurnýjaðar reglulega í bakendanum. Engin skráning, engin lykilorð.</p>
-      <div class="gogn">
-        <div>
-          <h3>Norðurljósavirkni</h3>
-          <p><a href="https://www.swpc.noaa.gov/" target="_blank" rel="noopener">NOAA SWPC</a> mælir truflanir í segulsviði jarðar og gefur út Kp-stuðulinn ásamt spá fyrir næstu klukkustundir.</p>
-        </div>
-        <div>
-          <h3>Skýjahula, hiti og vindur</h3>
-          <p><a href="https://api.met.no/" target="_blank" rel="noopener">MET Noregi</a> gefur út klukkustundarspá fyrir hvern stað. Vindkælingin er reiknuð úr hita og vindhraða með stöðluðu formúlunni.</p>
-        </div>
-        <div>
-          <h3>Myrkur og tungl</h3>
-          <p><a href="https://sunrisesunset.io/" target="_blank" rel="noopener">sunrisesunset.io</a> reiknar sólsetur, myrkur og tunglstöðu eftir hnitum staðarins.</p>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <footer>
-    <span>Ljósvaktin sýnir líkur, ekki loforð. Norðurljós fara sínu fram.</span>
-    <span class="merkimidi">frumgerð</span>
-  </footer>
-</div>
+<footer>
+  <p><span data-i18n="footer">Ljósvaktin shows probabilities, not promises. The aurora has a mind of its own.</span> — <span data-i18n="prototype">prototype</span></p>
+</footer>
 
 <script>
 /* =========================================================================
-   GÖGN — sótt frá bakendanum (server.py, /api/vakt). Formið sem kemur til
-   baka er nákvæmlega:
-     nott      { solsetur, solarupprás, myrkurFra, myrkurTil, klst[] }
-     kpSpa[]   ein tala fyrir hverja klukkustund í klst[] (línuleg brúun úr
-               3ja klst NOAA Kp-spánni)
-     tungl     { fasi 0-1, upprás, heiti }
-     stadir[]  { id, nafn, hluti, lat, lon, sky[] (raunveruleg klst-fyrir-
-               klst skýjahula frá MET Noregi - ekki ágiskuð eins og í
-               frumgerðinni), hiti, vindur }
+   TUNGUMÁLAKERFI (i18n)
+   Default = English
    ========================================================================= */
 
-let nott = null;
-let kpSpa = [];
-let tungl = null;
-let metnir = [];
-let n = 0;
-let valinn = null;
-let valinnNafn = null;
-
-/* ---------- Útreikningar ---------- */
-
-function myrkurStudull(klst){
-  // 0 = bjart, 1 = fullt myrkur, 0.45 = rökkur
-  const h = klst;
-  const inn = t => parseInt(t.slice(0,2),10);
-  const ss = inn(nott.solsetur), su = inn(nott.solarupprás);
-  const mf = inn(nott.myrkurFra), mt = inn(nott.myrkurTil);
-  const eftirMidnaetti = h < 12;
-  const m = eftirMidnaetti ? h + 24 : h;
-  const ssX = ss, suX = su + 24, mfX = mf, mtX = mt + 24;
-  if(m < ssX || m > suX) return 0;
-  if(m >= mfX && m <= mtX) return 1;
-  return 0.45;
-}
-
-function stig(kp, sky, myrkur){
-  const virkni = Math.min(kp / 7, 1);
-  const heidrikja = 1 - 0.92 * (sky / 100);
-  const tunglThattur = 1 - 0.22 * tungl.fasi;
-  return virkni * heidrikja * myrkur * tunglThattur;
-}
-
-function vindkaeling(hiti, vindur){
-  // Staðlaða vindkælingarformúlan. Gildir undir 10°C og yfir 1,3 m/s.
-  const v = vindur * 3.6;
-  if(hiti > 10 || v < 4.8) return hiti;
-  const p = Math.pow(v, 0.16);
-  return Math.round(13.12 + 0.6215*hiti - 11.37*p + 0.3965*hiti*p);
-}
-
-function kpLysing(kp){
-  if(kp < 2)  return { heiti:"Lítil virkni",
-    texti:"Daufur bogi lágt í norðri. Þarf myrkur, heiðskírt og fjarlægð frá bæjarljósum." };
-  if(kp < 3)  return { heiti:"Venjuleg virkni",
-    texti:"Sést vel utan þéttbýlis. Þetta er algengasta staðan á góðri norðurljósanótt." };
-  if(kp < 5)  return { heiti:"Töluverð virkni",
-    texti:"Ljósið nær hærra á himininn og sést víða um land, líka í útjaðri bæja." };
-  if(kp < 6)  return { heiti:"Segulstormur",
-    texti:"Ljósið liggur oft yfir öllu landinu og sést úr þéttbýli. Hreyfing og litir verða greinilegri." };
-  if(kp < 7)  return { heiti:"Sterkur segulstormur",
-    texti:"Bjart og kvikt ljós beint yfir höfði, jafnvel í miðri Reykjavík." };
-  return { heiti:"Mikill segulstormur",
-    texti:"Sjaldgæft. Ljósið getur fyllt himininn og sést langt suður fyrir Ísland." };
-}
-
-/* Bz (segulsvið sólvindsins, suður-neikvætt) er gagnlegri rauntímavísbending en Kp —
-   sjá icelandatnight.is/is/bz-gildid. Þrepin hér fylgja viðmiðunum þaðan. */
-function flokkaGeimvedur(bz){
-  if(bz == null) return null;
-  if(bz > -1) return { stig:0, heiti:"Rólegt núna", litur:"var(--aur-1)",
-    texti:"Segulsvið sólvindsins vísar að mestu í norður — lítil kveikja fyrir norðurljós eins og er." };
-  if(bz > -5) return { stig:1, heiti:"Að glæðast", litur:"var(--aur-2)",
-    texti:"Bz vísar í suður, sem er hagstætt — færi gefst á norðurljósum ef annað er í lagi." };
-  if(bz > -10) return { stig:2, heiti:"Líflegt núna", litur:"var(--aur-3)",
-    texti:"Bz er vel neikvætt — góðar líkur á kvikum norðurljósum næstu klukkustund." };
-  return { stig:3, heiti:"Mikil hreyfing", litur:"var(--aur-4)",
-    texti:"Bz er mjög neikvætt — óvenjulegt ástand, norðurljós geta orðið björt og sést víða um land." };
-}
-
-/* ---------- Bz-sagan ----------
-   Bakendinn skilar bara einu Bz-gildi í einu, enga sögu. Í stað þess að bíða
-   eftir að bakendinn safni sögu, safnar vafrinn sjálfur punktum jafnóðum og
-   síðan sækir ný gögn (á 5 mín fresti). Geymt í localStorage svo sagan lifi
-   yfir enduríhlöðun, en með minnisafriti ef geymslan er ekki tiltæk. */
-const BZ_LYKILL = "ljosvaktin_bz_saga";
-const BZ_GLUGGI_KLST = 6;
-let bzSagaMinni = null;
-
-function saekjaBzSogu(){
-  if(bzSagaMinni) return bzSagaMinni;
-  try{
-    const hra = localStorage.getItem(BZ_LYKILL);
-    bzSagaMinni = hra ? JSON.parse(hra) : [];
-  }catch(villa){ bzSagaMinni = []; }
-  return bzSagaMinni;
-}
-
-function vistaBzLestur(bz){
-  const nu = Date.now();
-  const saga = saekjaBzSogu();
-  saga.push({ t:nu, bz });
-  const mork = nu - BZ_GLUGGI_KLST*60*60*1000;
-  bzSagaMinni = saga.filter(p => p.t >= mork);
-  try{ localStorage.setItem(BZ_LYKILL, JSON.stringify(bzSagaMinni)); }
-  catch(villa){ /* geymsla ekki tiltæk — sagan lifir samt í minni á meðan síðan er opin */ }
-  return bzSagaMinni;
-}
-
-function bzBilTexti(saga){
-  const span = saga[saga.length-1].t - saga[0].t;
-  const minutur = Math.round(span/60000);
-  if(minutur < 2) return null;
-  if(minutur < 60) return `síðustu ${minutur} mín`;
-  return `síðustu ${tala(minutur/60)} klst`;
-}
-
-function bzLinuritSvg(saga){
-  if(saga.length < 2) return "";
-  const w=220, h=48, pad=4;
-  // Hærra á myndinni = hagstæðara, því neikvætt Bz er hagstætt norðurljósum
-  const vals = saga.map(p => -p.bz);
-  const min = Math.min(...vals), max = Math.max(...vals);
-  const sponn = (max-min) || 1;
-  const x = i => pad + i*(w-2*pad)/(vals.length-1);
-  const y = v => (h-pad) - (v-min)/sponn*(h-2*pad);
-  const pts = vals.map((v,i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`);
-  const linePath = "M" + pts.join(" L ");
-  const grunnY = (h-pad).toFixed(1);
-  const areaPath = `M${x(0).toFixed(1)},${grunnY} L ${pts.join(" L ")} L ${x(vals.length-1).toFixed(1)},${grunnY} Z`;
-  return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" role="img" aria-label="Þróun Bz-gildis frá því síðan var opnuð">
-    <path d="${areaPath}" fill="var(--aur-4)" opacity=".14"/>
-    <path d="${linePath}" fill="none" stroke="var(--aur-4)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-  </svg>`;
-}
-
-function metaStad(s){
-  const sky = s.sky;
-  const stigin = nott.klst.map((h,i) => stig(kpSpa[i], sky[i], myrkurStudull(h)));
-  const best = Math.max(...stigin);
-  // Finnur fyrsta samfellda gluggann þar sem stigin eru a.m.k. 80% af því besta
-  let fra = -1, til = -1;
-  for(let i=0;i<n;i++){
-    const naerBesta = stigin[i] >= best*0.8 && best > 0.05;
-    if(naerBesta){ if(fra<0) fra=i; til=i; }
-    else if(fra>=0){ break; }
+const TRANSLATIONS = {
+  en: {
+    title: "Ljósvaktin — Aurora forecast for Iceland",
+    nav_places: "Places",
+    nav_data: "Data sources",
+    find_me: "Find me",
+    choose_place: "Choose a location",
+    tonight: "tonight",
+    score: "score out of 100",
+    watch_tonight: "Tonight's watch",
+    best_window: "Best window",
+    no_useful_window: "No useful window tonight.",
+    cloud_cover: "cloud cover",
+    clouds: "clouds",
+    aurora_activity: "Aurora activity tonight",
+    quiet: "Low activity",
+    normal: "Normal activity",
+    considerable: "Considerable activity",
+    magnetic_storm: "Magnetic storm",
+    strong_magnetic_storm: "Strong magnetic storm",
+    major_magnetic_storm: "Major magnetic storm",
+    kp_now: "Kp {kp} now, peaking around {time}.",
+    forecast_not_measurement: "This is a forecast for tonight, not a real-time measurement — see "Conditions now" below.",
+    conditions_now: "Conditions now",
+    quiet_now: "Quiet right now",
+    building: "Building",
+    lively_now: "Lively right now",
+    strong_movement: "Strong activity",
+    numbers: "Show numbers",
+    hide_numbers: "Hide numbers",
+    cloud_cover_title: "Cloud cover",
+    temperature: "Temperature",
+    darkness: "Darkness",
+    moon: "Moon",
+    feels_like: "Feels like",
+    wind: "Wind",
+    places_title: "Places around Iceland",
+    places_intro: "Aurora activity is the same across Iceland — clouds determine where it can be seen. The score combines activity, clouds, darkness and moonlight; 100 is a perfect night.",
+    best_places: "Tonight's best chance is around {place} — score {score}.",
+    best_place_badge: "Best place tonight",
+    best_place: "Best place",
+    no_window: "—",
+    map_points: "Point size and colour show the night's score; the grey ring shows cloud cover.",
+    map_click: "Click a location to see its forecast.",
+    data_title: "About the data",
+    data_intro: "Three open data services, refreshed regularly in the background. No registration, no password.",
+    aurora_data: "Aurora activity",
+    aurora_data_text: "NOAA SWPC measures disturbances in Earth's magnetic field and provides the Kp index and forecasts for the coming hours.",
+    weather_data: "Cloud cover, temperature and wind",
+    weather_data_text: "MET Norway provides hourly forecasts for each location. Wind chill is calculated from temperature and wind speed using the standard formula.",
+    darkness_data: "Darkness and moon",
+    darkness_data_text: "sunrisesunset.io calculates sunset, darkness and moon position based on the location's coordinates.",
+    footer: "Ljósvaktin shows probabilities, not promises. The aurora has a mind of its own.",
+    prototype: "prototype",
+    searching: "Searching for you…",
+    location_not_available: "Your browser does not support location. Choose a location from the list.",
+    data_not_ready: "The data is not ready yet — please try again in a moment.",
+    location_failed: "Your location could not be determined. Choose a location from the list.",
+    fetching: "Fetching the latest data…",
+    data_error: "Could not retrieve data from the server ({error}). Check that the server is running.",
+    measured: "measured at {time}",
+    real_time_unavailable: "Real-time solar-wind data is currently unavailable.",
+    see_data: "Show numbers",
+    kp_scale_note: "The marker is at Kp 2 — above this level, auroras are generally visible here because Iceland lies beneath the auroral oval.",
+    low_probability: "Low chance",
+    fair_probability: "Fair chance",
+    good_probability: "Good chance",
+    ideal_conditions: "Ideal conditions",
+    little_activity_text: "A faint arc low in the north. Darkness, clear skies and distance from city lights are needed.",
+    normal_activity_text: "Visible away from built-up areas. This is the most common situation on a good aurora night.",
+    considerable_activity_text: "The lights reach higher into the sky and can be seen across much of Iceland, including the outskirts of towns.",
+    magnetic_storm_text: "The lights often stretch across the whole country and can be seen from built-up areas. Movement and colours become more noticeable.",
+    strong_magnetic_storm_text: "Bright, active lights overhead, potentially even in central Reykjavík.",
+    major_magnetic_storm_text: "Rare. The aurora can fill the sky and may be visible far south of Iceland."
+  },
+  is: {
+    title: "Ljósvaktin — Norðurljósaspá fyrir Ísland",
+    nav_places: "Staðir",
+    nav_data: "Um gögnin",
+    find_me: "Finna mig",
+    choose_place: "Veldu stað",
+    tonight: "í nótt",
+    score: "einkunn af 100",
+    watch_tonight: "Vaktin í nótt",
+    best_window: "Besta glugginn",
+    no_useful_window: "Enginn nýtjanlegur gluggi í nótt.",
+    cloud_cover: "skýjahula",
+    clouds: "ský",
+    aurora_activity: "Norðurljósavirkni í nótt",
+    quiet: "Lítil virkni",
+    normal: "Venjuleg virkni",
+    considerable: "Talsverð virkni",
+    magnetic_storm: "Segulstormur",
+    strong_magnetic_storm: "Öflugur segulstormur",
+    major_magnetic_storm: "Sögulegur segulstormur",
+    kp_now: "Kp {kp} núna, mest í kringum {time}.",
+    forecast_not_measurement: "Þetta er spá fyrir nóttina, ekki rauntímamæling — sjá „Staðan núna" að neðan.",
+    conditions_now: "Staðan núna",
+    quiet_now: "Rólegt eins og er",
+    building: "Í uppsiglingu",
+    lively_now: "Líflegt eins og er",
+    strong_movement: "Mikil hreyfing",
+    numbers: "Sýna tölur",
+    hide_numbers: "Fela tölur",
+    cloud_cover_title: "Skýjahula",
+    temperature: "Hiti",
+    darkness: "Myrkur",
+    moon: "Tungl",
+    feels_like: "Vindkæling",
+    wind: "Vindur",
+    places_title: "Staðir á landinu",
+    places_intro: "Virknin er sú sama um allt land — skýin ráða hvar hún sést. Einkunnin vegur saman virkni, ský, myrkur og tungl; 100 er fullkomin nótt.",
+    best_places: "Besta lánið í nótt er í kringum {place} — einkunn {score}.",
+    best_place_badge: "Besti staðurinn í nótt",
+    best_place: "Besti staðurinn",
+    no_window: "—",
+    map_points: "Stærð og litur punkts sýna einkunn næturinnar; grái hringurinn skýjahuluna.",
+    map_click: "Smelltu á stað til að sjá vaktina hans.",
+    data_title: "Um gögnin",
+    data_intro: "Þrjár opnar veitur, endurnýjaðar reglulega í bakendanum. Engin skráning, engin lykilorð.",
+    aurora_data: "Norðurljósavirkni",
+    aurora_data_text: "NOAA SWPC mælir truflanir í segulsviði jarðar og gefur út Kp-stuðulinn ásamt spá fyrir næstu klukkustundir.",
+    weather_data: "Skýjahula, hiti og vindur",
+    weather_data_text: "MET Noregi gefur út klukkustundarspá fyrir hvern stað. Vindkælingin er reiknuð úr hita og vindhraða með stöðluðu formúlunni.",
+    darkness_data: "Myrkur og tungl",
+    darkness_data_text: "sunrisesunset.io reiknar sólsetur, myrkur og tunglstöðu eftir hnitum staðarins.",
+    footer: "Ljósvaktin sýnir líkur, ekki loforð. Norðurljós fara sínu fram.",
+    prototype: "frumgerð",
+    searching: "Leita að þér…",
+    location_not_available: "Vafrinn þinn styður ekki staðsetningu. Veldu stað af listanum.",
+    data_not_ready: "Gögnin eru ekki tilbúin ennþá — reyndu aftur eftir augnablik.",
+    location_failed: "Ekki tókst að finna staðsetningu þína. Veldu stað af listanum.",
+    fetching: "Sæki nýjustu gögn…",
+    data_error: "Náði ekki í gögn frá netþjóni ({error}). Athugaðu hvort bakendinn keyri.",
+    measured: "mælt kl. {time}",
+    real_time_unavailable: "Rauntímagögn um sólsetur/veður eru ekki tiltæk eins og er.",
+    see_data: "Sýna tölur",
+    kp_scale_note: "Flest norðurljós sjást yfir Kp 2 á Íslandi þar sem landið liggur beint undir norðurljósabaugnum.",
+    low_probability: "Litlar líkur",
+    fair_probability: "Ágætar líkur",
+    good_probability: "Góðar líkur",
+    ideal_conditions: "Fullkomnar aðstæður",
+    little_activity_text: "Daufur bogi lágt í norðri. Myrkur, heiðskírt og fjarlægð frá ljósmengun skiptir máli.",
+    normal_activity_text: "Sjáanleg vel utan þéttbýlis. Þetta er algengasta staðan á góðri norðurljósanótt.",
+    considerable_activity_text: "Ljósin ná hærra á loft og sjást víða um land, einnig í jöðrum borga og bæja.",
+    magnetic_storm_text: "Ljósin ná oft yfir allt landið og sjást vel innan þéttbýlis. Hreyfing og litir verða greinilegeri.",
+    strong_magnetic_storm_text: "Björt og mikil hreyfing beint yfir höfði, sjást vel jafnvel í miðbæ Reykjavíkur.",
+    major_magnetic_storm_text: "Sjaldgæft. Ljósin geta fyllt allan himininn og sést langt suður fyrir landið."
+  },
+  pl: {
+    title: "Ljósvaktin — Prognoza zorzy polarnej dla Islandii",
+    nav_places: "Miejsca",
+    nav_data: "Źródła danych",
+    find_me: "Znajdź mnie",
+    choose_place: "Wybierz lokalizację",
+    tonight: "dzisiaj",
+    score: "ocena na 100",
+    watch_tonight: "Dzisiejsza prognoza",
+    best_window: "Najlepsze okno",
+    no_useful_window: "Brak dogodnego okna dzisiejszej nocy.",
+    cloud_cover: "zachmurzenie",
+    clouds: "chmury",
+    aurora_activity: "Aktywność zorzy dzisiejszej nocy",
+    quiet: "Niska aktywność",
+    normal: "Normalna aktywność",
+    considerable: "Znaczna aktywność",
+    magnetic_storm: "Burza magnetyczna",
+    strong_magnetic_storm: "Silna burza magnetyczna",
+    major_magnetic_storm: "Potężna burza magnetyczna",
+    kp_now: "Kp wynosi teraz {kp}, osiągając szczyt około {time}.",
+    forecast_not_measurement: "To jest prognoza na noc, a nie pomiar w czasie rzeczywistym — zobacz „Warunki teraz" poniżej.",
+    conditions_now: "Warunki teraz",
+    quiet_now: "W tej chwili spokojnie",
+    building: "Wzmocnienie",
+    lively_now: "Żywa aktywność",
+    strong_movement: "Silna aktywność",
+    numbers: "Pokaż liczby",
+    hide_numbers: "Ukryj liczby",
+    cloud_cover_title: "Zachmurzenie",
+    temperature: "Temperatura",
+    darkness: "Ciemność",
+    moon: "Księżyc",
+    feels_like: "Odczuwalna",
+    wind: "Wiatr",
+    places_title: "Miejsca w Islandii",
+    places_intro: "Aktywność zorzy jest taka sama w całej Islandii — chmury decydują o tym, gdzie można ją zobaczyć. Ocena łączy aktywność, chmury, ciemność i światło księżyca; 100 to idealna noc.",
+    best_places: "Najlepsza szansa dzisiejszej nocy jest w okolicach {place} — ocena {score}.",
+    best_place_badge: "Najlepsze miejsce dzisiaj",
+    best_place: "Najlepsze miejsce",
+    no_window: "—",
+    map_points: "Rozmiar i kolor punktu pokazują ocenę nocy; szary pierścień pokazuje zachmurzenie.",
+    map_click: "Kliknij lokalizację, aby zobaczyć jej prognozę.",
+    data_title: "O danych",
+    data_intro: "Trzy otwarte usługi danych, wydarzenia regularnie odświeżane w tle. Bez rejestracji, bez haseł.",
+    aurora_data: "Aktywność zorzy",
+    aurora_data_text: "NOAA SWPC mierzy zakłócenia w polu magnetycznym Ziemi i dostarcza indeks Kp oraz prognozy na nadchodzące godziny.",
+    weather_data: "Zachmurzenie, temperatura i wiatr",
+    weather_data_text: "MET Norwegia zapewnia cogodzinne prognozy dla każdej lokalizacji. Temperatura odczuwalna jest obliczana na podstawie temperatury i prędkości wiatru przy użyciu standardowego wzoru.",
+    darkness_data: "Ciemność i księżyc",
+    darkness_data_text: "sunrisesunset.io oblicza zachód słońca, ciemność i pozycję księżyca na podstawie współrzędnych lokalizacji.",
+    footer: "Ljósvaktin pokazuje prawdopodobieństwo, a nie obietnice. Zorza polarna ma swój własny rozum.",
+    prototype: "prototyp",
+    searching: "Szukam Cię…",
+    location_not_available: "Twoja przeglądarka nie obsługuje lokalizacji. Wybierz miejsce z listy.",
+    data_not_ready: "Dane nie są jeszcze gotowe — spróbuj ponownie za chwilę.",
+    location_failed: "Nie udało się określić Twojej lokalizacji. Wybierz miejsce z listy.",
+    fetching: "Pobieranie najnowszych danych…",
+    data_error: "Nie można pobrać danych z serwera ({error}). Sprawdź, czy serwer działa.",
+    measured: "zmierzone o {time}",
+    real_time_unavailable: "Dane w czasie rzeczywistym są obecnie niedostępne.",
+    see_data: "Pokaż liczby",
+    kp_scale_note: "Znacznik znajduje się na poziomie Kp 2 — powyżej tego poziomu zorze są ogólnie widoczne tutaj, ponieważ Islandia leży pod owalem zorzowym.",
+    low_probability: "Niska szansa",
+    fair_probability: "Umiarkowana szansa",
+    good_probability: "Dobra szansa",
+    ideal_conditions: "Idealne warunki",
+    little_activity_text: "Słaby łuk nisko na północy. Wymagana jest ciemność, czyste niebo i odległość od świateł miejskich.",
+    normal_activity_text: "Widoczna z dala od obszarów zabudowanych. To najczęstsza sytuacja w dobrą noc zorzową.",
+    considerable_activity_text: "Światła sięgają wyżej na niebie i można je zobaczyć w większości Islandii, w tym na obrzeżach miast.",
+    magnetic_storm_text: "Światła często rozciągają się na cały kraj i są dobrze widoczne z obszarów zabudowanych. Ruch i kolory stają się bardziej zauważalne.",
+    strong_magnetic_storm_text: "Jasne, aktywne światła nad głową, potencjalnie nawet w centrum Reykjavíku.",
+    major_magnetic_storm_text: "Rzadkie. Zorza może wypełnić całe niebo i być widoczna daleko na południe od Islandii."
   }
-  return { ...s, sky, stigin, best, gluggiFra:fra, gluggiTil:til };
-}
+};
 
-function domsordi(s){
-  if(s < 0.12) return "Litlar líkur";
-  if(s < 0.30) return "Sæmilegar líkur";
-  if(s < 0.55) return "Góðar líkur";
-  return "Kjöraðstæður";
-}
+let nuverandiTungumal = localStorage.getItem("ljosvaktin_lang") || "en";
 
-function klstTexti(i){ return String(nott.klst[i]).padStart(2,"0") + ":00"; }
-function tala(x){ return x.toFixed(1).replace(".", ","); }
-
-function brotOnottu(fraStr, tilStr){
-  // Hlutfall (0–1) af því hvar klukkan er stödd milli fraStr og tilStr í kvöld,
-  // eða null ef klukkan er utan þess bils. Notar raunverulega klukku vafrans,
-  // óháð því hvernig nott.klst er raðað — svo þetta er alltaf rétt.
-  const min = t => { const [h,m] = t.split(":").map(Number); return h*60+m; };
-  let fra = min(fraStr), til = min(tilStr);
-  const nuna = new Date();
-  let nu = nuna.getHours()*60 + nuna.getMinutes();
-  if(til <= fra) til += 24*60;
-  if(nu < fra) nu += 24*60;
-  if(nu < fra || nu > til) return null;
-  return (nu - fra) / (til - fra);
-}
-
-function litur(v){
-  // v: 0-1 → græni skalinn. Grænt er eingöngu notað fyrir virkni.
-  if(v < 0.25) return "var(--aur-1)";
-  if(v < 0.5)  return "var(--aur-2)";
-  if(v < 0.75) return "var(--aur-3)";
-  return "var(--aur-4)";
-}
-
-/* ---------- Kortið (Leaflet + OpenStreetMap) ---------- */
-let kortObj = null, punktalag = null;
-
-function teiknaKort(){
-  if(typeof L === "undefined"){ return; }   // Leaflet náðist ekki — kortið er þá einfaldlega tómt
-
-  if(!kortObj){
-    kortObj = L.map("kort", { scrollWheelZoom:false, minZoom:5, maxZoom:11 });
-    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom:19, className:"karta-dokk",
-      attribution:'Kortagögn frá <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-    }).addTo(kortObj);
-    kortObj.fitBounds([[63.30,-24.60],[66.60,-13.40]], { padding:[12,12] });
-    punktalag = L.layerGroup().addTo(kortObj);
+function uppfaeraTextaASidu() {
+  document.documentElement.lang = nuverandiTungumal;
+  if (TRANSLATIONS[nuverandiTungumal].title) {
+    document.title = TRANSLATIONS[nuverandiTungumal].title;
   }
-
-  punktalag.clearLayers();
-  const bestur = metnir[0];
-
-  // Glóð undir besta staðnum
-  L.circleMarker([bestur.lat, bestur.lon], {
-    radius: 30, stroke:false, fillColor:"#6FF0B4", fillOpacity:.10, interactive:false
-  }).addTo(punktalag);
-
-  metnir.slice().sort((a,b) => a.best - b.best).forEach(p => {
-    const medalsky = Math.round(p.sky.reduce((a,b)=>a+b,0)/n);
-    const einkunn  = Math.round(p.best * 100);
-    const r = 5 + p.best * 11;
-
-    if(p === valinn){
-      L.circleMarker([p.lat, p.lon], {
-        radius: r + 6, fill:false, color:"#E9C26B", weight:1.2, opacity:.9, interactive:false
-      }).addTo(punktalag);
+  document.querySelectorAll("[data-i18n]").forEach(element => {
+    const lykill = element.getAttribute("data-i18n");
+    if (TRANSLATIONS[nuverandiTungumal][lykill]) {
+      element.textContent = TRANSLATIONS[nuverandiTungumal][lykill];
     }
-
-    const merki = L.circleMarker([p.lat, p.lon], {
-      radius: r,
-      fillColor: litur(p.best),
-      fillOpacity: 0.35 + p.best * 0.6,
-      color: "#7C89A0",                       // grái hringurinn = skýjahulan
-      weight: 2.5,
-      opacity: medalsky / 100 * 0.9
-    }).addTo(punktalag);
-
-    merki.bindTooltip(
-      `${p.nafn} — einkunn ${einkunn}, ${medalsky}% skýjahula, ${p.hiti}°C`,
-      { direction:"top", offset:[0,-r] }
-    );
-
-    if(p === bestur || p === valinn){
-      L.tooltip({
-        permanent:true, direction: p.lon > -17.5 ? "left" : "right",
-        offset:[p.lon > -17.5 ? -(r+4) : r+4, 0],
-        className:"merkitext" + (p === valinn ? " valin" : ""), opacity:1
-      }).setContent(p.nafn).setLatLng([p.lat, p.lon]).addTo(punktalag);
-    }
-
-    merki.on("click", () => veljaStad(p.nafn));
   });
+  const hnappur = document.getElementById("tungumalHnappur");
+  if (hnappur) {
+    const nofn = { en: "English", is: "Íslenska", pl: "Polski" };
+    hnappur.textContent = nofn[nuverandiTungumal];
+  }
+  
+  // Teikna dynamic texta aftur þegar skipt er um tungumál
+  snyrtaDynamicVidmot();
 }
 
-/* ---------- Teikning ---------- */
-
-function veljaStad(nafn){
-  const p = metnir.find(x => x.nafn === nafn);
-  if(!p) return;
-  valinn = p;
-  valinnNafn = p.nafn;
-  teikna();
-  window.scrollTo({ top:0, behavior:"smooth" });
+function sja(lykill, breytur = {}) {
+  let texti = TRANSLATIONS[nuverandiTungumal]?.[lykill] || TRANSLATIONS["en"]?.[lykill] || lykill;
+  Object.keys(breytur).forEach(b => {
+    texti = texti.replace(`{${b}}`, breytur[b]);
+  });
+  return texti;
 }
 
-function teikna(){
-  const s = valinn;
-  const besti = metnir[0];
-
-  document.getElementById("stadur-lina").textContent = s.nafn + " í nótt";
-  document.getElementById("domur-texti").textContent = domsordi(s.best);
-
-  document.getElementById("bestiLina").innerHTML =
-    `<span class="viti" aria-hidden="true"></span> Í kvöld eru bestu líkurnar við <button type="button" onclick="veljaStad('${besti.nafn}')">${besti.nafn}</button> — einkunn ${Math.round(besti.best*100)}.`;
-
-  const einkunn = Math.round(s.best * 100);
-  const einkunnEl = document.getElementById("einkunn-tala");
-  einkunnEl.textContent = einkunn;
-  einkunnEl.style.color = litur(s.best);
-
-  // Skýringarsetning: hvað er það sem takmarkar nóttina?
-  const skyIGlugga = s.gluggiFra >= 0
-    ? Math.round(s.sky.slice(s.gluggiFra, s.gluggiTil+1).reduce((a,b)=>a+b,0) / (s.gluggiTil-s.gluggiFra+1))
-    : Math.round(s.sky.reduce((a,b)=>a+b,0)/n);
-  const hamarkKp = Math.max(...kpSpa);
-
-  let setning;
-  if(hamarkKp < 3){
-    setning = `Virknin nær aðeins Kp ${tala(hamarkKp)} í nótt. Það þarf heiðan himin og þolinmæði til að sjá nokkuð.`;
-  } else if(skyIGlugga > 70){
-    setning = `Virknin er góð, en skýin liggja yfir ${s.nafn.replace(/^Í/,"í")} nær alla nóttina. ${metnir[0].nafn} er heiðari — þar er útlitið best.`;
-  } else if(skyIGlugga > 40){
-    setning = `Skýjað að hluta, en það rofar til upp úr miðnætti. Virknin toppar í Kp ${tala(hamarkKp)} um sama leyti.`;
+// Fall sem hermir eftir breytingum á dynamic JavaScript skilaboðum
+function snyrtaDynamicVidmot(sertakrTexti = null) {
+  const box = document.getElementById("dynamic-stada");
+  if (!box) return;
+  
+  if (sertakrTexti) {
+    box.innerHTML = `<p><em>${sertakrTexti}</em></p>`;
   } else {
-    setning = `Heiðskírt að mestu og virknin toppar í Kp ${tala(hamarkKp)}. Þetta er nótt til að fara út.`;
+    // Sjálfgefin staða (Hermir eftir dynamic gögnum)
+    box.innerHTML = `
+      <p>${sja("kp_now", { kp: "3.2", time: "23:45" })}</p>
+      <p style="font-size: 14px; color: var(--daufur);">${sja("forecast_not_measurement")}</p>
+    `;
   }
-  const finnstNu = vindkaeling(s.hiti, s.vindur);
-  const hitasetning = finnstNu <= 0
-    ? `Það er ${s.hiti}° úti en finnst eins og ${finnstNu}° — það er frostmark á húð.`
-    : finnstNu < s.hiti
-      ? `Það er ${s.hiti}° úti og finnst eins og ${finnstNu}° í vindi.`
-      : `Það er ${s.hiti}° úti og nánast logn.`;
-  const tunglSetning = tungl.upprás
-    ? `Tunglið er ${Math.round(tungl.fasi*100)}% fullt og kemur upp ${tungl.upprás}.`
-    : `Tunglið er ${Math.round(tungl.fasi*100)}% fullt (${tungl.heiti}).`;
-  document.getElementById("skyring").innerHTML = setning +
-    ` <span class="veik">${hitasetning} ${tunglSetning}</span>`;
+}
 
-  document.getElementById("band-timi").textContent =
-    `Sólsetur ${nott.solsetur} — sólarupprás ${nott.solarupprás}`;
+function hermaStaðsetningu() {
+  snyrtaDynamicVidmot(sja("searching"));
+  setTimeout(() => {
+    // Sýnir „Reykjavík" – íslenska heitið helst óbreytt en textinn í kring þýðist
+    snyrtaDynamicVidmot(`${sja("best_places", { place: "Reykjavík", score: "85" })}`);
+  }, 1200);
+}
 
-  // Súlurnar
-  const sulur = document.getElementById("sulur");
-  sulur.innerHTML = "";
-  nott.klst.forEach((h,i) => {
-    const myrkur = myrkurStudull(h);
-    const virkni = Math.min(kpSpa[i]/7, 1);
-    const hlutfall = Math.round(virkni * 100 * (myrkur > 0 ? 1 : 0.12));
-    const ibesta = s.gluggiFra >= 0 && i >= s.gluggiFra && i <= s.gluggiTil;
+document.addEventListener("DOMContentLoaded", () => {
+  const hnappur = document.getElementById("tungumalHnappur");
+  const valmynd = document.getElementById("tungumalVal");
 
-    const sula = document.createElement("div");
-    sula.className = "sula" + (ibesta ? " bjart" : "") + (myrkur === 0 ? " utan" : "");
-    sula.title = `${klstTexti(i)} — Kp ${kpSpa[i].toFixed(1)}, ${s.sky[i]}% skýjahula`;
-
-    const staeda = document.createElement("div");
-    staeda.className = "staeda";
-
-    const fylli = document.createElement("div");
-    fylli.className = "fylli" + (ibesta ? " lifandi" : "");
-    fylli.style.height = hlutfall + "%";
-    fylli.style.background = `linear-gradient(180deg, ${litur(virkni)} 0%, rgba(31,90,69,.55) 100%)`;
-    fylli.style.opacity = myrkur === 0 ? .18 : (myrkur === 1 ? 1 : .55);
-    staeda.appendChild(fylli);
-
-    const slaeda = document.createElement("div");
-    slaeda.className = "slaeda";
-    slaeda.style.opacity = (s.sky[i]/100) * 0.9;
-    staeda.appendChild(slaeda);
-
-    const klst = document.createElement("div");
-    klst.className = "klst";
-    klst.textContent = String(h).padStart(2,"0");
-
-    sula.appendChild(staeda);
-    sula.appendChild(klst);
-    sulur.appendChild(sula);
-  });
-
-  // Besti glugginn
-  const gl = document.getElementById("gluggi");
-  if(s.gluggiFra >= 0){
-    gl.innerHTML = `<span class="bogi" aria-hidden="true"></span>
-      <span>Besti glugginn er <strong>${klstTexti(s.gluggiFra)}–${klstTexti(s.gluggiTil)}</strong>,
-      með ${skyIGlugga}% skýjahulu.</span>`;
-  } else {
-    gl.innerHTML = `<span>Enginn nothæfur gluggi í nótt. Skoðaðu listann hér að neðan — annars staðar á landinu er heiðara.</span>`;
-  }
-
-  // Virknin með kvarða
-  const kpNu = kpSpa[0];
-  const lys = kpLysing(hamarkKp);
-  const reinar = Array.from({length:9}, (_,i) => {
-    const gildi = i + 1;
-    const virk = hamarkKp >= gildi - 0.5;
-    return `<span${virk ? ` style="background:${litur(Math.min(gildi/7,1))}"` : ""}></span>`;
-  }).join("");
-
-  document.getElementById("virkni").innerHTML = `
-    <div>
-      <div class="heiti">Norðurljósavirkni í nótt</div>
-      <div class="kptala">Kp ${tala(hamarkKp)}</div>
-    </div>
-    <div>
-      <div class="kpstada">${lys.heiti}</div>
-      <div class="kvardi">
-        <div class="reinar">${reinar}</div>
-        <div class="kvardi-merki" style="left:${(2/9*100).toFixed(1)}%"></div>
-        <div class="kvardi-fotur"><span>Kp 0</span><span>Kp 9</span></div>
-      </div>
-      <div class="kvardi-mork">Strikið er við Kp 2 — þaðan sjást norðurljós hér að jafnaði, því Ísland liggur undir norðurljósahringnum sjálfum.</div>
-      <p class="kptexti">${lys.texti}</p>
-      <div class="kpaukagildi">Kp ${tala(kpNu)} núna, hæst um ${klstTexti(kpSpa.indexOf(hamarkKp))}. Þetta er spá fyrir nóttina, ekki rauntímamæling — sjá „Staðan núna" hér að neðan.</div>
-    </div>`;
-
-  // Hin skilyrðin
-  const finnst = vindkaeling(s.hiti, s.vindur);
-  const bfrac = brotOnottu(nott.myrkurFra, nott.myrkurTil);
-  const tunglC = 81.68; // ummál hrings r=13
-  document.getElementById("skilyrdi").innerHTML = `
-    <div class="reit">
-      <div class="heiti">Skýjahula</div>
-      <div class="gildi">${s.sky[0]}%</div>
-      <div class="slaedustika"><i style="width:${s.sky[0]}%"></i></div>
-      <div class="aukagildi">Meðaltal nætur: ${Math.round(s.sky.reduce((a,b)=>a+b,0)/n)}%</div>
-    </div>
-    <div class="reit">
-      <div class="heiti">Hiti</div>
-      <div class="gildi">${s.hiti}°C</div>
-      <div class="aukagildi">${finnst < s.hiti ? `Finnst eins og ${finnst}° í ${s.vindur} m/s vindi` : `Vindur ${s.vindur} m/s`}</div>
-    </div>
-    <div class="reit">
-      <div class="heiti">Myrkur</div>
-      <div class="gildi">${nott.myrkurFra}</div>
-      <div class="braut">${bfrac != null ? `<div class="punktur-nu" style="left:${(bfrac*100).toFixed(1)}%"></div>` : ""}</div>
-      <div class="timar"><span>${nott.myrkurFra}</span><span>${nott.myrkurTil}</span></div>
-    </div>
-    <div class="reit">
-      <div class="heiti">Tungl</div>
-      <div class="tungl-rod">
-        <svg class="tungl-hringur" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="${Math.round(tungl.fasi*100)}% upplýst tungl">
-          <circle cx="16" cy="16" r="13" fill="none" stroke="rgba(255,255,255,.10)" stroke-width="3"/>
-          <circle cx="16" cy="16" r="13" fill="none" stroke="var(--gull)" stroke-width="3" stroke-linecap="round"
-            stroke-dasharray="${(tungl.fasi*tunglC).toFixed(1)} ${tunglC}" transform="rotate(-90 16 16)"/>
-        </svg>
-        <div>
-          <div class="gildi gullin">${Math.round(tungl.fasi*100)}%</div>
-          <div class="aukagildi">${tungl.heiti}${tungl.upprás ? `, upprás ${tungl.upprás}` : ""}</div>
-        </div>
-      </div>
-    </div>`;
-
-  teiknaKort();
-
-  // Staðalistinn
-  const listi = document.getElementById("listi");
-  listi.innerHTML = "";
-  metnir.forEach(p => {
-    const medalsky = Math.round(p.sky.reduce((a,b)=>a+b,0)/n);
-    const pf = vindkaeling(p.hiti, p.vindur);
-    const erBestur = p === metnir[0];
-    const b = document.createElement("button");
-    b.type = "button";
-    b.className = "stadakort" + (p.nafn === s.nafn ? " valin" : "");
-    b.innerHTML = `
-      <div class="kort-haus">
-        <span class="nafn">${p.nafn}<small>${p.hluti}</small></span>
-        <span class="einkunn-stor" style="color:${litur(p.best)}">${Math.round(p.best*100)}</span>
-      </div>
-      ${erBestur ? `<span class="besti-merki"><span class="viti" aria-hidden="true"></span>Besti staðurinn í kvöld</span>` : ""}
-      <div>
-        <div class="slaedustika"><i style="width:${medalsky}%"></i></div>
-        <div class="undirrod"><span>${medalsky}% ský</span><span>${p.hiti}°${pf < p.hiti ? ` · finnst ${pf}°` : ""}</span></div>
-      </div>
-      <div class="undirrod"><span>Besti glugginn</span><span>${p.gluggiFra >= 0 ? klstTexti(p.gluggiFra)+"–"+klstTexti(p.gluggiTil) : "—"}</span></div>`;
-    b.addEventListener("click", () => veljaStad(p.nafn));
-    listi.appendChild(b);
-  });
-
-  // Staðarvalið
-  const val = document.getElementById("stadarval");
-  if(!val.options.length){
-    metnir.slice().sort((a,b)=>a.nafn.localeCompare(b.nafn,"is")).forEach(p => {
-      const o = document.createElement("option");
-      o.value = p.nafn; o.textContent = p.nafn;
-      val.appendChild(o);
+  if (hnappur && valmynd) {
+    hnappur.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const opið = hnappur.getAttribute("aria-expanded") === "true";
+      hnappur.setAttribute("aria-expanded", !opið);
+      valmynd.hidden = opið;
     });
-    val.addEventListener("change", () => {
-      valinn = metnir.find(p => p.nafn === val.value);
-      valinnNafn = valinn.nafn;
-      teikna();
-    });
-  }
-  val.value = s.nafn;
-}
 
-/* ---------- Sækja gögn og halda þeim uppfærðum ---------- */
-
-function birtaGeimvedur(g){
-  const el = document.getElementById("geimvedur");
-  if(!g || g.bz == null){
-    el.innerHTML = `<div class="heiti">Staðan núna</div><p class="kptexti">Rauntímagögn um sólvind ekki tiltæk í augnablikinu.</p>`;
-    return;
-  }
-
-  const f = flokkaGeimvedur(g.bz);
-  let texti = f.texti;
-  if(f.stig > 0 && g.hradi != null && g.hradi >= 500){
-    texti += " Sólvindshraðinn er líka óvenju hraður, sem breikkar norðurljósabeltið og færir ljósin sunnar.";
-  }
-  if(f.stig > 0 && g.thettleiki != null && g.thettleiki >= 10){
-    texti += " Þéttleikinn er líka hár, sem gefur meiri og bjartari liti.";
-  }
-
-  const saga = vistaBzLestur(g.bz);
-  const linurit = bzLinuritSvg(saga);
-  const bilTexti = linurit ? bzBilTexti(saga) : null;
-
-  el.innerHTML = `
-    <div class="heiti"><span class="stada-dot" style="background:${f.litur}"></span>Staðan núna <span class="maelt">· mælt kl. ${g.maelt ?? "?"}</span></div>
-    <div class="stada-heiti" style="color:${f.litur}">${f.heiti}</div>
-    ${linurit ? `<div class="bz-linurit">${linurit}</div>${bilTexti ? `<div class="bz-bil">${bilTexti}</div>` : ""}` : ""}
-    <p class="kptexti">${texti}</p>
-    <p class="kpaukagildi">Getur tekið 30–60 mínútur fyrir breytingar í sólvindinum að skila sér á himininn hér.</p>
-    <button class="tolur-hnappur" id="tolurHnappur" type="button" aria-expanded="false">Sjá tölurnar</button>
-    <div class="tolur-nanar" id="tolurNanar" hidden>
-      <div class="geimvedur-tolur">
-        <div><span class="tala">${g.bz}</span><span class="smaeti">nT · Bz</span></div>
-        <div><span class="tala">${g.bt}</span><span class="smaeti">nT · Bt</span></div>
-        <div><span class="tala">${g.hradi ?? "–"}</span><span class="smaeti">km/s · hraði</span></div>
-        <div><span class="tala">${g.thettleiki ?? "–"}</span><span class="smaeti">agnir/cm³</span></div>
-      </div>
-      <p class="kpaukagildi">Mælt af DSCOVR-gervitunglinu milli jarðar og sólar, endurbirt af <a href="https://www.swpc.noaa.gov/products/real-time-solar-wind" target="_blank" rel="noopener">NOAA SWPC</a>. Fyrir staðbundnar segultruflanir, sjá <a href="http://cygnus.rhi.hi.is/~halo/leirv.png" target="_blank" rel="noopener">rauntímamælingar frá Leirvogi</a> (Raunvísindastofnun HÍ).</p>
-    </div>`;
-
-  const hnappur = document.getElementById("tolurHnappur");
-  const nanar = document.getElementById("tolurNanar");
-  hnappur.addEventListener("click", () => {
-    nanar.hidden = !nanar.hidden;
-    hnappur.textContent = nanar.hidden ? "Sjá tölurnar" : "Fela tölurnar";
-    hnappur.setAttribute("aria-expanded", String(!nanar.hidden));
-  });
-}
-
-async function saekjaVakt(){
-  try {
-    const svar = await fetch("/api/vakt?dagur=0");
-    if(!svar.ok) throw new Error("HTTP " + svar.status);
-    const gogn = await svar.json();
-
-    nott = gogn.nott;
-    kpSpa = gogn.kpSpa;
-    tungl = gogn.tungl;
-    n = nott.klst.length;
-
-    metnir = gogn.stadir.map(metaStad).sort((a,b) => b.best - a.best);
-    valinn = metnir.find(p => p.nafn === valinnNafn)
-      || metnir.find(p => p.nafn === "Reykjavík / Grótta")
-      || metnir[0];
-    valinnNafn = valinn.nafn;
-
-    teikna();
-    birtaGeimvedur(gogn.geimvedur);
-  } catch (villa) {
-    document.getElementById("skyring").textContent =
-      `Ekki tókst að sækja gögn frá bakendanum (${villa.message}). Athugaðu að netþjónninn sé í gangi.`;
-  }
-}
-
-/* ---------- Finna mig ---------- */
-document.getElementById("finnamig").addEventListener("click", e => {
-  const stada = document.getElementById("stadastada");
-  if(!navigator.geolocation){
-    stada.textContent = "Vafrinn styður ekki staðsetningu. Veldu stað úr listanum.";
-    return;
-  }
-  if(!metnir.length){
-    stada.textContent = "Gögnin eru ekki tilbúin ennþá — reyndu aftur eftir smá stund.";
-    return;
-  }
-  e.target.disabled = true;
-  stada.textContent = "Leita að þér …";
-  navigator.geolocation.getCurrentPosition(
-    pos => {
-      const { latitude:la, longitude:lo } = pos.coords;
-      let nálægastur = metnir[0], minnst = Infinity;
-      metnir.forEach(p => {
-        const d = Math.hypot((p.lat-la)*111, (p.lon-lo)*47);
-        if(d < minnst){ minnst = d; nálægastur = p; }
+    valmynd.querySelectorAll("button").forEach(b => {
+      b.addEventListener("click", () => {
+        nuverandiTungumal = b.getAttribute("data-lang");
+        localStorage.setItem("ljosvaktin_lang", nuverandiTungumal);
+        
+        uppfaeraTextaASidu();
+        
+        hnappur.setAttribute("aria-expanded", "false");
+        valmynd.hidden = true;
       });
-      valinn = nálægastur;
-      valinnNafn = nálægastur.nafn;
-      stada.textContent = `Næsti staður er ${nálægastur.nafn}, ${Math.round(minnst)} km frá þér.`;
-      e.target.disabled = false;
-      teikna();
-    },
-    () => {
-      stada.textContent = "Staðsetningin fékkst ekki. Veldu stað úr listanum.";
-      e.target.disabled = false;
-    },
-    { timeout: 8000 }
-  );
-});
+    });
 
-saekjaVakt();
-setInterval(saekjaVakt, 5 * 60 * 1000);
+    document.addEventListener("click", () => {
+      hnappur.setAttribute("aria-expanded", "false");
+      valmynd.hidden = true;
+    });
+  }
+  uppfaeraTextaASidu();
+});
 </script>
+
 </body>
 </html>
