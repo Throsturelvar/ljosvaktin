@@ -823,6 +823,125 @@ footer{
   }
   nav{gap:14px}
 }
+
+/* ---------- Changes shown in supplied screenshots only ---------- */
+.hero-mynd{
+  padding:58px 0 48px;
+  max-width:930px;
+}
+.hero-mynd .kicker{
+  margin:0 0 18px;
+  color:var(--gull);
+  font-size:15px;
+  font-weight:600;
+  letter-spacing:.20em;
+  text-transform:uppercase;
+}
+.hero-mynd h1{
+  margin:0;
+  max-width:900px;
+  font-family:"Newsreader",Georgia,serif;
+  font-weight:400;
+  font-size:clamp(4.2rem,9vw,7.5rem);
+  line-height:.88;
+  letter-spacing:-.035em;
+}
+.hero-mynd .tagline{
+  margin:28px 0 0;
+  color:var(--daufur);
+  font-family:"Newsreader",Georgia,serif;
+  font-size:clamp(2rem,4vw,3.25rem);
+  line-height:1.08;
+}
+.hero-mynd .tagline em{font-weight:300}
+.hero-mynd .intro{
+  max-width:790px;
+  margin:28px 0 0;
+  color:var(--daufur);
+  font-size:clamp(1.05rem,2vw,1.45rem);
+  line-height:1.6;
+}
+
+/* Main result layout shown in screenshot */
+.domur-mynd{padding:16px 0 6px}
+.status-mynd{
+  display:inline-flex;
+  align-items:center;
+  gap:12px;
+  min-height:44px;
+  padding:8px 17px;
+  margin-bottom:28px;
+  border:1px solid rgba(232,227,214,.22);
+  border-radius:999px;
+  font-size:13px;
+  font-weight:600;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+}
+.status-mynd .viti{width:8px;height:8px;background:var(--bein)}
+.dom-heading-mynd{flex:1 1 auto}
+.dom-heading-mynd .st{
+  display:block;
+  color:var(--daufur);
+  font-family:"Newsreader",Georgia,serif;
+  font-style:italic;
+  font-size:clamp(1.5rem,3vw,2rem);
+  line-height:1.2;
+}
+.domur-mynd .domlina{align-items:end}
+.domur-mynd .einkunn{padding-bottom:0}
+.domur-mynd .einkunn .tala{font-size:clamp(4rem,11vw,6rem)}
+.domur-mynd .skyring{margin-top:24px;max-width:43em}
+
+.mynd-samantekt{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  margin:34px 0 6px;
+  border:1px solid rgba(232,227,214,.24);
+  border-radius:var(--br);
+  overflow:hidden;
+}
+.mynd-spjald{
+  min-height:176px;
+  padding:24px 26px 22px;
+  background:rgba(10,16,28,.18);
+}
+.mynd-spjald + .mynd-spjald{
+  border-left:1px solid rgba(232,227,214,.14);
+}
+.mynd-heiti{
+  color:var(--daufur);
+  font-size:12px;
+  font-weight:500;
+  letter-spacing:.13em;
+  text-transform:uppercase;
+}
+.mynd-gildi{
+  margin-top:22px;
+  font-family:"Newsreader",Georgia,serif;
+  font-size:clamp(2rem,4vw,3rem);
+  line-height:1.05;
+  letter-spacing:-.02em;
+}
+.mynd-spjald.best-place .mynd-gildi{color:var(--gull)}
+.mynd-undir{
+  margin-top:10px;
+  color:var(--daufur);
+  font-size:13px;
+}
+
+@media(max-width:760px){
+  .hero-mynd{padding:44px 0 34px}
+  .hero-mynd h1{font-size:clamp(3.6rem,16vw,5.6rem)}
+  .hero-mynd .tagline{margin-top:24px;font-size:clamp(2rem,9vw,3rem)}
+  .hero-mynd .intro{margin-top:26px;font-size:1.05rem;line-height:1.55}
+  .mynd-samantekt{grid-template-columns:1fr;margin-top:30px}
+  .mynd-spjald{min-height:145px;padding:22px 24px}
+  .mynd-spjald + .mynd-spjald{border-left:0;border-top:1px solid rgba(232,227,214,.14)}
+  .mynd-gildi{font-size:2.45rem}
+  .status-mynd{margin-bottom:22px}
+}
+
 </style>
 </head>
 
@@ -850,6 +969,13 @@ footer{
   </div>
 </header>
 
+<section class="hero-mynd">
+  <p class="kicker">LIVE AURORA FORECAST · ICELAND</p>
+  <h1>Northern Lights<br>in Iceland<br>tonight</h1>
+  <p class="tagline">Know when. <em>Know where.</em></p>
+  <p class="intro">Find your best chance to see the Northern Lights in Iceland tonight — with aurora activity, clouds, darkness and moonlight combined into one simple score.</p>
+</section>
+
 <div class="stadarrod">
   <div class="veljari">
     <select id="stadarval" aria-label="Choose a location"></select>
@@ -864,24 +990,44 @@ footer{
 
 <main>
 
-<div class="domur">
-  <div class="domlina">
+<div class="domur domur-mynd">
+  <div class="status-mynd" aria-live="polite">
+    <span class="viti" aria-hidden="true"></span>
+    <span id="domur-texti">Loading</span>
+  </div>
 
-    <h1>
+  <div class="domlina">
+    <div class="dom-heading-mynd">
       <span class="st" id="stadur-lina">Reykjavík tonight</span>
-      <span id="domur-texti">–</span>
-    </h1>
+    </div>
 
     <div class="einkunn">
       <span class="tala" id="einkunn-tala">–</span>
       <span class="undir" data-i18n="scoreOutOf">score out of 100</span>
     </div>
-
   </div>
 
   <p class="skyring" id="skyring">
     Loading the latest data …
   </p>
+
+  <div class="mynd-samantekt">
+    <div class="mynd-spjald">
+      <div class="mynd-heiti">BEST TIME TONIGHT</div>
+      <div class="mynd-gildi" id="mynd-best-time">—</div>
+      <div class="mynd-undir" id="mynd-best-time-sub">—</div>
+    </div>
+    <div class="mynd-spjald best-place">
+      <div class="mynd-heiti">BEST PLACE TONIGHT</div>
+      <div class="mynd-gildi" id="mynd-best-place">—</div>
+      <div class="mynd-undir" id="mynd-best-place-sub">—</div>
+    </div>
+    <div class="mynd-spjald">
+      <div class="mynd-heiti">SKY AT BEST TIME</div>
+      <div class="mynd-gildi" id="mynd-sky">—</div>
+      <div class="mynd-undir" id="mynd-sky-sub">—</div>
+    </div>
+  </div>
 </div>
 
 <div class="band">
@@ -2428,6 +2574,32 @@ function teikna(){
             0
           ) / n
         );
+
+  const myndBestTime = document.getElementById("mynd-best-time");
+  const myndBestTimeSub = document.getElementById("mynd-best-time-sub");
+  const myndBestPlace = document.getElementById("mynd-best-place");
+  const myndBestPlaceSub = document.getElementById("mynd-best-place-sub");
+  const myndSky = document.getElementById("mynd-sky");
+  const myndSkySub = document.getElementById("mynd-sky-sub");
+
+  if(myndBestTime){
+    myndBestTime.textContent = s.gluggiFra >= 0
+      ? `${klstTexti(s.gluggiFra)}–${klstTexti(s.gluggiTil)}`
+      : "—";
+    myndBestTimeSub.textContent = s.gluggiFra >= 0
+      ? `${skyIGlugga}% ${t("cloudShort")}`
+      : "—";
+  }
+
+  if(myndBestPlace){
+    myndBestPlace.textContent = besti.nafn;
+    myndBestPlaceSub.textContent = `${t("scoreLabel")} ${Math.round(besti.best*100)} / 100`;
+  }
+
+  if(myndSky){
+    myndSky.textContent = `${skyIGlugga}%`;
+    myndSkySub.textContent = t("cloudCover");
+  }
 
   const hamarkKp =
     Math.max(...kpSpa);
