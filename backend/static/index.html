@@ -81,12 +81,17 @@ header{
   flex-wrap:wrap;
 }
 .merki{
-  display:flex;
+  display:inline-flex;
   align-items:center;
-  gap:10px;
-  font-family:"Newsreader",Georgia,serif;
-  font-size:24px;
-  letter-spacing:.005em;
+  flex:none;
+  text-decoration:none;
+  line-height:0;
+}
+ .merki img{
+  display:block;
+  width:clamp(250px,31vw,340px);
+  height:auto;
+  max-width:100%;
 }
 .viti{
   width:9px;
@@ -868,6 +873,7 @@ footer{
 
 /* ---------- Mobile ---------- */
 @media(max-width:760px){
+  .merki img{width:clamp(205px,64vw,255px)}
   .haus-haegri{
     width:100%;
     justify-content:space-between;
@@ -901,6 +907,11 @@ footer{
   }
   nav{gap:14px}
 }
+
+@media(max-width:560px){
+  .merki img{width:min(290px,78vw)}
+}
+
 </style>
 </head>
 
@@ -908,9 +919,9 @@ footer{
 <div class="wrap">
 
 <header>
-  <div class="merki">
-    <span class="viti" aria-hidden="true"></span>Northseek
-  </div>
+  <a class="merki" href="https://northseek.net/" aria-label="Northseek home">
+    <img src="northseek-header-logo.webp" alt="Northseek.net — Right place. Right time.">
+  </a>
 
   <div class="haus-haegri">
     <nav>
