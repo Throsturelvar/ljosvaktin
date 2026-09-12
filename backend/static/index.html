@@ -835,6 +835,37 @@ footer{
   font-size:12px;
 }
 
+/* ---------- Footer social link ---------- */
+.facebook-link{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  color:var(--daufur);
+  text-decoration:none;
+  border:1px solid var(--lina-syn);
+  border-radius:20px;
+  padding:5px 11px;
+  transition:border-color .2s ease,color .2s ease,background .2s ease;
+}
+.facebook-link:hover{
+  color:var(--bein);
+  border-color:rgba(233,194,107,.4);
+  background:rgba(233,194,107,.06);
+}
+.facebook-icon{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:17px;
+  height:17px;
+  border:1px solid currentColor;
+  border-radius:50%;
+  font-family:Arial,sans-serif;
+  font-size:11px;
+  font-weight:700;
+  line-height:1;
+}
+
 /* ---------- Mobile ---------- */
 @media(max-width:760px){
   .haus-haegri{
@@ -1039,9 +1070,16 @@ footer{
     Northseek shows probabilities, not promises. The aurora does its own thing.
   </span>
 
-  <span class="merkimidi" data-i18n="prototype">
-    prototype
-  </span>
+  <a
+    class="facebook-link"
+    href="https://www.facebook.com/groups/1727189771669241"
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="Northseek Facebook group"
+  >
+    <span class="facebook-icon" aria-hidden="true">f</span>
+    <span data-i18n="facebookGroup">Facebook group</span>
+  </a>
 </footer>
 
 </div>
@@ -1058,6 +1096,7 @@ const TRANSLATIONS = {
 
     navPlaces:"Places",
     navData:"About the data",
+    facebookGroup:"Facebook group",
 
     heroKicker:"Live aurora forecast · Iceland",
     heroTitle:"Northern Lights in Iceland tonight",
@@ -1260,6 +1299,7 @@ const TRANSLATIONS = {
 
     navPlaces:"Staðir",
     navData:"Um gögnin",
+    facebookGroup:"Facebook-hópur",
 
     heroKicker:"Lifandi norðurljósaspá · Ísland",
     heroTitle:"Norðurljós á Íslandi í kvöld",
@@ -1461,6 +1501,7 @@ const TRANSLATIONS = {
 
     navPlaces:"Miejsca",
     navData:"O danych",
+    facebookGroup:"Grupa na Facebooku",
 
     heroKicker:"Prognoza zorzy na żywo · Islandia",
     heroTitle:"Zorza polarna na Islandii dziś w nocy",
