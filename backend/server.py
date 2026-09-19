@@ -260,6 +260,8 @@ class Handler(BaseHTTPRequestHandler):
                     lykill: CACHE.age_seconds(lykill) for lykill in ("ovation", "kp", "vedur")
                 },
             })
+        elif slod.path == "/sitemap.xml":
+            self._senda_skra(STATIC_DIR / "sitemap.xml", "application/xml; charset=utf-8")
         elif slod.path in ("/", "/index.html"):
             self._senda_skra(STATIC_DIR / "index.html", "text/html; charset=utf-8")
         else:
