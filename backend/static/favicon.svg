@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Northseek favicon">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="35%" r="75%">
+      <stop offset="0%" stop-color="#0d2a33"/>
+      <stop offset="48%" stop-color="#0b1e2f"/>
+      <stop offset="100%" stop-color="#071521"/>
+    </radialGradient>
+    <linearGradient id="glow" x1="0%" x2="100%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#7ef7d5"/>
+      <stop offset="100%" stop-color="#97f7ff"/>
+    </linearGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2.5"/>
+    </filter>
+  </defs>
+
+  <rect x="0" y="0" width="128" height="128" rx="18" fill="url(#bg)"/>
+
+  <g opacity="0.9" fill="none" stroke="url(#glow)" stroke-linecap="round" >
+    <path d="M14 92 C 38 80, 44 62, 64 54 S 104 55, 116 36" stroke-width="3"/>
+    <path d="M10 76 C 38 96, 48 102, 64 102 S 96 101, 117 85" stroke-width="2.8" opacity="0.9"/>
+  </g>
+
+  <g>
+    <ellipse cx="64" cy="95" rx="40" ry="16" fill="none" stroke="#f3f5f8" stroke-width="5" opacity="0.95"/>
+
+    <path d="M64 22
+             C47 22 34 35 34 52
+             C34 75 52 88 64 102
+             C76 88 94 75 94 52
+             C94 35 81 22 64 22Z"
+          fill="#f3f5f8" opacity="0.98"/>
+
+    <circle cx="64" cy="53" r="17" fill="#0d1f2e"/>
+    <circle cx="64" cy="53" r="10" fill="#f3f5f8" opacity="0.9"/>
+  </g>
+
+  <g opacity="0.7" filter="url(#soft)">
+    <circle cx="64" cy="53" r="12" fill="#7ef7d5"/>
+  </g>
+</svg>
