@@ -4,7 +4,7 @@ import json
 from datetime import datetime, timedelta, timezone
 from urllib.parse import urlparse
 
-from workers import WorkerEntrypoint, Response
+from workers import WorkerEntrypoint, Response, fetch
 
 import scoring
 from locations import STADIR
@@ -22,7 +22,10 @@ class Default(WorkerEntrypoint):
             "Cache-Control": "no-store"
         }
 
+        # --------------------------------------------------
         # Health endpoint
+        # --------------------------------------------------
+
         if path == "/api/heilsa":
 
             data = {
@@ -37,7 +40,10 @@ class Default(WorkerEntrypoint):
                 headers=headers
             )
 
+        # --------------------------------------------------
         # Test locations and scoring
+        # --------------------------------------------------
+
         if path == "/api/profa":
 
             now = datetime.now(timezone.utc)
@@ -72,7 +78,61 @@ class Default(WorkerEntrypoint):
                 headers=headers
             )
 
+        # --------------------------------------------------
+        # NOAA Kp forecast
+        # --------------------------------------------------
+
+        if path == "/api/kp":
+
+            url = (
+                "https://services.swpc.noaa.gov/"
+                "products/noaa-planetary-k-index-forecast.json"
+            )
+
+            try:
+
+                svar = await fetch(url)
+
+                if not svar.ok:
+                    raise Exception(
+                        f"NOAA HTTP {svar.status}"
+                    )
+
+                gogn = await svar.json()
+
+                data = {
+                    "ok": True,
+                    "service": "northseek-api",
+                    "source": "NOAA SWPC",
+                    "test": True,
+                    "fjoldi": len(gogn),
+                    "fyrstu_faerslur": gogn[:5]
+                }
+
+                return Response(
+                    json.dumps(
+                        data,
+                        ensure_ascii=False
+                    ),
+                    headers=headers
+                )
+
+            except Exception as villa:
+
+                return Response(
+                    json.dumps({
+                        "ok": False,
+                        "source": "NOAA SWPC",
+                        "villa": str(villa)
+                    }),
+                    status=502,
+                    headers=headers
+                )
+
+        # --------------------------------------------------
         # Root endpoint
+        # --------------------------------------------------
+
         if path == "/":
 
             data = {
@@ -85,7 +145,10 @@ class Default(WorkerEntrypoint):
                 headers=headers
             )
 
+        # --------------------------------------------------
         # Unknown endpoint
+        # --------------------------------------------------
+
         return Response(
             json.dumps({
                 "villa": "fannst ekki"
