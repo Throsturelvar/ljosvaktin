@@ -1,15 +1,12 @@
 [project]
 name = "northseek-api"
-version = "0.1.0"
+version = "0.2.0"
 description = "Northseek Cloudflare Python API"
 requires-python = ">=3.13"
 dependencies = []
 
 [dependency-groups]
-dev = [
-    "workers-py",
-    "workers-runtime-sdk"
-]
+dev = ["workers-py", "workers-runtime-sdk"]
 
 [tool.setuptools]
-py-modules = ["main", "locations", "scoring"]
+py-modules = ["main", "api_logic", "sources_worker", "locations", "scoring"]
