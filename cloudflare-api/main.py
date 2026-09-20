@@ -1,435 +1,107 @@
-# Northseek Cloudflare Python API
-
+"""Northseek API Worker. Public GETs read KV only; cron jobs fetch upstreams."""
 import json
-from datetime import datetime, timedelta, timezone
-from urllib.parse import urlparse
-
-from workers import WorkerEntrypoint, Response, fetch
-
-import scoring
+from datetime import datetime, timezone
+from urllib.parse import urlparse, parse_qs
+from workers import WorkerEntrypoint, Response
 from locations import STADIR
+from sources_worker import (read_store, update_kp, update_ovation,
+                            update_solar, update_cloud, update_sunmoon)
+from api_logic import vakt, skor, is_ready
 
 
-# --------------------------------------------------
-# NOAA data sources
-# --------------------------------------------------
-
-NOAA_KP_URL = (
-    "https://services.swpc.noaa.gov/"
-    "products/noaa-planetary-k-index-forecast.json"
-)
-
-NOAA_OVATION_URL = (
-    "https://services.swpc.noaa.gov/"
-    "json/ovation_aurora_latest.json"
-)
-
-
-# --------------------------------------------------
-# Cloudflare KV keys
-# --------------------------------------------------
-
-KP_CACHE_KEY = "noaa:kp:forecast"
-
-OVATION_CACHE_KEY = "noaa:ovation:locations"
+def response(payload, status=200):
+    return Response(json.dumps(payload, ensure_ascii=False), status=status, headers={
+        'Content-Type': 'application/json; charset=utf-8',
+        'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store'})
 
 
 class Default(WorkerEntrypoint):
-
-    # --------------------------------------------------
-    # JSON response helper
-    # --------------------------------------------------
-
-    def json_response(self, data, status=200):
-
-        return Response(
-            json.dumps(
-                data,
-                ensure_ascii=False
-            ),
-            status=status,
-            headers={
-                "Content-Type":
-                    "application/json; charset=utf-8",
-                "Access-Control-Allow-Origin": "*",
-                "Cache-Control": "no-store"
-            }
-        )
-
-    # --------------------------------------------------
-    # Update NOAA Kp cache
-    # --------------------------------------------------
-
-    async def update_kp_cache(self):
-
-        response = await fetch(NOAA_KP_URL)
-
-        if not response.ok:
-            raise Exception(
-                f"NOAA Kp HTTP {response.status}"
-            )
-
-        data = await response.json()
-
-        if not isinstance(data, list) or not data:
-            raise Exception(
-                "Invalid NOAA Kp data"
-            )
-
-        cache_data = {
-            "source": "NOAA SWPC",
-            "updated_at": datetime.now(
-                timezone.utc
-            ).isoformat(),
-            "forecast": data
-        }
-
-        await self.env.NORTHSEEK_CACHE.put(
-            KP_CACHE_KEY,
-            json.dumps(
-                cache_data,
-                ensure_ascii=False
-            )
-        )
-
-        return cache_data
-
-    # --------------------------------------------------
-    # Update NOAA OVATION cache
-    # --------------------------------------------------
-
-    async def update_ovation_cache(self):
-
-        response = await fetch(
-            NOAA_OVATION_URL
-        )
-
-        if not response.ok:
-            raise Exception(
-                f"NOAA OVATION HTTP {response.status}"
-            )
-
-        data = await response.json()
-
-        if (
-            not isinstance(data, dict)
-            or not isinstance(
-                data.get("coordinates"), list
-            )
-            or not data["coordinates"]
-        ):
-            raise Exception(
-                "Invalid NOAA OVATION data"
-            )
-
-        coordinates = data["coordinates"]
-
-        # Build an index of exact grid coordinates.
-        # NOAA uses longitude 0-360.
-
-        grid = {
-            (lon, lat): value
-            for lon, lat, value in coordinates
-        }
-
-        locations_result = []
-
-        for stadur in STADIR:
-
-            lat = stadur["lat"]
-            lon = stadur["lon"]
-
-            grid_lat = round(lat)
-            grid_lon = round(lon % 360) % 360
-
-            key = (
-                grid_lon,
-                grid_lat
-            )
-
-            # Use exact grid point when available.
-            # Otherwise use original Northseek logic.
-
-            if key in grid:
-
-                virkni = grid[key]
-
-            else:
-
-                virkni = (
-                    scoring.ovation_virkni(
-                        lat,
-                        lon,
-                        data
-                    )
-                )
-
-            locations_result.append({
-                "id": stadur["id"],
-                "nafn": stadur["nafn"],
-                "lat": lat,
-                "lon": lon,
-                "virkni_ovation": virkni
-            })
-
-        cache_data = {
-            "source": "NOAA SWPC OVATION",
-            "updated_at": datetime.now(
-                timezone.utc
-            ).isoformat(),
-            "forecast_time": data.get(
-                "Forecast Time"
-            ),
-            "observation_time": data.get(
-                "Observation Time"
-            ),
-            "stadir": locations_result
-        }
-
-        # Store only local results, not the full
-        # worldwide OVATION grid.
-
-        await self.env.NORTHSEEK_CACHE.put(
-            OVATION_CACHE_KEY,
-            json.dumps(
-                cache_data,
-                ensure_ascii=False
-            )
-        )
-
-        return cache_data
-
-    # --------------------------------------------------
-    # Scheduled updates
-    # --------------------------------------------------
-
-    async def scheduled(
-        self,
-        controller,
-        env,
-        ctx
-    ):
-
-        # Kp every 3 hours
-
-        if controller.cron == "0 */3 * * *":
-
-            print(
-                "Northseek: updating NOAA Kp"
-            )
-
-            await self.update_kp_cache()
-
-            print(
-                "Northseek: Kp saved to KV"
-            )
-
-        # OVATION every 20 minutes
-
-        elif controller.cron == "*/20 * * * *":
-
-            print(
-                "Northseek: updating OVATION"
-            )
-
-            await self.update_ovation_cache()
-
-            print(
-                "Northseek: OVATION saved to KV"
-            )
-
-    # --------------------------------------------------
-    # HTTP requests
-    # --------------------------------------------------
+    async def scheduled(self, controller, env, ctx):
+        cron = controller.cron
+        now = datetime.now(timezone.utc)
+        # Cron schedules are intentionally kept to five (Free plan limit).
+        if cron == '0 */3 * * *':
+            await update_kp(env)
+        elif cron == '*/20 * * * *':
+            await update_ovation(env)
+        elif cron == '*/5 * * * *':
+            await update_solar(env)
+        elif cron == '7,17,27,37,47,57 * * * *':
+            await update_cloud(env, getattr(env, 'MET_USER_AGENT', None),
+                               (now.minute - 7) // 10)
+        elif cron == '13 * * * *':
+            await update_sunmoon(env, now.hour % 4)
 
     async def fetch(self, request):
-
-        path = urlparse(
-            request.url
-        ).path
-
-        # --------------------------------------------------
-        # Health
-        # --------------------------------------------------
-
-        if path == "/api/heilsa":
-
-            return self.json_response({
-                "ok": True,
-                "service": "northseek-api",
-                "backend": "cloudflare",
-                "status": "running"
-            })
-
-        # --------------------------------------------------
-        # Test locations and scoring
-        # --------------------------------------------------
-
-        if path == "/api/profa":
-
-            now = datetime.now(
-                timezone.utc
-            )
-
-            result = scoring.reikna_skor(
-                virkni=50,
-                kp=4,
-                sky_opacitet=20,
-                tungl_pct=30,
-                tungl_uppi=0.5,
-                myrkur_fra=now,
-                myrkur_til=now + timedelta(
-                    hours=8
-                )
-            )
-
-            return self.json_response({
-                "ok": True,
-                "service": "northseek-api",
-                "test": True,
-                "stadir_fjoldi": len(
-                    STADIR
-                ),
-                "fyrsti_stadur":
-                    STADIR[0]["nafn"],
-                "reiknid": result
-            })
-
-        # --------------------------------------------------
-        # NOAA Kp from KV
-        # --------------------------------------------------
-
-        if path == "/api/kp":
-
+        url = urlparse(request.url)
+        path = url.path
+        if path == '/':
+            return response({'service': 'northseek-api', 'message': 'Northseek API is running'})
+        if path == '/api/profa':
+            # Keep the original scoring regression test.
+            import scoring
+            from datetime import timedelta
+            now = datetime.now(timezone.utc)
+            value = scoring.reikna_skor(50, 4, 20, 30, 0.5, now, now + timedelta(hours=8))
+            return response({'ok': True, 'test': True, 'stadir_fjoldi': len(STADIR),
+                             'fyrsti_stadur': STADIR[0]['nafn'], 'reiknid': value})
+        if path not in ('/api/heilsa', '/api/kp', '/api/ovation',
+                        '/api/geimvedur', '/api/vakt', '/api/skor'):
+            return response({'villa': 'fannst ekki'}, 404)
+        try:
+            if path == '/api/kp':
+                data = await read_store(self.env, 'kp')
+                if not data:
+                    return response({'ok': False, 'cache': 'empty'}, 503)
+                forecast = data['forecast']
+                future = [r for r in forecast if r.get('observed') in ('predicted', 'estimated')]
+                return response({'ok': True, 'service': 'northseek-api', 'source': 'NOAA SWPC',
+                                 'cache': 'KV', 'updated_at': data['updated_at'],
+                                 'fjoldi': len(forecast), 'spa_fjoldi': len(future),
+                                 'fyrstu_spa_faerslur': future[:5]})
+            if path == '/api/ovation':
+                data = await read_store(self.env, 'ovation')
+                if not data:
+                    return response({'ok': False, 'cache': 'empty'}, 503)
+                return response({'ok': True, 'service': 'northseek-api', 'source': data['source'],
+                                 'cache': 'KV', 'updated_at': data['updated_at'],
+                                 'forecast_time': data.get('forecast_time'),
+                                 'stadir_fjoldi': len(data['stadir']), 'stadir': data['stadir']})
+            if path == '/api/geimvedur':
+                data = await read_store(self.env, 'solar')
+                return response({'ok': bool(data), 'cache': 'KV', 'data': data}, 200 if data else 503)
+            kp = await read_store(self.env, 'kp')
+            clouds = await read_store(self.env, 'cloud')
+            sunmoon = await read_store(self.env, 'sunmoon')
+            if path == '/api/heilsa':
+                ovation = await read_store(self.env, 'ovation')
+                solar = await read_store(self.env, 'solar')
+                return response({'ok': True, 'service': 'northseek-api',
+                                 'backend': 'cloudflare', 'status': 'running',
+                                 'ready': is_ready(kp, clouds, sunmoon),
+                                 'updated_at': {name: (data or {}).get('updated_at') for name, data in
+                                                (('kp', kp), ('cloud', clouds), ('sunmoon', sunmoon),
+                                                 ('ovation', ovation), ('solar', solar))}})
+            if not is_ready(kp, clouds, sunmoon):
+                return response({'villa': 'gögn ekki tilbúin ennþá',
+                                 'message': 'Cloud and sun/moon caches are still being populated'}, 503)
+            raw_day = parse_qs(url.query).get('dagur', ['0'])[0]
             try:
-
-                cached = await (
-                    self.env.NORTHSEEK_CACHE.get(
-                        KP_CACHE_KEY
-                    )
-                )
-
-                if not cached:
-
-                    return self.json_response({
-                        "ok": False,
-                        "cache": "empty",
-                        "message":
-                            "Waiting for Kp update"
-                    }, status=503)
-
-                data = json.loads(
-                    cached
-                )
-
-                forecast = data[
-                    "forecast"
-                ]
-
-                future_forecast = [
-                    row for row in forecast
-                    if row.get("observed")
-                    in (
-                        "predicted",
-                        "estimated"
-                    )
-                ]
-
-                return self.json_response({
-                    "ok": True,
-                    "service": "northseek-api",
-                    "source": "NOAA SWPC",
-                    "cache": "KV",
-                    "updated_at":
-                        data["updated_at"],
-                    "fjoldi": len(
-                        forecast
-                    ),
-                    "spa_fjoldi": len(
-                        future_forecast
-                    ),
-                    "fyrstu_spa_faerslur":
-                        future_forecast[:5]
-                })
-
-            except Exception as error:
-
-                return self.json_response({
-                    "ok": False,
-                    "villa": str(error)
-                }, status=502)
-
-        # --------------------------------------------------
-        # NOAA OVATION from KV
-        # --------------------------------------------------
-
-        if path == "/api/ovation":
-
-            try:
-
-                cached = await (
-                    self.env.NORTHSEEK_CACHE.get(
-                        OVATION_CACHE_KEY
-                    )
-                )
-
-                if not cached:
-
-                    return self.json_response({
-                        "ok": False,
-                        "source":
-                            "NOAA SWPC OVATION",
-                        "cache": "empty",
-                        "message":
-                            "Waiting for OVATION update"
-                    }, status=503)
-
-                data = json.loads(
-                    cached
-                )
-
-                return self.json_response({
-                    "ok": True,
-                    "service": "northseek-api",
-                    "source":
-                        "NOAA SWPC OVATION",
-                    "cache": "KV",
-                    "updated_at":
-                        data["updated_at"],
-                    "forecast_time":
-                        data.get(
-                            "forecast_time"
-                        ),
-                    "stadir_fjoldi": len(
-                        data["stadir"]
-                    ),
-                    "stadir":
-                        data["stadir"]
-                })
-
-            except Exception as error:
-
-                return self.json_response({
-                    "ok": False,
-                    "villa": str(error)
-                }, status=502)
-
-        # --------------------------------------------------
-        # Root
-        # --------------------------------------------------
-
-        if path == "/":
-
-            return self.json_response({
-                "service": "northseek-api",
-                "message":
-                    "Northseek API is running"
-            })
-
-        # --------------------------------------------------
-        # Unknown endpoint
-        # --------------------------------------------------
-
-        return self.json_response({
-            "villa": "fannst ekki"
-        }, status=404)
+                day = min(2, max(0, int(raw_day)))
+            except ValueError:
+                day = 0
+            if path == '/api/vakt':
+                solar = await read_store(self.env, 'solar')
+                result = vakt(day, kp, clouds, sunmoon, solar)
+                if result is None:
+                    return response({'villa': 'gögn ekki tilbúin ennþá'}, 503)
+                return response({'reiknad': datetime.now(timezone.utc).isoformat(),
+                                 'dagur': day, **result})
+            if path == '/api/skor':
+                ovation = await read_store(self.env, 'ovation') if day == 0 else None
+                return response({'reiknad': datetime.now(timezone.utc).isoformat(),
+                                 'dagur': day,
+                                 'stadir': skor(day, kp, clouds, sunmoon, ovation)})
+        except Exception as exc:
+            print(f'Northseek {path}: {exc}')
+            return response({'villa': 'Villa í API', 'service': 'northseek-api'}, 502)
