@@ -42,15 +42,10 @@ class Default(WorkerEntrypoint):
         )
 
     # -----------------------------------------------
-    # Scheduled NOAA update
+    # Fetch NOAA and save to Cloudflare KV
     # -----------------------------------------------
 
-    async def scheduled(self, controller, env, ctx):
-
-        if controller.cron != "0 */3 * * *":
-            return
-
-        print("Northseek: updating NOAA Kp forecast")
+    async def update_kp_cache(self):
 
         response = await fetch(NOAA_KP_URL)
 
@@ -76,10 +71,31 @@ class Default(WorkerEntrypoint):
             "forecast": data
         }
 
-        await env.NORTHSEEK_CACHE.put(
+        await self.env.NORTHSEEK_CACHE.put(
             KP_CACHE_KEY,
-            json.dumps(cache_data)
+            json.dumps(
+                cache_data,
+                ensure_ascii=False
+            )
         )
+
+        return cache_data
+
+    # -----------------------------------------------
+    # Scheduled NOAA update
+    # Every 3 hours
+    # -----------------------------------------------
+
+    async def scheduled(self, controller, env, ctx):
+
+        if controller.cron != "0 */3 * * *":
+            return
+
+        print(
+            "Northseek: updating NOAA Kp forecast"
+        )
+
+        await self.update_kp_cache()
 
         print(
             "Northseek: NOAA Kp forecast saved"
@@ -134,6 +150,57 @@ class Default(WorkerEntrypoint):
             })
 
         # -------------------------------------------
+        # TEMPORARY: Initialize NOAA cache now
+        # Remove this endpoint after first use
+        # -------------------------------------------
+
+        if path == "/api/init-kp":
+
+            try:
+
+                existing = await (
+                    self.env.NORTHSEEK_CACHE.get(
+                        KP_CACHE_KEY
+                    )
+                )
+
+                if existing:
+
+                    return self.json_response({
+                        "ok": True,
+                        "message":
+                            "Cache already initialized",
+                        "cache": "KV"
+                    })
+
+                cache_data = (
+                    await self.update_kp_cache()
+                )
+
+                return self.json_response({
+                    "ok": True,
+                    "message":
+                        "NOAA cache initialized",
+                    "source": "NOAA SWPC",
+                    "fjoldi": len(
+                        cache_data["forecast"]
+                    ),
+                    "updated_at":
+                        cache_data["updated_at"],
+                    "cache": "KV"
+                })
+
+            except Exception as error:
+
+                return self.json_response(
+                    {
+                        "ok": False,
+                        "villa": str(error)
+                    },
+                    status=502
+                )
+
+        # -------------------------------------------
         # NOAA Kp forecast from KV
         # -------------------------------------------
 
@@ -164,7 +231,6 @@ class Default(WorkerEntrypoint):
 
                 forecast = data["forecast"]
 
-                # Only predicted and estimated values
                 future_forecast = [
                     row for row in forecast
                     if row.get("observed")
@@ -176,9 +242,12 @@ class Default(WorkerEntrypoint):
                     "service": "northseek-api",
                     "source": "NOAA SWPC",
                     "cache": "KV",
-                    "updated_at": data["updated_at"],
-                    "fjoldi": len(forecast),
-                    "spa_fjoldi": len(future_forecast),
+                    "updated_at":
+                        data["updated_at"],
+                    "fjoldi":
+                        len(forecast),
+                    "spa_fjoldi":
+                        len(future_forecast),
                     "fyrstu_spa_faerslur":
                         future_forecast[:5]
                 })
