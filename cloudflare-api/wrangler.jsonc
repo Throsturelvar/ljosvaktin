@@ -2,9 +2,7 @@
   "name": "northseek-api",
   "main": "main.py",
   "compatibility_date": "2026-09-20",
-  "compatibility_flags": [
-    "python_workers"
-  ],
+  "compatibility_flags": ["python_workers"],
   "workers_dev": true,
   "kv_namespaces": [
     {
@@ -15,7 +13,10 @@
   "triggers": {
     "crons": [
       "0 */3 * * *",
-      "*/20 * * * *"
+      "*/20 * * * *",
+      "*/5 * * * *",
+      "7,17,27,37,47,57 * * * *",
+      "13 * * * *"
     ]
   }
 }
