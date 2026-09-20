@@ -150,57 +150,6 @@ class Default(WorkerEntrypoint):
             })
 
         # -------------------------------------------
-        # TEMPORARY: Initialize NOAA cache now
-        # Remove this endpoint after first use
-        # -------------------------------------------
-
-        if path == "/api/init-kp":
-
-            try:
-
-                existing = await (
-                    self.env.NORTHSEEK_CACHE.get(
-                        KP_CACHE_KEY
-                    )
-                )
-
-                if existing:
-
-                    return self.json_response({
-                        "ok": True,
-                        "message":
-                            "Cache already initialized",
-                        "cache": "KV"
-                    })
-
-                cache_data = (
-                    await self.update_kp_cache()
-                )
-
-                return self.json_response({
-                    "ok": True,
-                    "message":
-                        "NOAA cache initialized",
-                    "source": "NOAA SWPC",
-                    "fjoldi": len(
-                        cache_data["forecast"]
-                    ),
-                    "updated_at":
-                        cache_data["updated_at"],
-                    "cache": "KV"
-                })
-
-            except Exception as error:
-
-                return self.json_response(
-                    {
-                        "ok": False,
-                        "villa": str(error)
-                    },
-                    status=502
-                )
-
-        # -------------------------------------------
         # NOAA Kp forecast from KV
         # -------------------------------------------
 
