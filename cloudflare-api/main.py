@@ -1,9 +1,13 @@
 # Northseek Cloudflare Python API
 
 import json
+from datetime import datetime, timedelta, timezone
 from urllib.parse import urlparse
 
 from workers import WorkerEntrypoint, Response
+
+import scoring
+from locations import STADIR
 
 
 class Default(WorkerEntrypoint):
@@ -30,6 +34,41 @@ class Default(WorkerEntrypoint):
 
             return Response(
                 json.dumps(data),
+                headers=headers
+            )
+
+        # Test locations and scoring
+        if path == "/api/profa":
+
+            now = datetime.now(timezone.utc)
+
+            myrkur_fra = now
+            myrkur_til = now + timedelta(hours=8)
+
+            nidurstada = scoring.reikna_skor(
+                virkni=50,
+                kp=4,
+                sky_opacitet=20,
+                tungl_pct=30,
+                tungl_uppi=0.5,
+                myrkur_fra=myrkur_fra,
+                myrkur_til=myrkur_til
+            )
+
+            data = {
+                "ok": True,
+                "service": "northseek-api",
+                "test": True,
+                "stadir_fjoldi": len(STADIR),
+                "fyrsti_stadur": STADIR[0]["nafn"],
+                "reiknid": nidurstada
+            }
+
+            return Response(
+                json.dumps(
+                    data,
+                    ensure_ascii=False
+                ),
                 headers=headers
             )
 
