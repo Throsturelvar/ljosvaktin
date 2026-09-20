@@ -1,0 +1,9 @@
+{
+  "name": "northseek-api",
+  "main": "main.py",
+  "compatibility_date": "2026-09-20",
+  "compatibility_flags": [
+    "python_workers"
+  ],
+  "workers_dev": true
+}
