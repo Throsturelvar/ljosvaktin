@@ -11,5 +11,10 @@
       "binding": "NORTHSEEK_CACHE",
       "id": "d8d9b7ad0c984df2b32af5cd61d7c1a4"
     }
-  ]
+  ],
+  "triggers": {
+    "crons": [
+      "0 */3 * * *"
+    ]
+  }
 }
