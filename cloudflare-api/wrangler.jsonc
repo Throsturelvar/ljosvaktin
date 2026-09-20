@@ -5,5 +5,11 @@
   "compatibility_flags": [
     "python_workers"
   ],
-  "workers_dev": true
+  "workers_dev": true,
+  "kv_namespaces": [
+    {
+      "binding": "NORTHSEEK_CACHE",
+      "id": "d8d9b7ad0c984df2b32af5cd61d7c1a4"
+    }
+  ]
 }
