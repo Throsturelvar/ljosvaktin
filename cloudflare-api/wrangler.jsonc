@@ -10,7 +10,13 @@
   "vars": {
     "MET_USER_AGENT": "Northseek/1.0 (sjmalun@gmail.com)"
   },
-  // Cron-verkin eru enn keyrð af Python-Workernum (northseek-api).
-  // Færð hingað við skiptin, sjá LESA-MIG.md.
-  "triggers": { "crons": [] }
+  "triggers": {
+    "crons": [
+      "0 */3 * * *",
+      "*/20 * * * *",
+      "*/5 * * * *",
+      "7,17,27,37,47,57 * * * *",
+      "13 * * * *"
+    ]
+  }
 }
