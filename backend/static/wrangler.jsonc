@@ -10,7 +10,7 @@
   "services": [
     {
       "binding": "NORTHSEEK_API",
-      "service": "northseek-api"
+      "service": "northseek-api-js"
     }
   ]
 }
