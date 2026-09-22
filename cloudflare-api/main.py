@@ -1,5 +1,9 @@
 
-"""Northseek API Worker. Public GETs read KV only; cron jobs fetch upstreams."""
+"""Northseek API Worker.
+
+Public GET requests read KV only.
+Scheduled jobs fetch and cache upstream data.
+"""
 
 import json
 from datetime import datetime, timezone
@@ -21,10 +25,14 @@ from api_logic import vakt, skor, is_ready
 
 def response(payload, status=200):
     return Response(
-        json.dumps(payload, ensure_ascii=False),
+        json.dumps(
+            payload,
+            ensure_ascii=False,
+        ),
         status=status,
         headers={
-            "Content-Type": "application/json; charset=utf-8",
+            "Content-Type":
+                "application/json; charset=utf-8",
             "Access-Control-Allow-Origin": "*",
             "Cache-Control": "no-store",
         },
@@ -38,62 +46,143 @@ class Default(WorkerEntrypoint):
     # --------------------------------------------------
 
     async def scheduled(self, controller, env, ctx):
+
         cron = controller.cron
         now = datetime.now(timezone.utc)
 
-        # Python Worker bindings are accessed through self.env.
+        # Cloudflare Python Worker bindings:
+        # always use self.env, not the env argument.
 
         if cron == "0 */3 * * *":
+
             await update_kp(self.env)
 
         elif cron == "*/20 * * * *":
+
             await update_ovation(self.env)
 
         elif cron == "*/5 * * * *":
+
             await update_solar(self.env)
 
         elif cron == "7,17,27,37,47,57 * * * *":
 
-            # Read the runtime variable directly.
-            # Do not log its value or the contact email.
+            print(
+                "Northseek MET DIAG: "
+                "scheduled handler started"
+            )
+
+            # Do not print the User-Agent value
+            # or the contact email.
 
             try:
-                met_user_agent = self.env.MET_USER_AGENT
-            except (AttributeError, KeyError) as exc:
+
+                met_user_agent = (
+                    self.env.MET_USER_AGENT
+                )
+
+            except Exception as exc:
+
+                print(
+                    "Northseek MET DIAG: "
+                    "binding lookup failed; "
+                    f"error_type={type(exc).__name__}"
+                )
+
                 raise RuntimeError(
-                    "MET_USER_AGENT is not accessible in "
-                    "this Worker's runtime environment. "
-                    "Check Variables and Secrets and "
-                    "redeploy the Worker."
+                    "MET_USER_AGENT binding "
+                    "could not be read"
                 ) from exc
 
-            if not isinstance(met_user_agent, str):
-                raise RuntimeError(
-                    "MET_USER_AGENT was found but is not "
-                    "a Python string."
-                )
-
-            if not met_user_agent.strip():
-                raise RuntimeError(
-                    "MET_USER_AGENT is empty."
-                )
-
-            print(
-                "Northseek MET: runtime variable "
-                "is accessible; starting cloud update"
-            )
-
-            await update_cloud(
-                self.env,
+            is_string = isinstance(
                 met_user_agent,
-                (now.minute - 7) // 10,
+                str,
             )
 
+            is_empty = (
+                not met_user_agent.strip()
+                if is_string
+                else None
+            )
+
+            contains_example = (
+                "example" in met_user_agent.lower()
+                if is_string
+                else None
+            )
+
+            # Safe metadata only:
+            # never log the variable value.
+
             print(
-                "Northseek MET: cloud update completed"
+                "Northseek MET DIAG: "
+                "binding read succeeded; "
+                f"value_type={type(met_user_agent).__name__}; "
+                f"is_string={is_string}; "
+                f"is_empty={is_empty}; "
+                f"contains_example={contains_example}"
+            )
+
+            if not is_string:
+
+                raise RuntimeError(
+                    "MET_USER_AGENT is accessible "
+                    "but is not a Python string"
+                )
+
+            if is_empty:
+
+                raise RuntimeError(
+                    "MET_USER_AGENT is empty"
+                )
+
+            if contains_example:
+
+                raise RuntimeError(
+                    "MET_USER_AGENT still contains "
+                    "an example placeholder"
+                )
+
+            batch = (
+                now.minute - 7
+            ) // 10
+
+            print(
+                "Northseek MET DIAG: "
+                f"starting update_cloud; batch={batch}"
+            )
+
+            try:
+
+                await update_cloud(
+                    self.env,
+                    met_user_agent,
+                    batch,
+                )
+
+            except Exception as exc:
+
+                # The existing source adapter also
+                # logs individual MET failures.
+                # Do not print the exception value
+                # here because upstream errors may
+                # contain request details.
+
+                print(
+                    "Northseek MET DIAG: "
+                    "update_cloud failed; "
+                    f"error_type={type(exc).__name__}"
+                )
+
+                raise
+
+            print(
+                "Northseek MET DIAG: "
+                "update_cloud completed"
             )
 
         elif cron == "13 * * * *":
+
             await update_sunmoon(
                 self.env,
                 now.hour % 4,
@@ -104,7 +193,11 @@ class Default(WorkerEntrypoint):
     # --------------------------------------------------
 
     async def fetch(self, request):
-        url = urlparse(request.url)
+
+        url = urlparse(
+            request.url
+        )
+
         path = url.path
 
         # --------------------------------------------------
@@ -112,9 +205,11 @@ class Default(WorkerEntrypoint):
         # --------------------------------------------------
 
         if path == "/":
+
             return response({
                 "service": "northseek-api",
-                "message": "Northseek API is running",
+                "message":
+                    "Northseek API is running",
             })
 
         # --------------------------------------------------
@@ -122,10 +217,13 @@ class Default(WorkerEntrypoint):
         # --------------------------------------------------
 
         if path == "/api/profa":
+
             import scoring
             from datetime import timedelta
 
-            now = datetime.now(timezone.utc)
+            now = datetime.now(
+                timezone.utc
+            )
 
             value = scoring.reikna_skor(
                 50,
@@ -141,7 +239,8 @@ class Default(WorkerEntrypoint):
                 "ok": True,
                 "test": True,
                 "stadir_fjoldi": len(STADIR),
-                "fyrsti_stadur": STADIR[0]["nafn"],
+                "fyrsti_stadur":
+                    STADIR[0]["nafn"],
                 "reiknid": value,
             })
 
@@ -157,36 +256,46 @@ class Default(WorkerEntrypoint):
             "/api/vakt",
             "/api/skor",
         ):
+
             return response(
-                {"villa": "fannst ekki"},
+                {
+                    "villa": "fannst ekki",
+                },
                 404,
             )
 
         try:
 
             # --------------------------------------------------
-            # NOAA Kp forecast
+            # NOAA Kp
             # --------------------------------------------------
 
             if path == "/api/kp":
+
                 data = await read_store(
                     self.env,
                     "kp",
                 )
 
                 if not data:
+
                     return response({
                         "ok": False,
                         "cache": "empty",
                     }, 503)
 
-                forecast = data["forecast"]
+                forecast = data[
+                    "forecast"
+                ]
 
                 future = [
                     row
                     for row in forecast
                     if row.get("observed")
-                    in ("predicted", "estimated")
+                    in (
+                        "predicted",
+                        "estimated",
+                    )
                 ]
 
                 return response({
@@ -194,10 +303,13 @@ class Default(WorkerEntrypoint):
                     "service": "northseek-api",
                     "source": "NOAA SWPC",
                     "cache": "KV",
-                    "updated_at": data["updated_at"],
+                    "updated_at":
+                        data["updated_at"],
                     "fjoldi": len(forecast),
-                    "spa_fjoldi": len(future),
-                    "fyrstu_spa_faerslur": future[:5],
+                    "spa_fjoldi":
+                        len(future),
+                    "fyrstu_spa_faerslur":
+                        future[:5],
                 })
 
             # --------------------------------------------------
@@ -205,12 +317,14 @@ class Default(WorkerEntrypoint):
             # --------------------------------------------------
 
             if path == "/api/ovation":
+
                 data = await read_store(
                     self.env,
                     "ovation",
                 )
 
                 if not data:
+
                     return response({
                         "ok": False,
                         "cache": "empty",
@@ -219,16 +333,19 @@ class Default(WorkerEntrypoint):
                 return response({
                     "ok": True,
                     "service": "northseek-api",
-                    "source": data["source"],
+                    "source":
+                        data["source"],
                     "cache": "KV",
-                    "updated_at": data["updated_at"],
-                    "forecast_time": data.get(
-                        "forecast_time"
-                    ),
-                    "stadir_fjoldi": len(
-                        data["stadir"]
-                    ),
-                    "stadir": data["stadir"],
+                    "updated_at":
+                        data["updated_at"],
+                    "forecast_time":
+                        data.get(
+                            "forecast_time"
+                        ),
+                    "stadir_fjoldi":
+                        len(data["stadir"]),
+                    "stadir":
+                        data["stadir"],
                 })
 
             # --------------------------------------------------
@@ -236,6 +353,7 @@ class Default(WorkerEntrypoint):
             # --------------------------------------------------
 
             if path == "/api/geimvedur":
+
                 data = await read_store(
                     self.env,
                     "solar",
@@ -251,7 +369,7 @@ class Default(WorkerEntrypoint):
                 )
 
             # --------------------------------------------------
-            # Shared data for health, vakt and skor
+            # Shared KV data
             # --------------------------------------------------
 
             kp = await read_store(
@@ -274,6 +392,7 @@ class Default(WorkerEntrypoint):
             # --------------------------------------------------
 
             if path == "/api/heilsa":
+
                 ovation = await read_store(
                     self.env,
                     "ovation",
@@ -295,9 +414,9 @@ class Default(WorkerEntrypoint):
                         sunmoon,
                     ),
                     "updated_at": {
-                        name: (data or {}).get(
-                            "updated_at"
-                        )
+                        name: (
+                            data or {}
+                        ).get("updated_at")
                         for name, data in (
                             ("kp", kp),
                             ("cloud", clouds),
@@ -317,27 +436,38 @@ class Default(WorkerEntrypoint):
                 clouds,
                 sunmoon,
             ):
+
                 return response({
-                    "villa": "gögn ekki tilbúin ennþá",
+                    "villa":
+                        "gögn ekki tilbúin ennþá",
                     "message":
                         "Cloud and sun/moon caches "
                         "are still being populated",
                 }, 503)
 
             # --------------------------------------------------
-            # Day parameter: 0, 1 or 2
+            # Day: 0, 1 or 2
             # --------------------------------------------------
 
             raw_day = parse_qs(
                 url.query
-            ).get("dagur", ["0"])[0]
+            ).get(
+                "dagur",
+                ["0"],
+            )[0]
 
             try:
+
                 day = min(
                     2,
-                    max(0, int(raw_day)),
+                    max(
+                        0,
+                        int(raw_day),
+                    ),
                 )
+
             except ValueError:
+
                 day = 0
 
             # --------------------------------------------------
@@ -345,6 +475,7 @@ class Default(WorkerEntrypoint):
             # --------------------------------------------------
 
             if path == "/api/vakt":
+
                 solar = await read_store(
                     self.env,
                     "solar",
@@ -359,24 +490,27 @@ class Default(WorkerEntrypoint):
                 )
 
                 if result is None:
+
                     return response({
                         "villa":
                             "gögn ekki tilbúin ennþá",
                     }, 503)
 
                 return response({
-                    "reiknad": datetime.now(
-                        timezone.utc
-                    ).isoformat(),
+                    "reiknad":
+                        datetime.now(
+                            timezone.utc
+                        ).isoformat(),
                     "dagur": day,
                     **result,
                 })
 
             # --------------------------------------------------
-            # Scores for all locations
+            # Scores
             # --------------------------------------------------
 
             if path == "/api/skor":
+
                 ovation = (
                     await read_store(
                         self.env,
@@ -387,9 +521,10 @@ class Default(WorkerEntrypoint):
                 )
 
                 return response({
-                    "reiknad": datetime.now(
-                        timezone.utc
-                    ).isoformat(),
+                    "reiknad":
+                        datetime.now(
+                            timezone.utc
+                        ).isoformat(),
                     "dagur": day,
                     "stadir": skor(
                         day,
@@ -401,8 +536,10 @@ class Default(WorkerEntrypoint):
                 })
 
         except Exception as exc:
+
             print(
-                f"Northseek {path}: {exc}"
+                f"Northseek {path}: "
+                f"{type(exc).__name__}"
             )
 
             return response({
