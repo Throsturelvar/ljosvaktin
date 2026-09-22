@@ -1,9 +1,15 @@
+
 {
   "name": "northseek-api",
   "main": "main.py",
   "compatibility_date": "2026-09-20",
-  "compatibility_flags": ["python_workers"],
+  "compatibility_flags": [
+    "python_workers"
+  ],
   "workers_dev": true,
+  "vars": {
+    "MET_USER_AGENT": "Northseek/1.0 (sjmalun@gmail.com)"
+  },
   "kv_namespaces": [
     {
       "binding": "NORTHSEEK_CACHE",
