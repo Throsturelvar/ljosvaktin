@@ -1,243 +1,90 @@
-// Northseek Cloudflare preview Worker.
-//
-// The preview tries Cloudflare API first and uses Render
-// only when Cloudflare cannot return usable forecast data.
-//
-// DNS, the production site and the Render service
-// are not modified by this file.
+// Northseek Cloudflare frontend: static assets + same-origin API via Service Binding.
+// No Render fallback: a broken API connection must be visible before DNS cutover.
 
-const CLOUDFLARE_API =
-  "https://northseek-api.throstur-oskarsson.workers.dev";
+const FORECAST_PATHS = new Set(["/api/vakt", "/api/skor"]);
 
-const RENDER_API =
-  "https://ljosvaktin.onrender.com";
-
-function isForecastPath(pathname) {
-  return (
-    pathname === "/api/vakt" ||
-    pathname === "/api/skor"
-  );
-}
-
-function usableForecast(data, pathname) {
-  if (!data || typeof data !== "object") {
-    return false;
-  }
-
-  if (pathname === "/api/vakt") {
-    return (
-      data.nott &&
-      Array.isArray(data.kpSpa) &&
-      data.tungl &&
-      Array.isArray(data.stadir) &&
-      data.geimvedur
-    );
-  }
-
-  if (pathname === "/api/skor") {
-    return (
-      Array.isArray(data.stadir) &&
-      data.stadir.length > 0
-    );
-  }
-
-  return false;
-}
-
-async function getForecast(request, pathname, search) {
-  const path = pathname + search;
-
-  for (const [backend, base] of [
-    ["Cloudflare", CLOUDFLARE_API],
-    ["Render", RENDER_API],
-  ]) {
-    try {
-      const upstream = await fetch(base + path, {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-        },
-      });
-
-      if (!upstream.ok) {
-        console.log(
-          `Northseek preview: ${backend} returned ${upstream.status}`
-        );
-        continue;
-      }
-
-      const data = await upstream.json();
-
-      if (!usableForecast(data, pathname)) {
-        console.log(
-          `Northseek preview: ${backend} response is incomplete`
-        );
-        continue;
-      }
-
-      return new Response(JSON.stringify(data), {
-        status: 200,
-        headers: {
-          "Content-Type": "application/json; charset=utf-8",
-          "Cache-Control": "no-store",
-          "X-Northseek-Backend": backend,
-        },
-      });
-    } catch (error) {
-      console.log(
-        `Northseek preview: ${backend} request failed`
-      );
-    }
-  }
-
-  return new Response(
-    JSON.stringify({
-      villa: "Hvorugur bakendi skilaði nothæfri spá",
-    }),
-    {
-      status: 502,
-      headers: {
-        "Content-Type": "application/json; charset=utf-8",
-        "Cache-Control": "no-store",
-        "X-Northseek-Backend": "Neither",
-      },
-    }
-  );
-}
-
-// Injected only into the preview's HTML.
-// Redirect existing forecast fetches through this Worker,
-// including fetches that currently point directly to Render.
-
-const PREVIEW_SCRIPT = `
-<script>
+const CLIENT_SCRIPT = `<script>
 (function () {
   const originalFetch = window.fetch.bind(window);
-
   function showBackend(name) {
     let badge = document.getElementById("northseek-preview-backend");
-
     if (!badge) {
       badge = document.createElement("div");
       badge.id = "northseek-preview-backend";
-
       Object.assign(badge.style, {
-        position: "fixed",
-        bottom: "14px",
-        right: "14px",
-        zIndex: "2147483647",
-        padding: "9px 12px",
-        borderRadius: "10px",
-        color: "#ffffff",
-        background: "#17392f",
-        font: "bold 12px system-ui, sans-serif",
-        boxShadow: "0 3px 15px #0005",
-        pointerEvents: "none"
+        position: "fixed", bottom: "14px", right: "14px", zIndex: "2147483647",
+        padding: "9px 12px", borderRadius: "10px", color: "#fff",
+        background: "#146c43", font: "bold 12px system-ui, sans-serif",
+        boxShadow: "0 3px 15px #0005", pointerEvents: "none"
       });
-
       document.body.appendChild(badge);
     }
-
     badge.textContent = "PRÓFUN · Gögn: " + name;
-
-    badge.style.background =
-      name === "Cloudflare" ? "#146c43" :
-      name === "Render" ? "#80521c" :
-      "#7f1d1d";
+    badge.style.background = name === "Cloudflare" ? "#146c43" : "#7f1d1d";
   }
-
   window.fetch = async function (input, init) {
-    const originalUrl =
-      typeof input === "string" ? input :
-      input instanceof URL ? input.href :
-      input && input.url;
-
-    if (!originalUrl) {
-      return originalFetch(input, init);
-    }
-
+    const raw = typeof input === "string" ? input :
+      input instanceof URL ? input.href : input && input.url;
+    if (!raw) return originalFetch(input, init);
     let url;
-
-    try {
-      url = new URL(originalUrl, location.href);
-    } catch (_) {
-      return originalFetch(input, init);
-    }
-
-    const isForecast =
-      url.pathname === "/api/vakt" ||
-      url.pathname === "/api/skor";
-
-    const isKnownBackend =
-      url.origin === location.origin ||
+    try { url = new URL(raw, location.href); }
+    catch (_) { return originalFetch(input, init); }
+    const isForecast = url.pathname === "/api/vakt" || url.pathname === "/api/skor";
+    const knownOrigin = url.origin === location.origin ||
       url.hostname === "ljosvaktin.onrender.com" ||
       url.hostname === "northseek-api.throstur-oskarsson.workers.dev";
-
-    const method =
-      (init && init.method) ||
-      (input instanceof Request && input.method) ||
-      "GET";
-
-    if (
-      !isForecast ||
-      !isKnownBackend ||
-      method.toUpperCase() !== "GET"
-    ) {
+    const method = (init && init.method) ||
+      (input instanceof Request && input.method) || "GET";
+    if (!isForecast || !knownOrigin || method.toUpperCase() !== "GET") {
       return originalFetch(input, init);
     }
-
-    const previewUrl =
-      location.origin + url.pathname + url.search;
-
-    const result = await originalFetch(previewUrl);
-
-    showBackend(
-      result.headers.get("X-Northseek-Backend") ||
-      "Óþekkt"
-    );
-
-    return result;
+    const response = await originalFetch(location.origin + url.pathname + url.search, init);
+    showBackend(response.headers.get("X-Northseek-Backend") || "Villa");
+    return response;
   };
 })();
-</script>
-`;
+</script>`;
 
-class PreviewHead {
+class InjectClient {
   element(element) {
-    element.prepend(PREVIEW_SCRIPT, {
-      html: true,
-    });
+    element.prepend(CLIENT_SCRIPT, { html: true });
   }
 }
 
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-
-    // Same-origin forecast API for the preview.
-    if (isForecastPath(url.pathname)) {
-      return getForecast(
-        request,
-        url.pathname,
-        url.search
-      );
+    if (FORECAST_PATHS.has(url.pathname)) {
+      if (request.method !== "GET") {
+        return new Response("Method not allowed", { status: 405 });
+      }
+      try {
+        // The URL hostname is internal to the binding; only its path/query
+        // are consumed by the Python API's urlparse(request.url).
+        const upstreamUrl = "https://northseek-api.internal" + url.pathname + url.search;
+        const upstream = await env.NORTHSEEK_API.fetch(upstreamUrl, {
+          headers: { Accept: "application/json" }
+        });
+        const headers = new Headers(upstream.headers);
+        headers.set("X-Northseek-Backend", "Cloudflare");
+        headers.set("Cache-Control", "no-store");
+        return new Response(upstream.body, { status: upstream.status, headers });
+      } catch (error) {
+        console.error("Northseek API service binding failed", error);
+        return new Response(JSON.stringify({ villa: "Cloudflare API samband brast" }), {
+          status: 502,
+          headers: {
+            "Content-Type": "application/json; charset=utf-8",
+            "X-Northseek-Backend": "Error",
+            "Cache-Control": "no-store"
+          }
+        });
+      }
     }
-
-    // Everything else comes from the existing static site.
     const asset = await env.ASSETS.fetch(request);
-
-    const contentType =
-      asset.headers.get("content-type") || "";
-
-    if (
-      asset.ok &&
-      contentType.includes("text/html")
-    ) {
-      return new HTMLRewriter()
-        .on("head", new PreviewHead())
-        .transform(asset);
+    if (asset.ok && (asset.headers.get("content-type") || "").includes("text/html")) {
+      return new HTMLRewriter().on("head", new InjectClient()).transform(asset);
     }
-
     return asset;
-  },
+  }
 };
