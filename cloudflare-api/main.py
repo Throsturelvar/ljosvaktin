@@ -1,3 +1,4 @@
+
 """Northseek API Worker. Public GETs read KV only; cron jobs fetch upstreams."""
 
 import json
@@ -40,9 +41,7 @@ class Default(WorkerEntrypoint):
         cron = controller.cron
         now = datetime.now(timezone.utc)
 
-        # IMPORTANT:
-        # Cloudflare Python Workers use self.env for bindings.
-        # The "env" argument may be None in scheduled events.
+        # Python Worker bindings are accessed through self.env.
 
         if cron == "0 */3 * * *":
             await update_kp(self.env)
@@ -54,10 +53,44 @@ class Default(WorkerEntrypoint):
             await update_solar(self.env)
 
         elif cron == "7,17,27,37,47,57 * * * *":
+
+            # Read the runtime variable directly.
+            # Do not log its value or the contact email.
+
+            try:
+                met_user_agent = self.env.MET_USER_AGENT
+            except (AttributeError, KeyError) as exc:
+                raise RuntimeError(
+                    "MET_USER_AGENT is not accessible in "
+                    "this Worker's runtime environment. "
+                    "Check Variables and Secrets and "
+                    "redeploy the Worker."
+                ) from exc
+
+            if not isinstance(met_user_agent, str):
+                raise RuntimeError(
+                    "MET_USER_AGENT was found but is not "
+                    "a Python string."
+                )
+
+            if not met_user_agent.strip():
+                raise RuntimeError(
+                    "MET_USER_AGENT is empty."
+                )
+
+            print(
+                "Northseek MET: runtime variable "
+                "is accessible; starting cloud update"
+            )
+
             await update_cloud(
                 self.env,
-                getattr(self.env, "MET_USER_AGENT", None),
+                met_user_agent,
                 (now.minute - 7) // 10,
+            )
+
+            print(
+                "Northseek MET: cloud update completed"
             )
 
         elif cron == "13 * * * *":
