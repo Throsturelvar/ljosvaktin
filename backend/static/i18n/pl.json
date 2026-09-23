@@ -118,5 +118,13 @@
   "placeTonight": "{name} tej nocy",
   "moonRises": "wschód {time}",
   "solarWindFast": " Prędkość wiatru słonecznego jest również wyjątkowo wysoka, co rozszerza owal zorzowy i przesuwa zorzę dalej na południe.",
-  "densityHigh": " Gęstość cząstek jest również wysoka, co może dawać mocniejsze i jaśniejsze kolory."
+  "densityHigh": " Gęstość cząstek jest również wysoka, co może dawać mocniejsze i jaśniejsze kolory.",
+  "moonNewMoon": "Nów",
+  "moonWaxingCrescent": "Przybywający sierp",
+  "moonFirstQuarter": "Pierwsza kwadra",
+  "moonWaxingGibbous": "Przybywający garb",
+  "moonFullMoon": "Pełnia",
+  "moonWaningGibbous": "Ubywający garb",
+  "moonLastQuarter": "Ostatnia kwadra",
+  "moonWaningCrescent": "Ubywający sierp"
 }

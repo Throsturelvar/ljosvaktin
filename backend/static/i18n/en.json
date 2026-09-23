@@ -118,5 +118,13 @@
   "placeTonight": "{name} tonight",
   "moonRises": "rises {time}",
   "solarWindFast": " The solar-wind speed is also unusually high, which broadens the auroral oval and can bring the lights farther south.",
-  "densityHigh": " The particle density is also high, which can produce stronger and brighter colours."
+  "densityHigh": " The particle density is also high, which can produce stronger and brighter colours.",
+  "moonNewMoon": "New moon",
+  "moonWaxingCrescent": "Waxing crescent",
+  "moonFirstQuarter": "First quarter",
+  "moonWaxingGibbous": "Waxing gibbous",
+  "moonFullMoon": "Full moon",
+  "moonWaningGibbous": "Waning gibbous",
+  "moonLastQuarter": "Last quarter",
+  "moonWaningCrescent": "Waning crescent"
 }

@@ -118,5 +118,13 @@
   "placeTonight": "{name} í nótt",
   "moonRises": "upprás {time}",
   "solarWindFast": " Sólvindshraðinn er líka óvenju hraður, sem breikkar norðurljósabeltið og færir ljósin sunnar.",
-  "densityHigh": " Þéttleikinn er líka hár, sem gefur meiri og bjartari liti."
+  "densityHigh": " Þéttleikinn er líka hár, sem gefur meiri og bjartari liti.",
+  "moonNewMoon": "Nýtt tungl",
+  "moonWaxingCrescent": "Vaxandi mánasigð",
+  "moonFirstQuarter": "Fyrsta kvartil",
+  "moonWaxingGibbous": "Vaxandi tungl",
+  "moonFullMoon": "Fullt tungl",
+  "moonWaningGibbous": "Dvínandi tungl",
+  "moonLastQuarter": "Síðasta kvartil",
+  "moonWaningCrescent": "Dvínandi mánasigð"
 }

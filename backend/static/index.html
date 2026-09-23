@@ -1262,6 +1262,14 @@ const TRANSLATIONS = {
     "minutes": "min",
     "placeTonight": "{name} tonight",
     "moonRises": "rises {time}",
+    "moonNewMoon": "New moon",
+    "moonWaxingCrescent": "Waxing crescent",
+    "moonFirstQuarter": "First quarter",
+    "moonWaxingGibbous": "Waxing gibbous",
+    "moonFullMoon": "Full moon",
+    "moonWaningGibbous": "Waning gibbous",
+    "moonLastQuarter": "Last quarter",
+    "moonWaningCrescent": "Waning crescent",
     "solarWindFast": " The solar-wind speed is also unusually high, which broadens the auroral oval and can bring the lights farther south.",
     "densityHigh": " The particle density is also high, which can produce stronger and brighter colours."
   }
@@ -2269,7 +2277,7 @@ function teikna(){
               Math.round(
                 tungl.fasi*100
               ),
-            phase:tungl.heiti
+            phase:tunglfasi(tungl.heiti)
           }
         );
 
@@ -2713,14 +2721,13 @@ function teikna(){
               )}%
             </div>
 
-            <div class="aukagildi">
-              ${tungl.heiti}
-              ${
-                tungl.upprás
-                  ? `, ${tunglumUpprásText(tungl.upprás)}`
-                  : ""
-              }
-            </div>
+            <div class="aukagildi">${
+              tunglfasi(tungl.heiti)
+            }${
+              tungl.upprás
+                ? `, ${tunglumUpprásText(tungl.upprás)}`
+                : ""
+            }</div>
 
           </div>
 
@@ -2931,6 +2938,23 @@ function teikna(){
 /* =========================================================================
    SMALL TEXT HELPER
    ========================================================================= */
+
+// API-ið skilar heiti tunglfasa á íslensku; þýtt hér yfir á valið tungumál.
+const TUNGLFASAR = {
+  "Nýtt tungl": "moonNewMoon",
+  "Vaxandi mánasigð": "moonWaxingCrescent",
+  "Fyrsta kvartil": "moonFirstQuarter",
+  "Vaxandi tungl": "moonWaxingGibbous",
+  "Fullt tungl": "moonFullMoon",
+  "Dvínandi tungl": "moonWaningGibbous",
+  "Síðasta kvartil": "moonLastQuarter",
+  "Dvínandi mánasigð": "moonWaningCrescent",
+};
+
+function tunglfasi(heiti){
+  const lykill = TUNGLFASAR[heiti];
+  return lykill ? t(lykill) : heiti;
+}
 
 function tunglumUpprásText(time){
 
