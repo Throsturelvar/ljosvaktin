@@ -1,0 +1,22 @@
+{
+  "name": "northseek-api-js",
+  "main": "src/index.js",
+  "compatibility_date": "2026-09-20",
+  "workers_dev": true,
+  "observability": { "enabled": true },
+  "kv_namespaces": [
+    { "binding": "NORTHSEEK_CACHE", "id": "d8d9b7ad0c984df2b32af5cd61d7c1a4" }
+  ],
+  "vars": {
+    "MET_USER_AGENT": "Northseek/1.0 (sjmalun@gmail.com)"
+  },
+  "triggers": {
+    "crons": [
+      "0 */3 * * *",
+      "*/20 * * * *",
+      "*/5 * * * *",
+      "7,17,27,37,47,57 * * * *",
+      "13 * * * *"
+    ]
+  }
+}

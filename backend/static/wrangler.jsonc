@@ -1,0 +1,16 @@
+{
+  "name": "northseek",
+  "main": "worker.js",
+  "compatibility_date": "2026-09-22",
+  "assets": {
+    "directory": "./",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  },
+  "services": [
+    {
+      "binding": "NORTHSEEK_API",
+      "service": "northseek-api-js"
+    }
+  ]
+}
