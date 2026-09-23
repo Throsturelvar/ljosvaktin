@@ -127,5 +127,6 @@
   "moonWaningGibbous": "Gibbeuse décroissante",
   "moonLastQuarter": "Dernier quartier",
   "moonWaningCrescent": "Dernier croissant",
-  "allRightsReserved": "Tous droits réservés."
+  "allRightsReserved": "Tous droits réservés.",
+  "listSeparator": ", "
 }

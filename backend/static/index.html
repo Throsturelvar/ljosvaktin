@@ -1163,6 +1163,7 @@ const TRANSLATIONS = {
     "navData": "About the data",
     "facebookGroup": "Facebook group",
     "allRightsReserved": "All rights reserved.",
+    "listSeparator": ", ",
     "heroKicker": "Live aurora forecast · Iceland",
     "heroTitle": "Northern Lights in Iceland tonight",
     "heroKnowWhen": "right place.",
@@ -2751,7 +2752,7 @@ function teikna(){
               tunglfasi(tungl.heiti)
             }${
               tungl.upprás
-                ? `, ${tunglumUpprásText(tungl.upprás)}`
+                ? `${t("listSeparator")}${tunglumUpprásText(tungl.upprás)}`
                 : ""
             }</div>
 

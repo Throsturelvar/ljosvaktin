@@ -127,5 +127,6 @@
   "moonWaningGibbous": "Abnehmender Dreiviertelmond",
   "moonLastQuarter": "Letztes Viertel",
   "moonWaningCrescent": "Abnehmende Sichel",
-  "allRightsReserved": "Alle Rechte vorbehalten."
+  "allRightsReserved": "Alle Rechte vorbehalten.",
+  "listSeparator": ", "
 }
