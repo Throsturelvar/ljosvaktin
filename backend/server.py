@@ -6,6 +6,7 @@ hraðri og virðir "hófsemi" sem Veðurstofan biður um."""
 
 import json
 import os
+import re
 import threading
 import time
 from datetime import datetime, timezone
@@ -192,6 +193,10 @@ class Handler(BaseHTTPRequestHandler):
             self._senda_skra(STATIC_DIR / "images" / "northseek-hero.svg", "image/svg+xml; charset=utf-8")
         elif slod.path == "/images/northseek-hero.webp":
             self._senda_skra(STATIC_DIR / "images" / "northseek-hero.webp", "image/webp")
+        elif re.fullmatch(r"/images/northseek-logo-\d+\.webp", slod.path):
+            self._senda_skra(STATIC_DIR / slod.path.lstrip("/"), "image/webp")
+        elif re.fullmatch(r"/i18n/[a-z]{2}\.json", slod.path):
+            self._senda_skra(STATIC_DIR / slod.path.lstrip("/"), "application/json; charset=utf-8")
         elif slod.path == "/sitemap.xml":
             self._senda_skra(STATIC_DIR / "sitemap.xml", "application/xml; charset=utf-8")
         elif slod.path in ("/", "/index.html"):
