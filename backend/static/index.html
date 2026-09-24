@@ -3,7 +3,33 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Northseek</title>
+<title>Northern Lights Forecast Iceland Tonight – Aurora, Clouds &amp; Darkness | Northseek</title>
+<meta name="description" content="Where and when to see the northern lights in Iceland tonight. Aurora activity, cloud cover, darkness and moon combined into one score for places around Iceland, updated live.">
+<link rel="canonical" href="https://northseek.net/">
+<meta name="theme-color" content="#0F1726">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Northseek">
+<meta property="og:url" content="https://northseek.net/">
+<meta property="og:title" content="Northern Lights Forecast Iceland Tonight | Northseek">
+<meta property="og:description" content="Aurora activity, cloud cover, darkness and moon combined into one score for places around Iceland, updated live.">
+<meta property="og:image" content="https://northseek.net/images/og-northseek.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Northseek – Right place. Right time.">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Northseek",
+  "url": "https://northseek.net/",
+  "description": "Northern lights forecast for Iceland: aurora activity, cloud cover, darkness and moon combined into one score for places around Iceland.",
+  "applicationCategory": "WeatherApplication",
+  "operatingSystem": "Any",
+  "inLanguage": ["en", "is", "pl", "de", "fr", "zh-Hans", "zh-Hant"],
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" }
+}
+</script>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <meta name="google-site-verification" content="toSdiXGHGhstix7wO-DuEopdYs2nAsqlgXMG5pAkg3I" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -242,7 +268,7 @@ select:hover{border-color:rgba(233,194,107,.4)}
   gap:28px;
   flex-wrap:wrap;
 }
-.domlina h1{flex:1 1 auto}
+.domlina .domur-titill{flex:1 1 auto}
 .einkunn{
   text-align:right;
   padding-bottom:16px;
@@ -263,7 +289,7 @@ select:hover{border-color:rgba(233,194,107,.4)}
   color:var(--daufari);
   margin-top:8px;
 }
-.domur h1{
+.domur .domur-titill{
   font-family:Carlito,Calibri,'Source Sans 3','Segoe UI',system-ui,sans-serif;
   font-weight:700;
   font-size:clamp(1.85rem,5vw,2.9rem);
@@ -272,7 +298,7 @@ select:hover{border-color:rgba(233,194,107,.4)}
   letter-spacing:-.012em;
   text-wrap:pretty;
 }
-.domur h1 .st{
+.domur .domur-titill .st{
   font-style:italic;
   color:var(--daufur);
   display:block;
@@ -1014,10 +1040,10 @@ try {
 <div class="domur">
   <div class="domlina">
 
-    <h1>
+    <h2 class="domur-titill">
       <span class="st" id="stadur-lina">Reykjavík tonight</span>
       <span id="domur-texti">–</span>
-    </h1>
+    </h2>
 
     <div class="einkunn">
       <span class="tala" id="einkunn-tala">–</span>
