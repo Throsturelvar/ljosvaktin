@@ -1614,16 +1614,35 @@ function birtaDagsetningu(){
 
   const nu = new Date();
 
-  const dags =
-    new Intl.DateTimeFormat(
-      tungumal,
-      {
-        weekday:"long",
-        day:"numeric",
-        month:"long",
-        timeZone:ISL_TIMABELTI
-      }
-    ).format(nu);
+  let dags;
+
+  /* Sumir vafrar (t.d. Chrome) hafa ekki íslensk dagaheiti í Intl;
+     þá eru heitin sótt í þýðingaskrána. Ísland er á UTC. */
+  if(
+    !Intl.DateTimeFormat.supportedLocalesOf([tungumal]).length &&
+    TRANSLATIONS[tungumal]?.dateFormat
+  ){
+
+    dags =
+      t("dateFormat",{
+        weekday:t("weekdayNames").split(",")[nu.getUTCDay()],
+        day:nu.getUTCDate(),
+        month:t("monthNames").split(",")[nu.getUTCMonth()]
+      });
+
+  }else{
+
+    dags =
+      new Intl.DateTimeFormat(
+        tungumal,
+        {
+          weekday:"long",
+          day:"numeric",
+          month:"long",
+          timeZone:ISL_TIMABELTI
+        }
+      ).format(nu);
+  }
 
   el.textContent =
     dags.charAt(0).toUpperCase() + dags.slice(1);
