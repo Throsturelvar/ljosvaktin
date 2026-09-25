@@ -173,6 +173,11 @@ nav a:hover{
   letter-spacing:.19em;
   text-transform:uppercase;
 }
+.hero-dags{
+  margin:-8px 0 20px;
+  color:var(--daufur);
+  font-size:clamp(.95rem,2.2vw,1.08rem);
+}
 .hero-title{
   margin:0;
   max-width:8.2em;
@@ -692,10 +697,11 @@ h2{
   display:flex;
   align-items:center;
   gap:8px;
-  font-size:16.5px;
+  font-size:19px;
   color:var(--gull);
   margin:-8px 0 22px;
-  font-weight:500;
+  font-weight:700;
+  letter-spacing:.01em;
 }
 .besti-lina button{
   background:none;
@@ -1019,6 +1025,7 @@ try {
 
 <section class="hero-intro" aria-labelledby="hero-title">
   <p class="hero-kicker" data-i18n="heroKicker">Live aurora forecast · Iceland</p>
+  <p class="hero-dags" id="hero-dags"></p>
   <h1 class="hero-title" id="hero-title" data-i18n="heroTitle">Northern Lights in Iceland tonight</h1>
   <p class="hero-tagline"><span data-i18n="heroKnowWhen">Right place.</span> <em data-i18n="heroKnowWhere">Right time.</em></p>
   <p class="hero-copy" data-i18n="heroCopy">Find your best chance to see the Northern Lights in Iceland tonight — with aurora activity, clouds, darkness and moonlight combined into one simple score.</p>
@@ -1463,6 +1470,8 @@ async function setLanguage(lang){
   if(sidastaGeimvedur){
     birtaGeimvedur(sidastaGeimvedur);
   }
+
+  birtaDagsetningu();
 }
 
 
@@ -1589,6 +1598,55 @@ function stig(kp, sky, myrkur, tunglThattur){
     myrkur *
     tunglThattur
   );
+}
+
+
+/* Ísland er á UTC allt árið. */
+const ISL_TIMABELTI = "Atlantic/Reykjavik";
+
+
+function birtaDagsetningu(){
+
+  const el =
+    document.getElementById("hero-dags");
+
+  if(!el)
+    return;
+
+  const nu = new Date();
+
+  let dags;
+
+  /* Sumir vafrar (t.d. Chrome) hafa ekki íslensk dagaheiti í Intl;
+     þá eru heitin sótt í þýðingaskrána. Ísland er á UTC. */
+  if(
+    !Intl.DateTimeFormat.supportedLocalesOf([tungumal]).length &&
+    TRANSLATIONS[tungumal]?.dateFormat
+  ){
+
+    dags =
+      t("dateFormat",{
+        weekday:t("weekdayNames").split(",")[nu.getUTCDay()],
+        day:nu.getUTCDate(),
+        month:t("monthNames").split(",")[nu.getUTCMonth()]
+      });
+
+  }else{
+
+    dags =
+      new Intl.DateTimeFormat(
+        tungumal,
+        {
+          weekday:"long",
+          day:"numeric",
+          month:"long",
+          timeZone:ISL_TIMABELTI
+        }
+      ).format(nu);
+  }
+
+  el.textContent =
+    dags.charAt(0).toUpperCase() + dags.slice(1);
 }
 
 
@@ -3555,6 +3613,13 @@ document
 /* =========================================================================
    START
    ========================================================================= */
+
+birtaDagsetningu();
+
+setInterval(
+  birtaDagsetningu,
+  60 * 1000
+);
 
 setLanguage(tungumal);
 
