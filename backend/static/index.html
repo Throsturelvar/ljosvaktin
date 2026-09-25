@@ -177,7 +177,6 @@ nav a:hover{
   margin:-8px 0 20px;
   color:var(--daufur);
   font-size:clamp(.95rem,2.2vw,1.08rem);
-  font-variant-numeric:tabular-nums;
 }
 .hero-title{
   margin:0;
@@ -1199,7 +1198,6 @@ const TRANSLATIONS = {
     "allRightsReserved": "All rights reserved.",
     "listSeparator": ", ",
     "heroKicker": "Live aurora forecast · Iceland",
-    "icelandDateTime": "{date} · {time} Iceland time",
     "heroTitle": "Northern Lights in Iceland tonight",
     "heroKnowWhen": "right place.",
     "heroKnowWhere": "right time.",
@@ -1210,7 +1208,6 @@ const TRANSLATIONS = {
     "scoreOutOf": "score out of 100",
     "loading": "Loading the latest data …",
     "tonightWatch": "Tonight's watch",
-    "nightOf": "Night of {dates}",
     "watchExplanation": "Green shows aurora activity, grey shows cloud cover — the band runs from sunset to sunrise.",
     "placesTitle": "Places around Iceland",
     "placesIntro": "Aurora activity is broadly the same across Iceland — clouds determine where it can be seen. The score combines activity, clouds, darkness and moonlight; 100 is a perfect night.",
@@ -1473,7 +1470,7 @@ async function setLanguage(lang){
     birtaGeimvedur(sidastaGeimvedur);
   }
 
-  birtaKlukku();
+  birtaDagsetningu();
 }
 
 
@@ -1607,23 +1604,7 @@ function stig(kp, sky, myrkur, tunglThattur){
 const ISL_TIMABELTI = "Atlantic/Reykjavik";
 
 
-function nottDagar(){
-
-  return new Intl.DateTimeFormat(
-    tungumal,
-    {
-      day:"numeric",
-      month:"long",
-      timeZone:ISL_TIMABELTI
-    }
-  ).formatRange(
-    new Date(nottUpphaf),
-    new Date(nottUpphaf + 24 * 3600e3)
-  );
-}
-
-
-function birtaKlukku(){
+function birtaDagsetningu(){
 
   const el =
     document.getElementById("hero-dags");
@@ -1644,22 +1625,8 @@ function birtaKlukku(){
       }
     ).format(nu);
 
-  const timi =
-    new Intl.DateTimeFormat(
-      tungumal,
-      {
-        hour:"2-digit",
-        minute:"2-digit",
-        hourCycle:"h23",
-        timeZone:ISL_TIMABELTI
-      }
-    ).format(nu);
-
   el.textContent =
-    t("icelandDateTime",{
-      date:dags.charAt(0).toUpperCase() + dags.slice(1),
-      time:timi
-    });
+    dags.charAt(0).toUpperCase() + dags.slice(1);
 }
 
 
@@ -2487,13 +2454,6 @@ function teikna(){
   document
     .getElementById("band-timi")
     .textContent =
-      t(
-        "nightOf",
-        {
-          dates:nottDagar()
-        }
-      ) +
-      " · " +
       t(
         "sunsetSunrise",
         {
@@ -3634,11 +3594,11 @@ document
    START
    ========================================================================= */
 
-birtaKlukku();
+birtaDagsetningu();
 
 setInterval(
-  birtaKlukku,
-  15 * 1000
+  birtaDagsetningu,
+  60 * 1000
 );
 
 setLanguage(tungumal);
