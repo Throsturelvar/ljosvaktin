@@ -38,6 +38,7 @@
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/suncalc/1.9.0/suncalc.min.js"></script>
 
 <style>
 :root{
@@ -1474,6 +1475,7 @@ let kpSpa = [];
 let tungl = null;
 let metnir = [];
 let n = 0;
+let nottUpphaf = 0;
 let valinn = null;
 let valinnNafn = null;
 let sidastaGeimvedur = null;
@@ -1511,16 +1513,75 @@ function myrkurStudull(klst){
 }
 
 
-function stig(kp, sky, myrkur){
+/* Ísland er undir norðurljósabeltinu: norðurljós sjást oft við Kp 2–3
+   og Kp 5 telst fullt hús. */
+function virkniStudull(kp){
+
+  return klemma((kp + 1) / 6);
+}
+
+
+function klemma(x){
+
+  return Math.max(0, Math.min(1, x));
+}
+
+
+const GRADUR = 180 / Math.PI;
+
+
+/* Tími klukkustundar i í nóttinni. Klukkustundir fyrir hádegi
+   tilheyra morgundeginum. */
+function klstTimi(i){
+
+  const h = nott.klst[i];
+
+  return new Date(
+    nottUpphaf +
+    (h < 12 ? h + 24 : h) * 3600e3
+  );
+}
+
+
+/* Myrkur á stað út frá hæð sólar: 0 við −3°, 1 við −12° og neðar.
+   Án SunCalc er notast við myrkurstíma Reykjavíkur. */
+function myrkurStadar(s, i){
+
+  if(typeof SunCalc === "undefined")
+    return myrkurStudull(nott.klst[i]);
+
+  const solHaed =
+    SunCalc.getPosition(
+      klstTimi(i), s.lat, s.lon
+    ).altitude * GRADUR;
+
+  return klemma((-solHaed - 3) / 9);
+}
+
+
+/* Tungl dregur allt að 45% frá þegar það er fullt og a.m.k. 20°
+   yfir sjóndeildarhring; sest tungl truflar ekki. */
+function tunglStadar(s, i){
+
+  if(typeof SunCalc === "undefined")
+    return 1 - .22 * tungl.fasi;
+
+  const tunglHaed =
+    SunCalc.getMoonPosition(
+      klstTimi(i), s.lat, s.lon
+    ).altitude * GRADUR;
+
+  return 1 - .45 * tungl.fasi * klemma(tunglHaed / 20);
+}
+
+
+function stig(kp, sky, myrkur, tunglThattur){
 
   const virkni =
-    Math.min(kp / 7, 1);
+    virkniStudull(kp);
 
   const heidrikja =
     1 - .92 * (sky / 100);
-
-  const tunglThattur =
-    1 - .22 * tungl.fasi;
 
   return (
     virkni *
@@ -1822,13 +1883,19 @@ function metaStad(s){
 
   const sky = s.sky;
 
+  const myrkur =
+    nott.klst.map(
+      (h,i) => myrkurStadar(s, i)
+    );
+
   const stigin =
     nott.klst.map(
       (h,i) =>
         stig(
           kpSpa[i],
           sky[i],
-          myrkurStudull(h)
+          myrkur[i],
+          tunglStadar(s, i)
         )
     );
 
@@ -1860,6 +1927,7 @@ function metaStad(s){
   return {
     ...s,
     sky,
+    myrkur,
     stigin,
     best,
     gluggiFra:fra,
@@ -2368,13 +2436,10 @@ function teikna(){
     (h,i)=>{
 
       const myrkur =
-        myrkurStudull(h);
+        s.myrkur[i];
 
       const virkni =
-        Math.min(
-          kpSpa[i]/7,
-          1
-        );
+        virkniStudull(kpSpa[i]);
 
       const hlutfall =
         Math.round(
@@ -2433,7 +2498,7 @@ function teikna(){
           ? .18
           : myrkur === 1
             ? 1
-            : .55;
+            : .55 + .45 * myrkur;
 
       staeda.appendChild(fylli);
 
@@ -3281,6 +3346,11 @@ async function saekjaVakt(){
 
     tungl =
       gogn.tungl;
+
+    nottUpphaf =
+      Date.parse(
+        gogn.reiknad.slice(0,10) + "T00:00:00Z"
+      );
 
     n =
       nott.klst.length;
