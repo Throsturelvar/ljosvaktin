@@ -102,6 +102,7 @@
   "alertMailFooter": "Þú færð mest einn póst á nóttu. Vaktin rennur út {date}.",
   "alertUnsubscribe": "Afskrá",
   "alertStartOver": "Breyta eða hætta við",
+  "alertClose": "Loka",
   "nextHour": "Næsta klukkustund",
   "headUnlikely": "Ólíkleg norðurljós",
   "headPossible": "Möguleg norðurljós",

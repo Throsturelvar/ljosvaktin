@@ -99,6 +99,7 @@
   "alertMailFooter": "You get at most one email per night. This alert ends on {date}.",
   "alertUnsubscribe": "Unsubscribe",
   "alertStartOver": "Change or cancel",
+  "alertClose": "Close",
   "nextHour": "Next hour",
   "headUnlikely": "Aurora unlikely",
   "headPossible": "Aurora possible",
