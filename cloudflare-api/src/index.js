@@ -132,8 +132,11 @@ async function handle(url, env) {
   if (!isReady(kp, clouds, sunmoon, day)) return notReady();
 
   if (path === "/api/vakt") {
-    const solar = await readStore(env, "solar");
-    const result = vakt(day, kp, clouds, sunmoon, solar);
+    const [solar, ovation] = await Promise.all([
+      readStore(env, "solar"),
+      day === 0 ? readStore(env, "ovation") : null,
+    ]);
+    const result = vakt(day, kp, clouds, sunmoon, solar, ovation);
     if (result === null) return response({ villa: "gögn ekki tilbúin ennþá" }, 503);
     return response({ reiknad: pyIso(Date.now()), dagur: day, ...result });
   }

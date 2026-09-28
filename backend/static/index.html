@@ -581,6 +581,23 @@ select:hover{border-color:rgba(233,194,107,.4)}
   border-top:1px solid var(--lina-syn);
 }
 .tolur-nanar[hidden]{display:none}
+.ovation-lina{
+  margin:14px 0 4px;
+  padding:12px 0 0;
+  border-top:1px solid var(--lina-syn);
+}
+.ovation-lina[hidden]{display:none}
+.ovation-stada{
+  margin:0 0 4px;
+  font-size:17px;
+  color:var(--bein);
+}
+.ovation-stada b{font-weight:700}
+.ovation-stada .tala{
+  color:var(--daufur);
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+}
 .geimvedur-tolur{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(min(100%,145px),1fr));
@@ -1272,6 +1289,12 @@ const TRANSLATIONS = {
     "rightNow": "Right now",
     "measuredAt": "measured at {time}",
     "noSpaceWeather": "Real-time solar-wind data is not available at the moment.",
+    "ovationNextHour": "Next hour near {place}: aurora {level}",
+    "ovationLow": "unlikely",
+    "ovationPossible": "possible",
+    "ovationLikely": "likely",
+    "ovationHighest": "Highest: {place} {value}/100",
+    "ovationSource": "NOAA OVATION forecast for {time}. Needs darkness and clear skies.",
     "lastMinutes": "last {value} min",
     "lastHours": "last {value} hrs",
     "showNumbers": "Show the numbers",
@@ -2262,6 +2285,8 @@ function teikna(){
   if(!valinn || !metnir.length)
     return;
 
+  birtaOvation();
+
   const s =
     valinn;
 
@@ -3141,6 +3166,64 @@ function tunglumUpprásText(time){
    SPACE WEATHER DISPLAY
    ========================================================================= */
 
+let ovationTimar = null;
+
+/* OVATION (NOAA) spáir norðurljósum næstu 30–90 mínútur á hverjum stað,
+   0–100. Birt sem viðbót í „Staðan núna“; hefur ekki áhrif á einkunnina. */
+function ovationFlokkur(v){
+
+  if(v >= 30)
+    return { heiti:t("ovationLikely"), litur:"var(--aur-4)" };
+
+  if(v >= 10)
+    return { heiti:t("ovationPossible"), litur:"var(--aur-3)" };
+
+  return { heiti:t("ovationLow"), litur:"var(--daufur)" };
+}
+
+function birtaOvation(){
+
+  const el =
+    document.getElementById("ovationLina");
+
+  if(!el)
+    return;
+
+  const med =
+    metnir.filter(p => p.ovation != null);
+
+  if(!valinn || valinn.ovation == null || !med.length){
+    el.hidden = true;
+    return;
+  }
+
+  const haest =
+    med.reduce((a,b) => b.ovation > a.ovation ? b : a);
+
+  const f =
+    ovationFlokkur(valinn.ovation);
+
+  const haestTexti =
+    haest.nafn !== valinn.nafn
+      ? t("ovationHighest",{ place:haest.nafn, value:haest.ovation }) + " · "
+      : "";
+
+  el.innerHTML = `
+    <p class="ovation-stada">
+      ${t("ovationNextHour",{
+        level:`<b style="color:${f.litur}">${f.heiti}</b>`,
+        place:valinn.nafn
+      })}
+      <span class="tala">· ${valinn.ovation}/100</span>
+    </p>
+    <p class="kpaukagildi">
+      ${haestTexti}${t("ovationSource",{ time:ovationTimar?.spa ?? "?" })}
+    </p>
+  `;
+
+  el.hidden = false;
+}
+
 function birtaGeimvedur(g){
 
   const el =
@@ -3160,7 +3243,11 @@ function birtaGeimvedur(g){
         ${t("noSpaceWeather")}
       </p>
 
+      <div class="ovation-lina" id="ovationLina" hidden></div>
+
     `;
+
+    birtaOvation();
 
     return;
   }
@@ -3273,6 +3360,9 @@ function birtaGeimvedur(g){
     </p>
 
 
+    <div class="ovation-lina" id="ovationLina" hidden></div>
+
+
     <button
       class="tolur-hnappur"
       id="tolurHnappur"
@@ -3340,6 +3430,8 @@ function birtaGeimvedur(g){
     </div>
   `;
 
+
+  birtaOvation();
 
   const hnappur =
     document.getElementById(
@@ -3446,6 +3538,9 @@ async function saekjaVakt(){
 
     teikna();
 
+
+    ovationTimar =
+      gogn.ovation ?? null;
 
     sidastaGeimvedur =
       gogn.geimvedur;
