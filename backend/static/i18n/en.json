@@ -91,6 +91,7 @@
   "alertInvalid": "Please enter a valid email address.",
   "alertDoneTitle": "Check your inbox",
   "alertDoneText": "We’ve sent a confirmation link to {email}. The alert starts once you confirm.",
+  "alertDoneShort": "We’ve sent a confirmation link to {email}. Tap to see the example or change.",
   "alertExampleTitle": "This is what the alert would look like:",
   "alertMailFrom": "From: Northseek <vakt@northseek.net>",
   "alertMailSubject": "Aurora near {place}: {level}",

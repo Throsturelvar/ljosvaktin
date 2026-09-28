@@ -94,6 +94,7 @@
   "alertInvalid": "Sláðu inn gilt netfang.",
   "alertDoneTitle": "Athugaðu pósthólfið",
   "alertDoneText": "Við sendum staðfestingarhlekk á {email}. Vaktin hefst þegar þú staðfestir.",
+  "alertDoneShort": "Við sendum staðfestingarhlekk á {email}. Smelltu til að sjá dæmi eða breyta.",
   "alertExampleTitle": "Svona myndi tilkynningin líta út:",
   "alertMailFrom": "Frá: Northseek <vakt@northseek.net>",
   "alertMailSubject": "Norðurljós við {place}: {level}",

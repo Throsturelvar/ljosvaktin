@@ -611,6 +611,10 @@ select:hover{border-color:rgba(233,194,107,.4)}
   color:var(--nott);
 }
 .vakt-opna-texti{display:grid;gap:1px}
+.vakt-opna .tak-hak{display:none}
+.vakt-opna.skrad .tak-hak{display:inline}
+.vakt-opna.skrad .tak-bjalla{display:none}
+.vakt-opna.skrad .vakt-bjalla{background:var(--aur-3)}
 .vakt-opna-titill{font-size:17px;font-weight:700;color:var(--gull)}
 .vakt-opna-undir{font-size:15px;color:var(--daufur)}
 .vakt{
@@ -1292,8 +1296,11 @@ try {
     <span class="vakt-bjalla" aria-hidden="true">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
         stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
-        <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+        <g class="tak-bjalla">
+          <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+          <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+        </g>
+        <path class="tak-hak" d="M5 12.5l4.5 4.5L19 7.5"/>
       </svg>
     </span>
     <span class="vakt-opna-texti">
@@ -1530,6 +1537,7 @@ const TRANSLATIONS = {
     "alertInvalid": "Please enter a valid email address.",
     "alertDoneTitle": "Check your inbox",
     "alertDoneText": "We’ve sent a confirmation link to {email}. The alert starts once you confirm.",
+    "alertDoneShort": "We’ve sent a confirmation link to {email}. Tap to see the example or change.",
     "alertExampleTitle": "This is what the alert would look like:",
     "alertMailFrom": "From: Northseek <vakt@northseek.net>",
     "alertMailSubject": "Aurora near {place}: {level}",
@@ -3469,10 +3477,15 @@ function birtaVaktHnapp(){
     return;
 
   document.getElementById("vaktOpnaTitill").textContent =
-    t("alertTitle");
+    vakt.sent ? t("alertDoneTitle") : t("alertTitle");
 
   document.getElementById("vaktOpnaUndir").textContent =
-    t("alertIntro",{ place:valinn.nafn });
+    vakt.sent
+      ? t("alertDoneShort",{ email:vakt.netfang })
+      : t("alertIntro",{ place:valinn.nafn });
+
+  document.getElementById("vaktOpna")
+    .classList.toggle("skrad", vakt.sent);
 
   document.getElementById("vaktLoka")
     .setAttribute("aria-label", t("alertClose"));
@@ -3568,6 +3581,8 @@ function birtaVaktSkraningu(){
       .addEventListener("click", () => {
         vakt.sent = false;
         birtaVaktSkraningu();
+        birtaVaktHnapp();
+        document.getElementById("vaktNetfang")?.focus();
       });
 
     return;
@@ -3656,10 +3671,17 @@ function birtaVaktSkraningu(){
       vakt.villa = !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(vakt.netfang);
       vakt.sent = !vakt.villa;
 
-      birtaVaktSkraningu();
-
-      if(vakt.villa)
+      if(vakt.villa){
+        birtaVaktSkraningu();
         document.getElementById("vaktNetfang")?.focus();
+        return;
+      }
+
+      /* Skráð: glugginn lokast og hnappurinn á síðunni staðfestir.
+         Smellur á hann opnar gluggann aftur með dæminu og „Breyta“. */
+      document.getElementById("vaktGluggi").close();
+      birtaVaktHnapp();
+      document.getElementById("vaktOpna").focus();
     });
 }
 
