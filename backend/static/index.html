@@ -581,6 +581,129 @@ select:hover{border-color:rgba(233,194,107,.4)}
   border-top:1px solid var(--lina-syn);
 }
 .tolur-nanar[hidden]{display:none}
+.vakt{
+  border:1px solid var(--gull-dimm);
+  border-radius:var(--br);
+  padding:18px 20px 16px;
+  margin:6px 0 30px;
+  background:rgba(233,194,107,.04);
+}
+.vakt[hidden]{display:none}
+.vakt-syni{
+  display:inline-block;
+  font-size:12.5px;
+  font-weight:700;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--gull);
+  border:1px dashed var(--gull-dimm);
+  border-radius:20px;
+  padding:1px 9px;
+  margin-bottom:10px;
+}
+.vakt h3{
+  margin:0 0 4px;
+  font-size:19px;
+  color:var(--bein);
+}
+.vakt-inngangur{
+  margin:0 0 14px;
+  color:var(--daufur);
+  font-size:16px;
+}
+.vakt-reitir{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));
+  gap:12px 14px;
+  align-items:end;
+}
+.vakt label{
+  display:grid;
+  gap:5px;
+  font-size:14px;
+  font-weight:700;
+  color:var(--daufur);
+}
+.vakt input[type=email]{
+  background:var(--flotur);
+  color:var(--bein);
+  border:1px solid var(--lina-syn);
+  border-radius:var(--br);
+  padding:9px 12px;
+  font:inherit;
+  font-size:16.5px;
+  width:100%;
+}
+.vakt input[type=email]:focus,
+.vakt select:focus{outline:2px solid var(--gull-dimm);outline-offset:1px}
+.vakt select{width:100%}
+.vakt-val{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:4px;
+}
+.vakt-val button{
+  background:var(--flotur);
+  color:var(--daufur);
+  border:1px solid var(--lina-syn);
+  border-radius:var(--br);
+  padding:9px 8px;
+  font:inherit;
+  font-size:15.5px;
+  cursor:pointer;
+}
+.vakt-val button[aria-pressed=true]{
+  background:var(--gull);
+  border-color:var(--gull);
+  color:var(--nott);
+  font-weight:700;
+}
+.vakt .hnappur{
+  margin-top:14px;
+  background:var(--gull);
+  color:var(--nott);
+  font-weight:700;
+}
+.vakt .hnappur:hover{background:#F2D089}
+.vakt-villa{margin:8px 0 0;color:#F2A38F;font-size:15px}
+.vakt-smatt{margin:10px 0 0;color:var(--daufari);font-size:14px}
+.vakt-takk{
+  margin:0 0 6px;
+  font-size:17px;
+  color:var(--bein);
+}
+.vakt-postur{
+  margin:14px 0 4px;
+  border:1px solid var(--lina-syn);
+  border-radius:var(--br);
+  background:var(--flotur);
+  font-size:15.5px;
+}
+.vakt-postur-haus{
+  padding:10px 14px;
+  border-bottom:1px solid var(--lina-syn);
+  color:var(--daufari);
+  font-size:14px;
+  display:grid;
+  gap:2px;
+}
+.vakt-postur-haus b{color:var(--bein)}
+.vakt-postur-meginmal{padding:12px 14px;display:grid;gap:10px;color:var(--bein)}
+.vakt-postur-meginmal .hnappur{margin:0;justify-self:start;text-decoration:none}
+.vakt-postur-fotur{color:var(--daufari);font-size:14px}
+.vakt-postur-fotur a{color:var(--daufur)}
+.vakt-tengill{
+  background:none;
+  border:0;
+  padding:0;
+  margin-top:10px;
+  color:var(--daufur);
+  font:inherit;
+  font-size:15px;
+  text-decoration:underline;
+  text-decoration-color:var(--lina-syn);
+  cursor:pointer;
+}
 .maelir{
   display:grid;
   grid-template-columns:repeat(3,1fr);
@@ -1103,6 +1226,8 @@ try {
   </p>
 </div>
 
+<section class="vakt" id="vaktSkraning" aria-live="polite"></section>
+
 <div class="band">
 
   <div class="band-haus">
@@ -1311,6 +1436,28 @@ const TRANSLATIONS = {
     "rightNow": "Right now",
     "measuredAt": "measured at {time}",
     "noSpaceWeather": "Real-time solar-wind data is not available at the moment.",
+    "alertDemo": "Preview · nothing is sent",
+    "alertTitle": "Let me know if it gets better",
+    "alertIntro": "We’ll email you if the score near {place} reaches your level.",
+    "alertEmail": "Email",
+    "alertEmailPlaceholder": "name@example.com",
+    "alertPeriod": "How long",
+    "alertTonight": "Tonight",
+    "alertThreeNights": "Next 3 nights",
+    "alertThreshold": "Notify me at",
+    "alertButton": "Let me know",
+    "alertPrivacy": "No account or password. At most one email per night, an unsubscribe link in every email, and your address is deleted when the period ends.",
+    "alertInvalid": "Please enter a valid email address.",
+    "alertDoneTitle": "Check your inbox",
+    "alertDoneText": "We’ve sent a confirmation link to {email}. The alert starts once you confirm.",
+    "alertExampleTitle": "This is what the alert would look like:",
+    "alertMailFrom": "From: Northseek <vakt@northseek.net>",
+    "alertMailSubject": "Aurora near {place}: {level}",
+    "alertMailBody": "The score near {place} has reached {score}/100. Now is a good time to head out and look north.",
+    "alertMailButton": "See tonight’s forecast",
+    "alertMailFooter": "You get at most one email per night. This alert ends on {date}.",
+    "alertUnsubscribe": "Unsubscribe",
+    "alertStartOver": "Change or cancel",
     "nextHour": "Next hour",
     "headUnlikely": "Aurora unlikely",
     "headPossible": "Aurora possible",
@@ -2290,6 +2437,8 @@ function teikna(){
 
   birtaGeimvedur(sidastaGeimvedur);
 
+  birtaVaktSkraningu();
+
   const s =
     valinn;
 
@@ -3162,6 +3311,219 @@ function tunglfasi(heiti){
 function tunglumUpprásText(time){
 
   return t("moonRises", { time });
+}
+
+
+/* =========================================================================
+   EMAIL ALERT (SÝNISHORN)
+   Aðeins útlit og flæði: ekkert er sent og ekkert vistað. Þröskuldarnir
+   fylgja orðum einkunnarinnar (sæmilegar 12+, góðar 30+, kjör 55+).
+   ========================================================================= */
+
+const VAKT_THROSKULDAR = [
+  { gildi:12, heiti:"fairChance" },
+  { gildi:30, heiti:"goodChance" },
+  { gildi:55, heiti:"idealConditions" }
+];
+
+const vakt = {
+  netfang:"",
+  timabil:"tonight",
+  throskuldur:null,
+  throskuldurValinn:false,
+  sent:false,
+  villa:false
+};
+
+function vaktSjalfgefinnThroskuldur(){
+
+  const nu =
+    Math.round((valinn?.best ?? 0) * 100);
+
+  return (
+    VAKT_THROSKULDAR.find(th => th.gildi > nu) ??
+    VAKT_THROSKULDAR[VAKT_THROSKULDAR.length-1]
+  ).gildi;
+}
+
+function vaktTexti(s){
+
+  return String(s)
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;");
+}
+
+function vaktLokadagur(){
+
+  const d = new Date();
+
+  d.setUTCDate(
+    d.getUTCDate() + (vakt.timabil === "tonight" ? 1 : 3)
+  );
+
+  if(
+    !Intl.DateTimeFormat.supportedLocalesOf([tungumal]).length &&
+    TRANSLATIONS[tungumal]?.monthNames
+  ){
+    return `${d.getUTCDate()}. ${t("monthNames").split(",")[d.getUTCMonth()]}`;
+  }
+
+  return new Intl.DateTimeFormat(
+    tungumal,
+    { day:"numeric", month:"long", timeZone:ISL_TIMABELTI }
+  ).format(d);
+}
+
+function birtaVaktSkraningu(){
+
+  const el =
+    document.getElementById("vaktSkraning");
+
+  if(!el || !valinn)
+    return;
+
+  if(!vakt.throskuldurValinn)
+    vakt.throskuldur = vaktSjalfgefinnThroskuldur();
+
+  const stadur =
+    vaktTexti(valinn.nafn);
+
+  const merki =
+    `<span class="vakt-syni">${t("alertDemo")}</span>`;
+
+  if(vakt.sent){
+
+    const th =
+      VAKT_THROSKULDAR.find(x => x.gildi === vakt.throskuldur);
+
+    const daemi =
+      Math.max(vakt.throskuldur, Math.round((valinn.best ?? 0) * 100));
+
+    el.innerHTML = `
+      ${merki}
+      <h3>${t("alertDoneTitle")}</h3>
+      <p class="vakt-takk">${t("alertDoneText",{ email:`<b>${vaktTexti(vakt.netfang)}</b>` })}</p>
+
+      <p class="vakt-smatt">${t("alertExampleTitle")}</p>
+
+      <div class="vakt-postur">
+        <div class="vakt-postur-haus">
+          <span>${vaktTexti(t("alertMailFrom"))}</span>
+          <span><b>${t("alertMailSubject",{ place:stadur, level:t(th.heiti) })}</b></span>
+        </div>
+        <div class="vakt-postur-meginmal">
+          <span>${t("alertMailBody",{ place:stadur, score:daemi })}</span>
+          <a class="hnappur" href="/" onclick="return false">${t("alertMailButton")}</a>
+          <span class="vakt-postur-fotur">
+            ${t("alertMailFooter",{ date:vaktLokadagur() })}
+            <a href="/" onclick="return false">${t("alertUnsubscribe")}</a>
+          </span>
+        </div>
+      </div>
+
+      <button class="vakt-tengill" id="vaktAftur" type="button">${t("alertStartOver")}</button>
+    `;
+
+    document
+      .getElementById("vaktAftur")
+      .addEventListener("click", () => {
+        vakt.sent = false;
+        birtaVaktSkraningu();
+      });
+
+    return;
+  }
+
+  el.innerHTML = `
+    ${merki}
+    <h3 id="vakt-titill">${t("alertTitle")}</h3>
+    <p class="vakt-inngangur">${t("alertIntro",{ place:`<b>${stadur}</b>` })}</p>
+
+    <form id="vaktForm" novalidate>
+      <div class="vakt-reitir">
+
+        <label>
+          ${t("alertEmail")}
+          <input
+            type="email"
+            id="vaktNetfang"
+            autocomplete="email"
+            inputmode="email"
+            placeholder="${vaktTexti(t("alertEmailPlaceholder"))}"
+            value="${vaktTexti(vakt.netfang)}"
+            aria-invalid="${vakt.villa}"
+          >
+        </label>
+
+        <label>
+          ${t("alertPeriod")}
+          <span class="vakt-val" role="group">
+            <button type="button" data-timabil="tonight"
+              aria-pressed="${vakt.timabil === "tonight"}">${t("alertTonight")}</button>
+            <button type="button" data-timabil="3"
+              aria-pressed="${vakt.timabil === "3"}">${t("alertThreeNights")}</button>
+          </span>
+        </label>
+
+        <label>
+          ${t("alertThreshold")}
+          <select id="vaktThroskuldur">
+            ${VAKT_THROSKULDAR.map(th => `
+              <option value="${th.gildi}" ${th.gildi === vakt.throskuldur ? "selected" : ""}>
+                ${t(th.heiti)} (${th.gildi}+)
+              </option>
+            `).join("")}
+          </select>
+        </label>
+
+      </div>
+
+      ${vakt.villa ? `<p class="vakt-villa">${t("alertInvalid")}</p>` : ""}
+
+      <button class="hnappur" type="submit">${t("alertButton")}</button>
+
+      <p class="vakt-smatt">${t("alertPrivacy")}</p>
+    </form>
+  `;
+
+  const netfang =
+    document.getElementById("vaktNetfang");
+
+  netfang.addEventListener("input", () => {
+    vakt.netfang = netfang.value;
+  });
+
+  el.querySelectorAll("[data-timabil]").forEach(b =>
+    b.addEventListener("click", () => {
+      vakt.timabil = b.dataset.timabil;
+      birtaVaktSkraningu();
+    })
+  );
+
+  document
+    .getElementById("vaktThroskuldur")
+    .addEventListener("change", e => {
+      vakt.throskuldur = Number(e.target.value);
+      vakt.throskuldurValinn = true;
+    });
+
+  document
+    .getElementById("vaktForm")
+    .addEventListener("submit", e => {
+
+      e.preventDefault();
+
+      vakt.netfang = netfang.value.trim();
+      vakt.villa = !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(vakt.netfang);
+      vakt.sent = !vakt.villa;
+
+      birtaVaktSkraningu();
+
+      if(vakt.villa)
+        document.getElementById("vaktNetfang")?.focus();
+    });
 }
 
 
