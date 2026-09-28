@@ -175,6 +175,7 @@ export function vakt(dagur, kp, clouds, sunmoon, solar, ovation = null) {
       thettleiki: density !== null ? pyRound(density, 1) : null,
       tulkun: scoring.solvindurTulkun(bz, speed),
       maelt: measured,
+      saga: Array.isArray(solar?.mag_saga) ? solar.mag_saga : [],
     },
     ovation: ovationTimar(dagur === 0 ? ovation : null),
   };

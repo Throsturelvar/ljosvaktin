@@ -3,7 +3,7 @@
 
 import { STADIR } from "./locations.js";
 import { ovationVirkni } from "./scoring.js";
-import { pyRound, pyIso, utcDateString } from "./pyutil.js";
+import { pyRound, pyIso, utcDateString, naiveUtc } from "./pyutil.js";
 
 const KP_URL = "https://services.swpc.noaa.gov/products/noaa-planetary-k-index-forecast.json";
 const OVATION_URL = "https://services.swpc.noaa.gov/json/ovation_aurora_latest.json";
@@ -75,13 +75,48 @@ function latestActive(rows) {
   return newest(rows.filter((row) => row && row.active)) || newest(rows);
 }
 
+// Bz síðustu 6 klst. sem 10 mínútna meðaltöl, svo síðan geti teiknað
+// línurit strax, líka í fyrstu heimsókn.
+const SAGA_KLST = 6;
+const SAGA_BIL_MIN = 10;
+
+export function bzSaga(rows) {
+  if (!Array.isArray(rows) || !rows.length) return [];
+  const active = rows.filter((row) => row && row.active);
+  const source = active.length ? active : rows;
+  const points = source
+    .map((row) => ({ t: naiveUtc(row.time_tag), bz: row.bz_gsm }))
+    .filter((p) => p.t !== null && typeof p.bz === "number");
+  if (!points.length) return [];
+  const newest = Math.max(...points.map((p) => p.t));
+  const bil = SAGA_BIL_MIN * 60000;
+  const first = Math.floor((newest - SAGA_KLST * 3600000) / bil) * bil;
+  const bins = new Map();
+  for (const p of points) {
+    if (p.t < first) continue;
+    const key = Math.floor(p.t / bil) * bil;
+    const bin = bins.get(key) || { sum: 0, n: 0 };
+    bin.sum += p.bz;
+    bin.n += 1;
+    bins.set(key, bin);
+  }
+  return [...bins.entries()]
+    .sort((a, b) => a[0] - b[0])
+    .map(([t, bin]) => ({ t: pyIso(t), bz: pyRound(bin.sum / bin.n, 1) }));
+}
+
 export async function updateSolar(env) {
   const old = (await readStore(env, "solar")) || {};
-  const parts = { mag: old.mag ?? null, wind: old.wind ?? null };
+  const parts = { mag: old.mag ?? null, wind: old.wind ?? null, mag_saga: old.mag_saga ?? [] };
   let successes = 0;
   for (const [part, url] of [["mag", MAG_URL], ["wind", WIND_URL]]) {
     try {
-      const latest = latestActive(await getJson(url));
+      const rows = await getJson(url);
+      const latest = latestActive(rows);
+      if (part === "mag") {
+        const saga = bzSaga(rows);
+        if (saga.length) parts.mag_saga = saga;
+      }
       if (latest) {
         parts[part] = latest;
         successes += 1;
