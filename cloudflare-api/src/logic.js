@@ -7,7 +7,7 @@
 
 import * as scoring from "./scoring.js";
 import { STADIR } from "./locations.js";
-import { dt, pyRound, pyIso, hhmm, utcDateString, naiveUtc } from "./pyutil.js";
+import { dt, pyRound, pyIso, hhmm, utcDateString, naiveUtc, HOUR } from "./pyutil.js";
 
 const DAY_FIELDS = ["solsetur", "solarupprás", "dusk", "dawn", "tungl_upp", "tungl_nidur"];
 
@@ -15,11 +15,16 @@ function todayUtc() {
   return utcDateString(Date.now());
 }
 
-// Skilar dögunum frá og með deginum í dag, eða null ef dagurinn í dag vantar.
-function daysFromToday(rawDays) {
+// Skilar dögunum frá og með kvöldi nóttarinnar sem er í gangi, eða null ef
+// dagurinn í dag vantar. Fyrir sólarupprás er nóttin sú sem hófst í gærkvöldi,
+// svo gestir eftir miðnætti sjá áfram nóttina sem er í gangi, ekki næsta kvöld.
+function daysFromToday(rawDays, now = Date.now()) {
   if (!Array.isArray(rawDays)) return null;
-  const idx = rawDays.findIndex((d) => d && d.dags === todayUtc());
-  return idx < 0 ? null : rawDays.slice(idx);
+  const idx = rawDays.findIndex((d) => d && d.dags === utcDateString(now));
+  if (idx < 0) return null;
+  const sunrise = dt(rawDays[idx]["solarupprás"]);
+  if (idx > 0 && sunrise !== null && now < sunrise) return rawDays.slice(idx - 1);
+  return rawDays.slice(idx);
 }
 
 function loadDays(rawDays) {
@@ -72,7 +77,7 @@ export function diagnosticStatus(kp, clouds, sunmoon) {
         nafn: place.nafn,
         dagar: days.length,
         fyrsti_dagur: days[0]?.dags ?? null,
-        astaeda: "Vantar fjóra daga frá deginum í dag",
+        astaeda: "Vantar fjóra daga frá nóttinni sem er í gangi",
       });
     }
   }
@@ -117,7 +122,12 @@ export function vakt(dagur, kp, clouds, sunmoon, solar, ovation = null) {
   const sunrise = tomorrow["solarupprás"];
   const dusk = tonight.dusk;
   const dawn = tomorrow.dawn;
-  const hours = scoring.naeturklukkustundir(sunset, sunrise);
+  // Nóttin í nótt sýnir aðeins klukkustundirnar sem eru eftir, frá og með
+  // þeirri sem er í gangi.
+  const nowHour = Math.floor(Date.now() / HOUR) * HOUR;
+  const hours = scoring
+    .naeturklukkustundir(sunset, sunrise)
+    .filter((t) => dagur > 0 || t >= nowHour);
   if (!hours.length || !dusk || !dawn) return null;
   const moonRise = tonight.tungl_upp || tomorrow.tungl_upp;
 
@@ -155,6 +165,7 @@ export function vakt(dagur, kp, clouds, sunmoon, solar, ovation = null) {
 
   return {
     nott: {
+      dags: tonight.dags,
       solsetur: hhmm(sunset),
       "solarupprás": hhmm(sunrise),
       myrkurFra: hhmm(dusk),
