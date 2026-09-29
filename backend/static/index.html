@@ -3406,7 +3406,7 @@ async function saekjaVakt(){
 
     nottUpphaf =
       Date.parse(
-        gogn.reiknad.slice(0,10) + "T00:00:00Z"
+        (gogn.nott.dags ?? gogn.reiknad.slice(0,10)) + "T00:00:00Z"
       );
 
     n =
