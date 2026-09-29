@@ -149,9 +149,9 @@ function timeIso(day, value) {
   return pyIso(ms);
 }
 
-// Fimm dagar (ekki fjórir) svo nóttin eftir tvo daga er enn til staðar eftir
-// miðnætti, áður en staðurinn hefur verið endurnýjaður.
-const SUNMOON_DAYS = 5;
+// Frá gærdeginum (nóttin sem er í gangi eftir miðnætti) og fimm daga fram,
+// svo nóttin eftir tvo daga er enn til staðar áður en staðurinn er endurnýjaður.
+const SUNMOON_DAYS = 6;
 
 function sunmoonDays(data) {
   const rows = data.results;
@@ -182,10 +182,10 @@ export async function updateSunmoon(env, batch) {
   const old = (await readStore(env, "sunmoon")) || { stadir: {} };
   const locations = { ...(old.stadir || {}) };
   const now = Date.now();
-  const day0 = utcDateString(now);
-  const dayEnd = utcDateString(now + (SUNMOON_DAYS - 1) * 86400000);
+  const day0 = utcDateString(now - 86400000);
+  const dayEnd = utcDateString(now + (SUNMOON_DAYS - 2) * 86400000);
 
-  // Staðir sem byrja ekki á deginum í dag ganga fyrir; annars venjulega hollið.
+  // Staðir sem byrja ekki á gærdeginum ganga fyrir; annars venjulega hollið.
   const stale = STADIR.filter((p) => locations[p.id]?.[0]?.dags !== day0);
   const selection = stale.length ? stale.slice(0, 10) : STADIR.filter((_, i) => i % 4 === batch);
 
