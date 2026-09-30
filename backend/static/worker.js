@@ -3,6 +3,8 @@
 // - /api/vakt og /api/skor fara í northseek-api-js gegnum Service Binding,
 //   með skyndiminni og varasvari (sjá apiResponse).
 // - www.northseek.net er áframsent á northseek.net.
+// - Öll svör fá örugga hausa (sjá medHausum); myndir og tákn eru geymd í
+//   vafra í einn dag.
 
 const API_PATHS = new Set(["/api/vakt", "/api/skor"]);
 
@@ -69,22 +71,48 @@ async function apiResponse(url, env, ctx) {
   return jsonError("Cloudflare API samband brast", 502);
 }
 
+// Hausar sem geta ekki brotið neitt: HSTS í einn dag (án undirléna),
+// nosniff og sjálfgefin tilvísunarstefna nútímavafra. CSP, X-Frame-Options
+// og Permissions-Policy eru vísvitandi ekki settir (kort, letur, mæling,
+// staðsetning og innfellingar gætu brotnað).
+const ORYGGISHAUSAR = {
+  "Strict-Transport-Security": "max-age=86400",
+  "X-Content-Type-Options": "nosniff",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+};
+
+// Myndir og tákn breytast sjaldan; vafrinn má geyma þau í einn dag.
+const VAFRAMINNI = /^\/(images\/|favicon\.(ico|svg)$|apple-touch-icon(-precomposed)?\.png$)/;
+
+function medHausum(response, url) {
+  const out = new Response(response.body, response);
+  for (const [nafn, gildi] of Object.entries(ORYGGISHAUSAR)) out.headers.set(nafn, gildi);
+  if (VAFRAMINNI.test(url.pathname) && (response.status === 200 || response.status === 304)) {
+    out.headers.set("Cache-Control", "public, max-age=86400");
+  }
+  return out;
+}
+
 export default {
   async fetch(request, env, ctx) {
-    const url = new URL(request.url);
-
-    if (url.hostname === "www.northseek.net") {
-      url.hostname = "northseek.net";
-      return Response.redirect(url.toString(), 301);
-    }
-
-    if (API_PATHS.has(url.pathname)) {
-      if (request.method !== "GET" && request.method !== "HEAD") {
-        return new Response("Method not allowed", { status: 405 });
-      }
-      return apiResponse(url, env, ctx);
-    }
-
-    return env.ASSETS.fetch(request);
+    return medHausum(await svara(request, env, ctx), new URL(request.url));
   },
 };
+
+async function svara(request, env, ctx) {
+  const url = new URL(request.url);
+
+  if (url.hostname === "www.northseek.net") {
+    url.hostname = "northseek.net";
+    return Response.redirect(url.toString(), 301);
+  }
+
+  if (API_PATHS.has(url.pathname)) {
+    if (request.method !== "GET" && request.method !== "HEAD") {
+      return new Response("Method not allowed", { status: 405 });
+    }
+    return apiResponse(url, env, ctx);
+  }
+
+  return env.ASSETS.fetch(request);
+}
