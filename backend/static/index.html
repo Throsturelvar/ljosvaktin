@@ -581,15 +581,44 @@ select:hover{border-color:rgba(233,194,107,.4)}
   border-top:1px solid var(--lina-syn);
 }
 .tolur-nanar[hidden]{display:none}
+.geimvedur{
+  border-color:var(--gull-dimm);
+  background:rgba(233,194,107,.035);
+  box-shadow:
+    0 0 0 1px rgba(233,194,107,.10),
+    0 0 32px rgba(233,194,107,.10);
+}
+.besti-merki.naesta-merki{
+  font-size:14px;
+  padding:3px 11px 3px 9px;
+  gap:7px;
+  text-transform:uppercase;
+}
+.besti-merki.naesta-merki .viti{
+  width:8px;
+  height:8px;
+  background:currentColor;
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, currentColor 16%, transparent),
+    0 0 14px 2px color-mix(in srgb, currentColor 55%, transparent);
+}
+.geimvedur .heiti .maelt{font-size:16px}
+.geimvedur .stada-heiti{
+  font-size:28px;
+  margin:4px 0 2px;
+  text-shadow:0 0 18px color-mix(in srgb, currentColor 35%, transparent);
+}
+.geimvedur .naesta-undir{font-size:16.5px;color:var(--daufur)}
+.geimvedur .bz-bil{font-size:15px}
 .maelir{
   display:grid;
   grid-template-columns:repeat(3,1fr);
   gap:3px;
-  margin:10px 0 6px;
-  max-width:420px;
+  margin:12px 0 6px;
+  max-width:480px;
 }
 .maelir-hluti{
-  height:8px;
+  height:10px;
   border-radius:2px;
   background:rgba(255,255,255,.10);
 }
@@ -597,8 +626,8 @@ select:hover{border-color:rgba(233,194,107,.4)}
   display:grid;
   grid-template-columns:repeat(3,1fr);
   gap:3px;
-  max-width:420px;
-  font-size:14px;
+  max-width:480px;
+  font-size:15.5px;
   color:var(--daufari);
 }
 .maelir-merki .virkt{
@@ -1322,7 +1351,6 @@ const TRANSLATIONS = {
     "ovationPossible": "possible",
     "ovationLikely": "likely",
     "solarWindState": "Solar wind: {state}",
-    "highestIn": "Highest in Iceland: {place}",
     "bzChartCaption": "Solar wind magnetic field (Bz). It takes 30–60 minutes to reach Iceland.",
     "bzSouth": "south · favourable",
     "bzNorth": "north",
@@ -2044,6 +2072,18 @@ function klstTexti(i){
   ).padStart(2,"0") + ":00";
 }
 
+/* Lok klukkustundar i: næsta heila klukkustund, en sólarupprás
+   ef þetta er síðasta klukkustund næturinnar. */
+function klstLokTexti(i){
+
+  if(i === nott.klst.length-1 && nott["solarupprás"])
+    return nott["solarupprás"];
+
+  return String(
+    (nott.klst[i]+1) % 24
+  ).padStart(2,"0") + ":00";
+}
+
 
 function brotOnottu(fraStr, tilStr){
 
@@ -2634,7 +2674,7 @@ function teikna(){
       <span>
         ${t("bestWindow",{
           from:klstTexti(s.gluggiFra),
-          to:klstTexti(s.gluggiTil),
+          to:klstLokTexti(s.gluggiTil),
           cloud:skyIGlugga
         })}
       </span>
@@ -3065,7 +3105,7 @@ function teikna(){
             p.gluggiFra >= 0
               ? klstTexti(p.gluggiFra) +
                 "–" +
-                klstTexti(p.gluggiTil)
+                klstLokTexti(p.gluggiTil)
               : "—"
           }
         </span>
@@ -3288,7 +3328,12 @@ function birtaGeimvedur(g){
   if(!f && ovation == null){
 
     el.innerHTML = `
-      <div class="heiti">${t("nextHour")}</div>
+      <div class="heiti">
+        <span class="besti-merki naesta-merki">
+          <span class="viti" aria-hidden="true"></span>
+          ${t("nextHour")}
+        </span>
+      </div>
       <p class="kptexti">${t("noSpaceWeather")}</p>
     `;
 
@@ -3314,14 +3359,6 @@ function birtaGeimvedur(g){
       ? NAESTA_KLST_THREP[threp]
       : { heiti:"headTooLight", litur:"var(--daufari)" };
 
-  const med =
-    metnir.filter(p => p.ovation != null);
-
-  const haest =
-    med.length
-      ? med.reduce((a,b) => b.ovation > a.ovation ? b : a)
-      : null;
-
   const undirlina =
     [
       !adst.dimmt && adst.dimmtFra
@@ -3330,10 +3367,7 @@ function birtaGeimvedur(g){
       skyjad
         ? t("cloudyAt",{ place:valinn.nafn, value:adst.sky })
         : null,
-      f ? t("solarWindState",{ state:f.heiti }) : null,
-      haest && valinn && haest.nafn !== valinn.nafn
-        ? t("highestIn",{ place:haest.nafn })
-        : null
+      f ? t("solarWindState",{ state:f.heiti }) : null
     ]
       .filter(Boolean)
       .join(" · ");
@@ -3359,12 +3393,11 @@ function birtaGeimvedur(g){
   el.innerHTML = `
 
     <div class="heiti">
-      <span
-        class="stada-dot"
-        style="background:${th.litur};color:${th.litur}"
-      ></span>
-      ${t("nextHour")}
-      ${valinn ? `<span class="maelt">· ${valinn.nafn}</span>` : ""}
+      <span class="besti-merki naesta-merki">
+        <span class="viti" style="color:${th.litur}" aria-hidden="true"></span>
+        ${t("nextHour")}
+      </span>
+      ${valinn ? `<span class="maelt">${valinn.nafn}</span>` : ""}
     </div>
 
     <div class="stada-heiti" style="color:${th.litur}">

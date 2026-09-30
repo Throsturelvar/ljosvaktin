@@ -88,7 +88,6 @@
   "ovationPossible": "möglich",
   "ovationLikely": "wahrscheinlich",
   "solarWindState": "Sonnenwind: {state}",
-  "highestIn": "Am höchsten in Island: {place}",
   "bzChartCaption": "Magnetfeld des Sonnenwinds (Bz). Es erreicht Island nach 30–60 Minuten.",
   "bzSouth": "Süd · günstig",
   "bzNorth": "Nord",

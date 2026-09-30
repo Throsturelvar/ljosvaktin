@@ -88,7 +88,6 @@
   "ovationPossible": "możliwa",
   "ovationLikely": "prawdopodobna",
   "solarWindState": "Wiatr słoneczny: {state}",
-  "highestIn": "Najwyżej na Islandii: {place}",
   "bzChartCaption": "Pole magnetyczne wiatru słonecznego (Bz). Dociera do Islandii po 30–60 minutach.",
   "bzSouth": "południe · korzystnie",
   "bzNorth": "północ",

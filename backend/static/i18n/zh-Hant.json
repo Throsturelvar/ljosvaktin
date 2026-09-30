@@ -88,7 +88,6 @@
   "ovationPossible": "有可能",
   "ovationLikely": "很可能",
   "solarWindState": "太陽風：{state}",
-  "highestIn": "冰島最高：{place}",
   "bzChartCaption": "太陽風磁場（Bz），約 30–60 分鐘後到達冰島。",
   "bzSouth": "南向 · 有利",
   "bzNorth": "北向",

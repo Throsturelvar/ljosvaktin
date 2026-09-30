@@ -88,7 +88,6 @@
   "ovationPossible": "possibles",
   "ovationLikely": "probables",
   "solarWindState": "Vent solaire : {state}",
-  "highestIn": "Le plus élevé en Islande : {place}",
   "bzChartCaption": "Champ magnétique du vent solaire (Bz). Il atteint l’Islande en 30 à 60 minutes.",
   "bzSouth": "sud · favorable",
   "bzNorth": "nord",

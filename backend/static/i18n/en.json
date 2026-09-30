@@ -88,7 +88,6 @@
   "ovationPossible": "possible",
   "ovationLikely": "likely",
   "solarWindState": "Solar wind: {state}",
-  "highestIn": "Highest in Iceland: {place}",
   "bzChartCaption": "Solar wind magnetic field (Bz). It takes 30–60 minutes to reach Iceland.",
   "bzSouth": "south · favourable",
   "bzNorth": "north",

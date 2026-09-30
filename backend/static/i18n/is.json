@@ -91,7 +91,6 @@
   "ovationPossible": "möguleg",
   "ovationLikely": "líkleg",
   "solarWindState": "Sólvindur: {state}",
-  "highestIn": "Hæst á landinu: {place}",
   "bzChartCaption": "Segulsvið sólvindsins (Bz). Það tekur 30–60 mínútur að ná til Íslands.",
   "bzSouth": "suður · hagstætt",
   "bzNorth": "norður",
