@@ -2,6 +2,7 @@
   "name": "northseek",
   "main": "worker.js",
   "compatibility_date": "2026-09-22",
+  "observability": { "enabled": true },
   "assets": {
     "directory": "./",
     "binding": "ASSETS",
