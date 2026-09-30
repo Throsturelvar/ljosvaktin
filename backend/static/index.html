@@ -30,7 +30,9 @@
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" }
 }
 </script>
+<link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="google-site-verification" content="toSdiXGHGhstix7wO-DuEopdYs2nAsqlgXMG5pAkg3I" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -769,15 +771,49 @@ select:hover{border-color:rgba(233,194,107,.4)}
   text-decoration-color:var(--lina-syn);
   cursor:pointer;
 }
+.geimvedur{
+  border-color:var(--gull-dimm);
+  background:rgba(233,194,107,.035);
+  box-shadow:
+    0 0 0 1px rgba(233,194,107,.10),
+    0 0 32px rgba(233,194,107,.10);
+}
+.besti-merki.naesta-merki{
+  font-size:14px;
+  padding:3px 11px 3px 9px;
+  gap:7px;
+  text-transform:uppercase;
+}
+.besti-merki.naesta-merki .viti{
+  width:8px;
+  height:8px;
+  background:currentColor;
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, currentColor 16%, transparent),
+    0 0 14px 2px color-mix(in srgb, currentColor 55%, transparent);
+}
+.geimvedur .heiti .maelt{
+  font-size:20px;
+  font-weight:700;
+  letter-spacing:0;
+  color:var(--bein);
+}
+.geimvedur .stada-heiti{
+  font-size:28px;
+  margin:4px 0 2px;
+  text-shadow:0 0 18px color-mix(in srgb, currentColor 35%, transparent);
+}
+.geimvedur .naesta-undir{font-size:16.5px;color:var(--daufur)}
+.geimvedur .bz-bil{font-size:15px}
 .maelir{
   display:grid;
   grid-template-columns:repeat(3,1fr);
   gap:3px;
-  margin:10px 0 6px;
-  max-width:420px;
+  margin:12px 0 6px;
+  max-width:480px;
 }
 .maelir-hluti{
-  height:8px;
+  height:10px;
   border-radius:2px;
   background:rgba(255,255,255,.10);
 }
@@ -785,8 +821,8 @@ select:hover{border-color:rgba(233,194,107,.4)}
   display:grid;
   grid-template-columns:repeat(3,1fr);
   gap:3px;
-  max-width:420px;
-  font-size:14px;
+  max-width:480px;
+  font-size:15.5px;
   color:var(--daufari);
 }
 .maelir-merki .virkt{
@@ -1332,6 +1368,8 @@ try {
 
 </div>
 
+<div class="geimvedur" id="geimvedur"></div>
+
 <section id="stadir">
 
   <h2 data-i18n="placesTitle">Places around Iceland</h2>
@@ -1360,8 +1398,6 @@ try {
   </div>
 
   <div class="virknispjald" id="virkni"></div>
-  
-  <div class="geimvedur" id="geimvedur"></div>
   
   <div class="skilyrdi" id="skilyrdi"></div>
 
@@ -1511,7 +1547,7 @@ const TRANSLATIONS = {
     "bestWindow": "The best window is {from}–{to}, with {cloud}% cloud cover.",
     "noWindow": "No useful viewing window tonight. Check the list below — elsewhere in Iceland it may be clearer.",
     "auroraTonight": "Aurora activity tonight",
-    "currentKp": "Kp {kp} now, peaking around {time}. This is a forecast for tonight, not a real-time measurement — see “Next hour” below.",
+    "currentKp": "Kp {kp} now, peaking around {time}. This is a forecast for tonight, not a real-time measurement — see “Next hour” above.",
     "scaleNote": "The marker is at Kp 2 — aurora is generally visible here from around this level because Iceland lies beneath the auroral oval.",
     "cloudCover": "Cloud cover",
     "cloudAverage": "Night average: {value}%",
@@ -1551,11 +1587,13 @@ const TRANSLATIONS = {
     "headUnlikely": "Aurora unlikely",
     "headPossible": "Aurora possible",
     "headLikely": "Aurora likely",
+    "headTooLight": "Too bright for now",
+    "darkFrom": "Dark from {time}",
+    "cloudyAt": "Cloudy near {place} ({value}%)",
     "ovationLow": "unlikely",
     "ovationPossible": "possible",
     "ovationLikely": "likely",
     "solarWindState": "Solar wind: {state}",
-    "highestIn": "Highest in Iceland: {place}",
     "bzChartCaption": "Solar wind magnetic field (Bz). It takes 30–60 minutes to reach Iceland.",
     "bzSouth": "south · favourable",
     "bzNorth": "north",
@@ -1584,7 +1622,7 @@ const TRANSLATIONS = {
     "backendError": "Could not load data from the backend ({error}). Make sure the server is running.",
     "clickToWatch": "Click to see this location's watch.",
     "bestLocationTonight": "Best location tonight",
-    "kpNow": "Kp {kp} now, highest around {time}. This is a forecast for tonight, not a real-time measurement — see “Next hour” below.",
+    "kpNow": "Kp {kp} now, highest around {time}. This is a forecast for tonight, not a real-time measurement — see “Next hour” above.",
     "pointTooltip": "{place} — score {score}, {cloud}% cloud cover, {temp}°C",
     "mapAttribution": "Map data from <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a>",
     "darknessMoon": "Darkness and moon",
@@ -2277,6 +2315,18 @@ function klstTexti(i){
   ).padStart(2,"0") + ":00";
 }
 
+/* Lok klukkustundar i: næsta heila klukkustund, en sólarupprás
+   ef þetta er síðasta klukkustund næturinnar. */
+function klstLokTexti(i){
+
+  if(i === nott.klst.length-1 && nott["solarupprás"])
+    return nott["solarupprás"];
+
+  return String(
+    (nott.klst[i]+1) % 24
+  ).padStart(2,"0") + ":00";
+}
+
 
 function brotOnottu(fraStr, tilStr){
 
@@ -2872,7 +2922,7 @@ function teikna(){
       <span>
         ${t("bestWindow",{
           from:klstTexti(s.gluggiFra),
-          to:klstTexti(s.gluggiTil),
+          to:klstLokTexti(s.gluggiTil),
           cloud:skyIGlugga
         })}
       </span>
@@ -3303,7 +3353,7 @@ function teikna(){
             p.gluggiFra >= 0
               ? klstTexti(p.gluggiFra) +
                 "–" +
-                klstTexti(p.gluggiTil)
+                klstLokTexti(p.gluggiTil)
               : "—"
           }
         </span>
@@ -3703,6 +3753,55 @@ const NAESTA_KLST_THREP = [
   { heiti:"headLikely",   merki:"ovationLikely",   litur:"var(--aur-4)" }
 ];
 
+/* Birta og ský á staðnum eftir um hálftíma. Dimmt telst þegar sólin er
+   a.m.k. 6° undir sjóndeildarhring. Án SunCalc er notast við myrkurstíma
+   Reykjavíkur úr API-inu. */
+function naestaKlstAdstaedur(p){
+
+  const eftir =
+    Date.now() + 30*60e3;
+
+  let dimmt;
+  let dimmtFra = null;
+
+  if(typeof SunCalc !== "undefined"){
+
+    const solHaed =
+      SunCalc.getPosition(new Date(eftir), p.lat, p.lon).altitude * GRADUR;
+
+    dimmt = solHaed <= -6;
+
+    if(!dimmt){
+      const dusk =
+        SunCalc.getTimes(new Date(), p.lat, p.lon).dusk;
+      if(dusk && !isNaN(dusk) && dusk.getTime() > Date.now())
+        dimmtFra = dusk.toISOString().slice(11,16);
+    }
+
+  }else{
+
+    const fra = Date.parse(`${nott.dags ?? ""}T${nott.myrkurFra}:00Z`);
+    dimmt = !isNaN(fra) && eftir >= fra;
+    dimmtFra = dimmt ? null : nott.myrkurFra;
+  }
+
+  let sky = null;
+
+  if(nott && p.sky){
+    for(let i=0;i<nott.klst.length;i++){
+      const t0 = klstTimi(i).getTime();
+      if(eftir >= t0 && eftir < t0 + 3600e3){
+        sky = p.sky[i];
+        break;
+      }
+    }
+  }
+
+  return { dimmt, dimmtFra, sky };
+}
+
+const SKYJAD_MORK = 80;
+
 function naestaKlstThrep(ovation, bzFlokkur){
 
   const bzStig =
@@ -3721,11 +3820,11 @@ function naestaKlstThrep(ovation, bzFlokkur){
 function maelirHtml(threp){
 
   const litur =
-    NAESTA_KLST_THREP[threp].litur;
+    threp >= 0 ? NAESTA_KLST_THREP[threp].litur : "";
 
   return `
     <div class="maelir" role="img"
-      aria-label="${t(NAESTA_KLST_THREP[threp].merki)}">
+      aria-label="${threp >= 0 ? t(NAESTA_KLST_THREP[threp].merki) : t("headTooLight")}">
       ${NAESTA_KLST_THREP.map((_,i) => `
         <span class="maelir-hluti"
           style="${i <= threp ? `background:${litur}` : ""}"></span>
@@ -3757,33 +3856,46 @@ function birtaGeimvedur(g){
   if(!f && ovation == null){
 
     el.innerHTML = `
-      <div class="heiti">${t("nextHour")}</div>
+      <div class="heiti">
+        <span class="besti-merki naesta-merki">
+          <span class="viti" aria-hidden="true"></span>
+          ${t("nextHour")}
+        </span>
+      </div>
       <p class="kptexti">${t("noSpaceWeather")}</p>
     `;
 
     return;
   }
 
+  const adst =
+    valinn
+      ? naestaKlstAdstaedur(valinn)
+      : { dimmt:true, dimmtFra:null, sky:null };
+
+  const skyjad =
+    adst.dimmt && adst.sky != null && adst.sky >= SKYJAD_MORK;
+
+  /* Of bjart: ekkert þrep. Skýjað: mest „ólíkleg“. */
   const threp =
+    !adst.dimmt ? -1 :
+    skyjad ? Math.min(0, naestaKlstThrep(ovation, f)) :
     naestaKlstThrep(ovation, f);
 
   const th =
-    NAESTA_KLST_THREP[threp];
-
-  const med =
-    metnir.filter(p => p.ovation != null);
-
-  const haest =
-    med.length
-      ? med.reduce((a,b) => b.ovation > a.ovation ? b : a)
-      : null;
+    threp >= 0
+      ? NAESTA_KLST_THREP[threp]
+      : { heiti:"headTooLight", litur:"var(--daufari)" };
 
   const undirlina =
     [
-      f ? t("solarWindState",{ state:f.heiti }) : null,
-      haest && valinn && haest.nafn !== valinn.nafn
-        ? t("highestIn",{ place:haest.nafn })
-        : null
+      !adst.dimmt && adst.dimmtFra
+        ? t("darkFrom",{ time:adst.dimmtFra })
+        : null,
+      skyjad
+        ? t("cloudyAt",{ place:valinn.nafn, value:adst.sky })
+        : null,
+      f ? t("solarWindState",{ state:f.heiti }) : null
     ]
       .filter(Boolean)
       .join(" · ");
@@ -3809,12 +3921,11 @@ function birtaGeimvedur(g){
   el.innerHTML = `
 
     <div class="heiti">
-      <span
-        class="stada-dot"
-        style="background:${th.litur};color:${th.litur}"
-      ></span>
-      ${t("nextHour")}
-      ${valinn ? `<span class="maelt">· ${valinn.nafn}</span>` : ""}
+      <span class="besti-merki naesta-merki">
+        <span class="viti" style="color:${th.litur}" aria-hidden="true"></span>
+        ${t("nextHour")}
+      </span>
+      ${valinn ? `<span class="maelt">${valinn.nafn}</span>` : ""}
     </div>
 
     <div class="stada-heiti" style="color:${th.litur}">
@@ -3957,7 +4068,7 @@ async function saekjaVakt(){
 
     nottUpphaf =
       Date.parse(
-        gogn.reiknad.slice(0,10) + "T00:00:00Z"
+        (gogn.nott.dags ?? gogn.reiknad.slice(0,10)) + "T00:00:00Z"
       );
 
     n =
