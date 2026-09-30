@@ -81,7 +81,7 @@
   "headUnlikely": "Aurora unlikely",
   "headPossible": "Aurora possible",
   "headLikely": "Aurora likely",
-  "headTooLight": "Too light for now",
+  "headTooLight": "Too bright for now",
   "darkFrom": "Dark from {time}",
   "cloudyAt": "Cloudy near {place} ({value}%)",
   "ovationLow": "unlikely",
