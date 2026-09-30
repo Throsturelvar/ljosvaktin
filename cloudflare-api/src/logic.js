@@ -106,7 +106,14 @@ export function diagnosticStatus(kp, clouds, sunmoon) {
   };
 }
 
-export function vakt(dagur, kp, clouds, sunmoon, solar) {
+function ovationTimar(ovation) {
+  if (!ovation) return null;
+  const spa = naiveUtc(ovation.forecast_time);
+  const maelt = naiveUtc(ovation.observation_time);
+  return { spa: spa !== null ? hhmm(spa) : null, maelt: maelt !== null ? hhmm(maelt) : null };
+}
+
+export function vakt(dagur, kp, clouds, sunmoon, solar, ovation = null) {
   const ref = STADIR[0].id;
   const days = loadDays(sunmoon.stadir[ref]);
   const tonight = days[dagur];
@@ -124,6 +131,10 @@ export function vakt(dagur, kp, clouds, sunmoon, solar) {
   if (!hours.length || !dusk || !dawn) return null;
   const moonRise = tonight.tungl_upp || tomorrow.tungl_upp;
 
+  // OVATION er skammtímaspá (30–90 mín.) og á aðeins við í nótt.
+  const ovationIndex = {};
+  if (dagur === 0) for (const x of ovation?.stadir || []) ovationIndex[x.id] = x.virkni_ovation;
+
   const output = STADIR.map((place) => {
     const cloud = loadCloud(clouds.stadir[place.id]);
     const atDusk = scoring.naestigildi(cloud, dusk);
@@ -136,6 +147,7 @@ export function vakt(dagur, kp, clouds, sunmoon, solar) {
       sky: scoring.skyAKlukkustund(cloud, hours),
       hiti: atDusk.hiti !== null && atDusk.hiti !== undefined ? pyRound(atDusk.hiti) : null,
       vindur: atDusk.vindur !== null && atDusk.vindur !== undefined ? pyRound(atDusk.vindur, 1) : null,
+      ovation: ovationIndex[place.id] ?? null,
     };
   });
 
@@ -174,7 +186,9 @@ export function vakt(dagur, kp, clouds, sunmoon, solar) {
       thettleiki: density !== null ? pyRound(density, 1) : null,
       tulkun: scoring.solvindurTulkun(bz, speed),
       maelt: measured,
+      saga: Array.isArray(solar?.mag_saga) ? solar.mag_saga : [],
     },
+    ovation: ovationTimar(dagur === 0 ? ovation : null),
   };
 }
 

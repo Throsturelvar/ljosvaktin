@@ -583,6 +583,79 @@ select:hover{border-color:rgba(233,194,107,.4)}
   border-top:1px solid var(--lina-syn);
 }
 .tolur-nanar[hidden]{display:none}
+.geimvedur{
+  border-color:var(--gull-dimm);
+  background:rgba(233,194,107,.035);
+  box-shadow:
+    0 0 0 1px rgba(233,194,107,.10),
+    0 0 32px rgba(233,194,107,.10);
+}
+.besti-merki.naesta-merki{
+  font-size:14px;
+  padding:3px 11px 3px 9px;
+  gap:7px;
+  text-transform:uppercase;
+}
+.besti-merki.naesta-merki .viti{
+  width:8px;
+  height:8px;
+  background:currentColor;
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, currentColor 16%, transparent),
+    0 0 14px 2px color-mix(in srgb, currentColor 55%, transparent);
+}
+.geimvedur .heiti .maelt{
+  font-size:20px;
+  font-weight:700;
+  letter-spacing:0;
+  color:var(--bein);
+}
+.geimvedur .stada-heiti{
+  font-size:28px;
+  margin:4px 0 2px;
+  text-shadow:0 0 18px color-mix(in srgb, currentColor 35%, transparent);
+}
+.geimvedur .naesta-undir{font-size:16.5px;color:var(--daufur)}
+.geimvedur .bz-bil{font-size:15px}
+.maelir{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:3px;
+  margin:12px 0 6px;
+  max-width:480px;
+}
+.maelir-hluti{
+  height:10px;
+  border-radius:2px;
+  background:rgba(255,255,255,.10);
+}
+.maelir-merki{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:3px;
+  max-width:480px;
+  font-size:15.5px;
+  color:var(--daufari);
+}
+.maelir-merki .virkt{
+  color:var(--bein);
+  font-weight:700;
+}
+.naesta-undir{margin:12px 0 4px}
+.bz-linurit{
+  position:relative;
+  margin:16px 0 2px;
+}
+.bz-asar{
+  display:grid;
+  grid-template-columns:1fr auto;
+  font-size:13px;
+  color:var(--daufari);
+  margin-top:2px;
+}
+.bz-asar .bz-sudur{position:absolute;top:0;left:6px;color:var(--aur-4)}
+.bz-asar .bz-nordur{position:absolute;top:56px;left:6px}
+.bz-asar .bz-nu{text-align:right}
 .geimvedur-tolur{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(min(100%,145px),1fr));
@@ -1083,6 +1156,8 @@ try {
 
 </div>
 
+<div class="geimvedur" id="geimvedur"></div>
+
 <section id="stadir">
 
   <h2 data-i18n="placesTitle">Places around Iceland</h2>
@@ -1111,8 +1186,6 @@ try {
   </div>
 
   <div class="virknispjald" id="virkni"></div>
-  
-  <div class="geimvedur" id="geimvedur"></div>
   
   <div class="skilyrdi" id="skilyrdi"></div>
 
@@ -1262,7 +1335,7 @@ const TRANSLATIONS = {
     "bestWindow": "The best window is {from}–{to}, with {cloud}% cloud cover.",
     "noWindow": "No useful viewing window tonight. Check the list below — elsewhere in Iceland it may be clearer.",
     "auroraTonight": "Aurora activity tonight",
-    "currentKp": "Kp {kp} now, peaking around {time}. This is a forecast for tonight, not a real-time measurement — see “Right now” below.",
+    "currentKp": "Kp {kp} now, peaking around {time}. This is a forecast for tonight, not a real-time measurement — see “Next hour” above.",
     "scaleNote": "The marker is at Kp 2 — aurora is generally visible here from around this level because Iceland lies beneath the auroral oval.",
     "cloudCover": "Cloud cover",
     "cloudAverage": "Night average: {value}%",
@@ -1274,6 +1347,24 @@ const TRANSLATIONS = {
     "rightNow": "Right now",
     "measuredAt": "measured at {time}",
     "noSpaceWeather": "Real-time solar-wind data is not available at the moment.",
+    "nextHour": "Next hour",
+    "headUnlikely": "Aurora unlikely",
+    "headPossible": "Aurora possible",
+    "headLikely": "Aurora likely",
+    "headTooLight": "Too bright for now",
+    "darkFrom": "Dark from {time}",
+    "cloudyAt": "Cloudy near {place} ({value}%)",
+    "ovationLow": "unlikely",
+    "ovationPossible": "possible",
+    "ovationLikely": "likely",
+    "solarWindState": "Solar wind: {state}",
+    "bzChartCaption": "Solar wind magnetic field (Bz). It takes 30–60 minutes to reach Iceland.",
+    "bzSouth": "south · favourable",
+    "bzNorth": "north",
+    "bzNow": "now",
+    "hoursAgo": "{value} h ago",
+    "minutesAgo": "{value} min ago",
+    "ovationSource": "NOAA OVATION: {value}/100 for this place, forecast for {time}. Needs darkness and clear skies.",
     "lastMinutes": "last {value} min",
     "lastHours": "last {value} hrs",
     "showNumbers": "Show the numbers",
@@ -1295,7 +1386,7 @@ const TRANSLATIONS = {
     "backendError": "Could not load data from the backend ({error}). Make sure the server is running.",
     "clickToWatch": "Click to see this location's watch.",
     "bestLocationTonight": "Best location tonight",
-    "kpNow": "Kp {kp} now, highest around {time}. This is a forecast for tonight, not a real-time measurement — see “Right now” below.",
+    "kpNow": "Kp {kp} now, highest around {time}. This is a forecast for tonight, not a real-time measurement — see “Next hour” above.",
     "pointTooltip": "{place} — score {score}, {cloud}% cloud cover, {temp}°C",
     "mapAttribution": "Map data from <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a>",
     "darknessMoon": "Darkness and moon",
@@ -1830,106 +1921,77 @@ function vistaBzLestur(bz){
 }
 
 
-function bzBilTexti(saga){
-
-  if(!saga.length)
-    return null;
-
-  const span =
-    saga[saga.length-1].t -
-    saga[0].t;
-
-  const minutur =
-    Math.round(span / 60000);
-
-  if(minutur < 2)
-    return null;
-
-  if(minutur < 60)
-    return t("lastMinutes",{
-      value:minutur
-    });
-
-  return t("lastHours",{
-    value:tala(minutur / 60)
-  });
-}
-
-
+/* Bz síðustu klukkustundir. Suðlægt Bz (neikvætt) er teiknað upp, því
+   það er hagstætt; kvarðinn er samhverfur um 0 og a.m.k. ±5 nT svo smá
+   sveiflur líti ekki út eins og stórar breytingar. */
 function bzLinuritSvg(saga){
 
   if(saga.length < 2)
     return "";
 
-  const w=220;
-  const h=48;
-  const pad=4;
+  const w=600;
+  const h=90;
+  const vinstri=4;
+  const haegri=4;
+  const topp=16;
+  const botn=18;
 
-  const vals =
-    saga.map(p => -p.bz);
+  const t0 = saga[0].t;
+  const t1 = saga[saga.length-1].t;
+  const tSpann = (t1-t0) || 1;
 
-  const min =
-    Math.min(...vals);
-
-  const max =
-    Math.max(...vals);
-
-  const sponn =
-    (max-min) || 1;
+  const kvardi =
+    Math.max(5, ...saga.map(p => Math.abs(p.bz)));
 
   const x =
-    i =>
-      pad +
-      i *
-      (w-2*pad) /
-      (vals.length-1);
+    tt => vinstri + (tt-t0) / tSpann * (w-vinstri-haegri);
+
+  const midja = topp + (h-topp-botn)/2;
 
   const y =
-    v =>
-      (h-pad) -
-      (v-min) /
-      sponn *
-      (h-2*pad);
+    bz => midja + bz / kvardi * (h-topp-botn)/2;
 
   const pts =
-    vals.map(
-      (v,i) =>
-        `${x(i).toFixed(1)},${y(v).toFixed(1)}`
-    );
+    saga.map(p => `${x(p.t).toFixed(1)},${y(p.bz).toFixed(1)}`);
 
-  const linePath =
-    "M" + pts.join(" L ");
+  const flatarmal =
+    `M${x(t0).toFixed(1)},${midja} L ${pts.join(" L ")} L ${x(t1).toFixed(1)},${midja} Z`;
 
-  const grunnY =
-    (h-pad).toFixed(1);
+  const klstFyrir =
+    Math.round(tSpann / 3600e3);
 
-  const areaPath =
-    `M${x(0).toFixed(1)},${grunnY}
-     L ${pts.join(" L ")}
-     L ${x(vals.length-1).toFixed(1)},${grunnY} Z`;
+  const upphaf =
+    klstFyrir >= 1
+      ? t("hoursAgo",{ value:klstFyrir })
+      : t("minutesAgo",{ value:Math.max(1, Math.round(tSpann/60e3)) });
 
   return `
     <svg
       viewBox="0 0 ${w} ${h}"
       width="100%"
-      height="${h}"
       role="img"
-      aria-label="Bz history"
+      aria-label="${t("bzChartCaption")}"
+      preserveAspectRatio="none"
+      style="display:block;height:${h}px"
     >
-      <path
-        d="${areaPath}"
-        fill="var(--aur-4)"
-        opacity=".14"
-      />
-      <path
-        d="${linePath}"
-        fill="none"
-        stroke="var(--aur-4)"
-        stroke-width="2"
-        stroke-linejoin="round"
-        stroke-linecap="round"
-      />
+      <defs>
+        <clipPath id="bzSudur"><rect x="0" y="0" width="${w}" height="${midja}"/></clipPath>
+        <clipPath id="bzNordur"><rect x="0" y="${midja}" width="${w}" height="${h-midja}"/></clipPath>
+      </defs>
+      <path d="${flatarmal}" fill="var(--aur-3)" opacity=".28" clip-path="url(#bzSudur)"/>
+      <path d="${flatarmal}" fill="var(--sky)" opacity=".18" clip-path="url(#bzNordur)"/>
+      <line x1="${vinstri}" x2="${w-haegri}" y1="${midja}" y2="${midja}"
+        stroke="var(--daufari)" stroke-opacity=".45" stroke-width="1" stroke-dasharray="3 4"
+        vector-effect="non-scaling-stroke"/>
+      <path d="M${pts.join(" L ")}" fill="none" stroke="var(--aur-4)" stroke-width="2"
+        stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
     </svg>
+    <div class="bz-asar">
+      <span class="bz-sudur">▲ ${t("bzSouth")}</span>
+      <span class="bz-nordur">▼ ${t("bzNorth")}</span>
+      <span class="bz-upphaf">${upphaf}</span>
+      <span class="bz-nu">${t("bzNow")}</span>
+    </div>
   `;
 }
 
@@ -2014,6 +2076,18 @@ function klstTexti(i){
 
   return String(
     nott.klst[i]
+  ).padStart(2,"0") + ":00";
+}
+
+/* Lok klukkustundar i: næsta heila klukkustund, en sólarupprás
+   ef þetta er síðasta klukkustund næturinnar. */
+function klstLokTexti(i){
+
+  if(i === nott.klst.length-1 && nott["solarupprás"])
+    return nott["solarupprás"];
+
+  return String(
+    (nott.klst[i]+1) % 24
   ).padStart(2,"0") + ":00";
 }
 
@@ -2263,6 +2337,8 @@ function teikna(){
 
   if(!valinn || !metnir.length)
     return;
+
+  birtaGeimvedur(sidastaGeimvedur);
 
   const s =
     valinn;
@@ -2605,7 +2681,7 @@ function teikna(){
       <span>
         ${t("bestWindow",{
           from:klstTexti(s.gluggiFra),
-          to:klstTexti(s.gluggiTil),
+          to:klstLokTexti(s.gluggiTil),
           cloud:skyIGlugga
         })}
       </span>
@@ -3036,7 +3112,7 @@ function teikna(){
             p.gluggiFra >= 0
               ? klstTexti(p.gluggiFra) +
                 "–" +
-                klstTexti(p.gluggiTil)
+                klstLokTexti(p.gluggiTil)
               : "—"
           }
         </span>
@@ -3143,6 +3219,104 @@ function tunglumUpprásText(time){
    SPACE WEATHER DISPLAY
    ========================================================================= */
 
+let ovationTimar = null;
+let talnaOpid = false;
+
+/* „Næsta klukkustund“ sameinar OVATION (NOAA, 0–100, næstu 30–90 mín.)
+   og Bz í eitt svar: 0 ólíkleg, 1 möguleg, 2 líkleg. Sterkt suðlægt Bz
+   hækkar um eitt þrep. Án OVATION ræður Bz eitt. Hefur ekki áhrif á
+   einkunnina. */
+const NAESTA_KLST_THREP = [
+  { heiti:"headUnlikely", merki:"ovationLow",      litur:"var(--daufur)" },
+  { heiti:"headPossible", merki:"ovationPossible", litur:"var(--aur-3)" },
+  { heiti:"headLikely",   merki:"ovationLikely",   litur:"var(--aur-4)" }
+];
+
+/* Birta og ský á staðnum eftir um hálftíma. Dimmt telst þegar sólin er
+   a.m.k. 6° undir sjóndeildarhring. Án SunCalc er notast við myrkurstíma
+   Reykjavíkur úr API-inu. */
+function naestaKlstAdstaedur(p){
+
+  const eftir =
+    Date.now() + 30*60e3;
+
+  let dimmt;
+  let dimmtFra = null;
+
+  if(typeof SunCalc !== "undefined"){
+
+    const solHaed =
+      SunCalc.getPosition(new Date(eftir), p.lat, p.lon).altitude * GRADUR;
+
+    dimmt = solHaed <= -6;
+
+    if(!dimmt){
+      const dusk =
+        SunCalc.getTimes(new Date(), p.lat, p.lon).dusk;
+      if(dusk && !isNaN(dusk) && dusk.getTime() > Date.now())
+        dimmtFra = dusk.toISOString().slice(11,16);
+    }
+
+  }else{
+
+    const fra = Date.parse(`${nott.dags ?? ""}T${nott.myrkurFra}:00Z`);
+    dimmt = !isNaN(fra) && eftir >= fra;
+    dimmtFra = dimmt ? null : nott.myrkurFra;
+  }
+
+  let sky = null;
+
+  if(nott && p.sky){
+    for(let i=0;i<nott.klst.length;i++){
+      const t0 = klstTimi(i).getTime();
+      if(eftir >= t0 && eftir < t0 + 3600e3){
+        sky = p.sky[i];
+        break;
+      }
+    }
+  }
+
+  return { dimmt, dimmtFra, sky };
+}
+
+const SKYJAD_MORK = 80;
+
+function naestaKlstThrep(ovation, bzFlokkur){
+
+  const bzStig =
+    bzFlokkur ? bzFlokkur.stig : 0;
+
+  if(ovation == null)
+    return Math.min(2, bzStig);
+
+  const grunnur =
+    ovation >= 30 ? 2 :
+    ovation >= 10 ? 1 : 0;
+
+  return Math.min(2, grunnur + (bzStig >= 2 ? 1 : 0));
+}
+
+function maelirHtml(threp){
+
+  const litur =
+    threp >= 0 ? NAESTA_KLST_THREP[threp].litur : "";
+
+  return `
+    <div class="maelir" role="img"
+      aria-label="${threp >= 0 ? t(NAESTA_KLST_THREP[threp].merki) : t("headTooLight")}">
+      ${NAESTA_KLST_THREP.map((_,i) => `
+        <span class="maelir-hluti"
+          style="${i <= threp ? `background:${litur}` : ""}"></span>
+      `).join("")}
+    </div>
+    <div class="maelir-merki">
+      ${NAESTA_KLST_THREP.map((th,i) => `
+        <span class="${i === threp ? "virkt" : ""}">${t(th.merki)}</span>
+      `).join("")}
+    </div>
+  `;
+}
+
 function birtaGeimvedur(g){
 
   const el =
@@ -3150,225 +3324,190 @@ function birtaGeimvedur(g){
       "geimvedur"
     );
 
-  if(!g || g.bz == null){
+  const f =
+    g && g.bz != null
+      ? flokkaGeimvedur(g.bz)
+      : null;
+
+  const ovation =
+    valinn?.ovation ?? null;
+
+  if(!f && ovation == null){
 
     el.innerHTML = `
-
       <div class="heiti">
-        ${t("rightNow")}
+        <span class="besti-merki naesta-merki">
+          <span class="viti" aria-hidden="true"></span>
+          ${t("nextHour")}
+        </span>
       </div>
-
-      <p class="kptexti">
-        ${t("noSpaceWeather")}
-      </p>
-
+      <p class="kptexti">${t("noSpaceWeather")}</p>
     `;
 
     return;
   }
 
+  const adst =
+    valinn
+      ? naestaKlstAdstaedur(valinn)
+      : { dimmt:true, dimmtFra:null, sky:null };
 
-  const f =
-    flokkaGeimvedur(
-      g.bz
-    );
+  const skyjad =
+    adst.dimmt && adst.sky != null && adst.sky >= SKYJAD_MORK;
 
-  let texti =
-    f.texti;
+  /* Of bjart: ekkert þrep. Skýjað: mest „ólíkleg“. */
+  const threp =
+    !adst.dimmt ? -1 :
+    skyjad ? Math.min(0, naestaKlstThrep(ovation, f)) :
+    naestaKlstThrep(ovation, f);
 
+  const th =
+    threp >= 0
+      ? NAESTA_KLST_THREP[threp]
+      : { heiti:"headTooLight", litur:"var(--daufari)" };
 
-  if(
-    f.stig > 0 &&
-    g.hradi != null &&
-    g.hradi >= 500
-  ){
+  const undirlina =
+    [
+      !adst.dimmt && adst.dimmtFra
+        ? t("darkFrom",{ time:adst.dimmtFra })
+        : null,
+      skyjad
+        ? t("cloudyAt",{ place:valinn.nafn, value:adst.sky })
+        : null,
+      f ? t("solarWindState",{ state:f.heiti }) : null
+    ]
+      .filter(Boolean)
+      .join(" · ");
 
-    texti +=
-      t("solarWindFast");
-  }
-
-
-  if(
-    f.stig > 0 &&
-    g.thettleiki != null &&
-    g.thettleiki >= 10
-  ){
-
-    texti +=
-      t("densityHigh");
-  }
-
-
+  /* Saga frá API-inu (6 klst.); annars mælingar sem vafrinn hefur vistað. */
   const saga =
-    vistaBzLestur(
-      g.bz
-    );
+    g?.saga?.length >= 2
+      ? g.saga.map(p => ({ t:Date.parse(p.t), bz:p.bz }))
+      : saekjaBzSogu();
 
   const linurit =
     bzLinuritSvg(saga);
 
-  const bilTexti =
-    linurit
-      ? bzBilTexti(saga)
-      : null;
+  let texti =
+    f ? f.texti : "";
 
+  if(f && f.stig > 0 && g.hradi != null && g.hradi >= 500)
+    texti += t("solarWindFast");
+
+  if(f && f.stig > 0 && g.thettleiki != null && g.thettleiki >= 10)
+    texti += t("densityHigh");
 
   el.innerHTML = `
 
     <div class="heiti">
-
-      <span
-        class="stada-dot"
-        style="
-          background:${f.litur};
-          color:${f.litur}
-        "
-      ></span>
-
-      ${t("rightNow")}
-
-      <span class="maelt">
-        · ${t("measuredAt",{
-          time:g.maelt ?? "?"
-        })}
+      <span class="besti-merki naesta-merki">
+        <span class="viti" style="color:${th.litur}" aria-hidden="true"></span>
+        ${t("nextHour")}
       </span>
-
+      ${valinn ? `<span class="maelt">${valinn.nafn}</span>` : ""}
     </div>
 
-
-    <div
-      class="stada-heiti"
-      style="color:${f.litur}"
-    >
-      ${f.heiti}
+    <div class="stada-heiti" style="color:${th.litur}">
+      ${t(th.heiti)}
     </div>
 
+    ${maelirHtml(threp)}
+
+    ${undirlina ? `<p class="kpaukagildi naesta-undir">${undirlina}</p>` : ""}
 
     ${
       linurit
         ? `
-          <div class="bz-linurit">
-            ${linurit}
-          </div>
-
-          ${
-            bilTexti
-              ? `
-                <div class="bz-bil">
-                  ${bilTexti}
-                </div>
-              `
-              : ""
-          }
+          <div class="bz-linurit">${linurit}</div>
+          <div class="bz-bil">${t("bzChartCaption")}</div>
         `
         : ""
     }
-
-
-    <p class="kptexti">
-      ${texti}
-    </p>
-
-
-    <p class="kpaukagildi">
-      ${t("spaceWindDelay")}
-    </p>
-
 
     <button
       class="tolur-hnappur"
       id="tolurHnappur"
       type="button"
-      aria-expanded="false"
+      aria-expanded="${talnaOpid}"
     >
-      ${t("showNumbers")}
+      ${talnaOpid ? t("hideNumbers") : t("showNumbers")}
     </button>
-
 
     <div
       class="tolur-nanar"
       id="tolurNanar"
-      hidden
+      ${talnaOpid ? "" : "hidden"}
     >
 
-      <div class="geimvedur-tolur">
+      ${texti ? `<p class="kptexti">${texti}</p>` : ""}
 
-        <div>
-          <span class="tala">
-            ${g.bz}
-          </span>
-          <span class="smaeti">
-            ${t("bzUnit")}
-          </span>
-        </div>
+      <p class="kpaukagildi">${t("spaceWindDelay")}</p>
 
-        <div>
-          <span class="tala">
-            ${g.bt}
-          </span>
-          <span class="smaeti">
-            ${t("btUnit")}
-          </span>
-        </div>
+      ${
+        g && g.bz != null
+          ? `
+            <div class="geimvedur-tolur">
+              <div>
+                <span class="tala">${g.bz}</span>
+                <span class="smaeti">${t("bzUnit")}</span>
+              </div>
+              <div>
+                <span class="tala">${g.bt ?? "–"}</span>
+                <span class="smaeti">${t("btUnit")}</span>
+              </div>
+              <div>
+                <span class="tala">${g.hradi ?? "–"}</span>
+                <span class="smaeti">${t("speed")}</span>
+              </div>
+              <div>
+                <span class="tala">${g.thettleiki ?? "–"}</span>
+                <span class="smaeti">${t("particles")}</span>
+              </div>
+            </div>
+          `
+          : ""
+      }
 
-        <div>
-          <span class="tala">
-            ${g.hradi ?? "–"}
-          </span>
-          <span class="smaeti">
-            ${t("speed")}
-          </span>
-        </div>
+      ${
+        ovation != null
+          ? `<p class="kpaukagildi">${t("ovationSource",{
+              value:ovation,
+              time:ovationTimar?.spa ?? "?"
+            })}</p>`
+          : ""
+      }
 
-        <div>
-          <span class="tala">
-            ${g.thettleiki ?? "–"}
-          </span>
-          <span class="smaeti">
-            ${t("particles")}
-          </span>
-        </div>
-
-      </div>
-
-
-      <p
-        class="kpaukagildi"
-        data-i18n-html="measuredBy"
-      >
-        ${t("measuredBy")}
+      <p class="kpaukagildi">
+        ${g?.maelt ? t("measuredAt",{ time:g.maelt }) + " · " : ""}${t("measuredBy")}
       </p>
 
     </div>
   `;
 
-
   const hnappur =
-    document.getElementById(
-      "tolurHnappur"
-    );
+    document.getElementById("tolurHnappur");
 
   const nanar =
-    document.getElementById(
-      "tolurNanar"
-    );
-
+    document.getElementById("tolurNanar");
 
   hnappur.addEventListener(
     "click",
     () => {
 
+      talnaOpid =
+        nanar.hidden;
+
       nanar.hidden =
-        !nanar.hidden;
+        !talnaOpid;
 
       hnappur.textContent =
-        nanar.hidden
-          ? t("showNumbers")
-          : t("hideNumbers");
+        talnaOpid
+          ? t("hideNumbers")
+          : t("showNumbers");
 
       hnappur.setAttribute(
         "aria-expanded",
-        String(!nanar.hidden)
+        String(talnaOpid)
       );
     }
   );
@@ -3449,8 +3588,14 @@ async function saekjaVakt(){
     teikna();
 
 
+    ovationTimar =
+      gogn.ovation ?? null;
+
     sidastaGeimvedur =
       gogn.geimvedur;
+
+    if(sidastaGeimvedur?.bz != null)
+      vistaBzLestur(sidastaGeimvedur.bz);
 
     birtaGeimvedur(
       sidastaGeimvedur
