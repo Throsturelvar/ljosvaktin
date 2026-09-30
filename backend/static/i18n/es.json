@@ -102,7 +102,7 @@
   "spaceWindDelay": "Los cambios en el viento solar pueden tardar 30–60 minutos en notarse aquí en el cielo.",
   "measuredBy": "Medido por el satélite DSCOVR, entre la Tierra y el Sol, y publicado por <a href=\"https://www.swpc.noaa.gov/products/real-time-solar-wind\" target=\"_blank\" rel=\"noopener\">NOAA SWPC</a>. Las perturbaciones magnéticas locales se ven en las <a href=\"http://cygnus.rhi.hi.is/~halo/leirv.png\" target=\"_blank\" rel=\"noopener\">mediciones en tiempo real de Leirvogur</a> (Instituto de Ciencias de la Tierra, Universidad de Islandia).",
   "bestChance": "La mejor oportunidad esta noche es en",
-  "scoreLabel": "puntos",
+  "scoreLabel": "puntuación",
   "bestPlaceTonight": "Mejor lugar esta noche",
   "bestWindowLabel": "Mejor franja",
   "cloudShort": "nubes",
