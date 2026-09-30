@@ -1315,6 +1315,9 @@ const TRANSLATIONS = {
     "headUnlikely": "Aurora unlikely",
     "headPossible": "Aurora possible",
     "headLikely": "Aurora likely",
+    "headTooLight": "Too light for now",
+    "darkFrom": "Dark from {time}",
+    "cloudyAt": "Cloudy near {place} ({value}%)",
     "ovationLow": "unlikely",
     "ovationPossible": "possible",
     "ovationLikely": "likely",
@@ -3182,6 +3185,55 @@ const NAESTA_KLST_THREP = [
   { heiti:"headLikely",   merki:"ovationLikely",   litur:"var(--aur-4)" }
 ];
 
+/* Birta og ský á staðnum eftir um hálftíma. Dimmt telst þegar sólin er
+   a.m.k. 6° undir sjóndeildarhring. Án SunCalc er notast við myrkurstíma
+   Reykjavíkur úr API-inu. */
+function naestaKlstAdstaedur(p){
+
+  const eftir =
+    Date.now() + 30*60e3;
+
+  let dimmt;
+  let dimmtFra = null;
+
+  if(typeof SunCalc !== "undefined"){
+
+    const solHaed =
+      SunCalc.getPosition(new Date(eftir), p.lat, p.lon).altitude * GRADUR;
+
+    dimmt = solHaed <= -6;
+
+    if(!dimmt){
+      const dusk =
+        SunCalc.getTimes(new Date(), p.lat, p.lon).dusk;
+      if(dusk && !isNaN(dusk) && dusk.getTime() > Date.now())
+        dimmtFra = dusk.toISOString().slice(11,16);
+    }
+
+  }else{
+
+    const fra = Date.parse(`${nott.dags ?? ""}T${nott.myrkurFra}:00Z`);
+    dimmt = !isNaN(fra) && eftir >= fra;
+    dimmtFra = dimmt ? null : nott.myrkurFra;
+  }
+
+  let sky = null;
+
+  if(nott && p.sky){
+    for(let i=0;i<nott.klst.length;i++){
+      const t0 = klstTimi(i).getTime();
+      if(eftir >= t0 && eftir < t0 + 3600e3){
+        sky = p.sky[i];
+        break;
+      }
+    }
+  }
+
+  return { dimmt, dimmtFra, sky };
+}
+
+const SKYJAD_MORK = 80;
+
 function naestaKlstThrep(ovation, bzFlokkur){
 
   const bzStig =
@@ -3200,11 +3252,11 @@ function naestaKlstThrep(ovation, bzFlokkur){
 function maelirHtml(threp){
 
   const litur =
-    NAESTA_KLST_THREP[threp].litur;
+    threp >= 0 ? NAESTA_KLST_THREP[threp].litur : "";
 
   return `
     <div class="maelir" role="img"
-      aria-label="${t(NAESTA_KLST_THREP[threp].merki)}">
+      aria-label="${threp >= 0 ? t(NAESTA_KLST_THREP[threp].merki) : t("headTooLight")}">
       ${NAESTA_KLST_THREP.map((_,i) => `
         <span class="maelir-hluti"
           style="${i <= threp ? `background:${litur}` : ""}"></span>
@@ -3243,11 +3295,24 @@ function birtaGeimvedur(g){
     return;
   }
 
+  const adst =
+    valinn
+      ? naestaKlstAdstaedur(valinn)
+      : { dimmt:true, dimmtFra:null, sky:null };
+
+  const skyjad =
+    adst.dimmt && adst.sky != null && adst.sky >= SKYJAD_MORK;
+
+  /* Of bjart: ekkert þrep. Skýjað: mest „ólíkleg“. */
   const threp =
+    !adst.dimmt ? -1 :
+    skyjad ? Math.min(0, naestaKlstThrep(ovation, f)) :
     naestaKlstThrep(ovation, f);
 
   const th =
-    NAESTA_KLST_THREP[threp];
+    threp >= 0
+      ? NAESTA_KLST_THREP[threp]
+      : { heiti:"headTooLight", litur:"var(--daufari)" };
 
   const med =
     metnir.filter(p => p.ovation != null);
@@ -3259,6 +3324,12 @@ function birtaGeimvedur(g){
 
   const undirlina =
     [
+      !adst.dimmt && adst.dimmtFra
+        ? t("darkFrom",{ time:adst.dimmtFra })
+        : null,
+      skyjad
+        ? t("cloudyAt",{ place:valinn.nafn, value:adst.sky })
+        : null,
       f ? t("solarWindState",{ state:f.heiti }) : null,
       haest && valinn && haest.nafn !== valinn.nafn
         ? t("highestIn",{ place:haest.nafn })
