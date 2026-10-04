@@ -427,6 +427,11 @@ select:hover{border-color:rgba(233,194,107,.4)}
   gap:10px;
   font-size:16.5px;
 }
+.gluggi-timi{
+  color:var(--gull);
+  font-weight:600;
+  font-variant-numeric:tabular-nums;
+}
 .gluggi .bogi{
   flex:none;
   width:26px;
@@ -1494,6 +1499,16 @@ function t(key, vars = {}){
   return text.replace(/\{(\w+)\}/g, (match, name) =>
     vars[name] !== undefined ? vars[name] : match
   );
+}
+
+// Tímarnir í „besta glugganum“ eru gulir. Þýðingarnar hafa {from}–{to} saman,
+// svo allt bilið fær einn span; annars fær hvor tími sinn.
+function gluggiSetning(fra, til, sky){
+  const texti = t("bestWindow", {from:"{from}", to:"{to}", cloud:sky});
+  const gult = x => `<span class="gluggi-timi">${x}</span>`;
+  return texti.includes("{from}–{to}")
+    ? texti.replace("{from}–{to}", gult(fra + "–" + til))
+    : texti.replace("{from}", gult(fra)).replace("{to}", gult(til));
 }
 
 function tala(x){
@@ -2680,11 +2695,11 @@ function teikna(){
       ></span>
 
       <span>
-        ${t("bestWindow",{
-          from:klstTexti(s.gluggiFra),
-          to:klstLokTexti(s.gluggiTil),
-          cloud:skyIGlugga
-        })}
+        ${gluggiSetning(
+          klstTexti(s.gluggiFra),
+          klstLokTexti(s.gluggiTil),
+          skyIGlugga
+        )}
       </span>
     `;
 
@@ -3108,7 +3123,7 @@ function teikna(){
           ${t("bestWindowLabel")}
         </span>
 
-        <span>
+        <span class="${p.gluggiFra >= 0 ? "gluggi-timi" : ""}">
           ${
             p.gluggiFra >= 0
               ? klstTexti(p.gluggiFra) +
