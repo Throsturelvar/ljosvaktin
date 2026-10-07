@@ -146,5 +146,28 @@
   "moonLastQuarter": "下弦月",
   "moonWaningCrescent": "殘月",
   "allRightsReserved": "版權所有。",
-  "listSeparator": "，"
+  "listSeparator": "，",
+  "metaTitle": "冰島今晚北極光預報 – 極光活動、雲量與黑暗 | Northseek",
+  "metaDescription": "今晚在冰島何時何地能看到北極光？將極光活動、雲量、黑暗程度和月光合成一個評分，涵蓋冰島各地，即時更新。",
+  "placeMetaTitle": "{place}今晚北極光預報 | Northseek",
+  "placeMetaDescription": "今晚在{place}能看到北極光嗎？{place}（{region}）即時極光預報：極光活動、雲量、黑暗程度和月光合成一個評分。",
+  "placeHeroTitle": "{place}今晚的北極光",
+  "placeSummary": "今晚{place}（{region}）從{from}到{to}天黑，黑暗時段平均雲量為{cloud}%，預計極光活動最高可達 Kp {kp}。下方評分每隔幾分鐘更新一次。",
+  "placeSummaryFallback": "{place}（{region}）即時極光預報：將極光活動、雲量、黑暗程度和月光合成一個評分，每隔幾分鐘更新一次。",
+  "allPlacesTitle": "各地極光預報",
+  "breadcrumbIceland": "冰島",
+  "regions": {
+    "Höfuðborgarsvæðið": "首都地區",
+    "Suðurland": "南冰島",
+    "Norðurland": "北冰島",
+    "Suðausturland": "東南冰島",
+    "Snæfellsnes": "斯奈山半島",
+    "Austurland": "東冰島",
+    "Vestfirðir": "西峽灣",
+    "Reykjanes": "雷克雅內斯半島",
+    "Suðurnes": "Suðurnes",
+    "Vesturland": "西冰島",
+    "Norðurland vestra": "西北冰島",
+    "Norðurland eystra": "東北冰島"
+  }
 }

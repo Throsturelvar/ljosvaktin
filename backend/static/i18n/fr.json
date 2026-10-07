@@ -146,5 +146,28 @@
   "moonLastQuarter": "Dernier quartier",
   "moonWaningCrescent": "Dernier croissant",
   "allRightsReserved": "Tous droits réservés.",
-  "listSeparator": ", "
+  "listSeparator": ", ",
+  "metaTitle": "Prévisions aurores boréales Islande ce soir – activité, nuages et obscurité | Northseek",
+  "metaDescription": "Où et quand voir les aurores boréales en Islande ce soir ? Activité aurorale, nébulosité, obscurité et lune réunies en un score pour des lieux dans toute l'Islande, mis à jour en direct.",
+  "placeMetaTitle": "Aurores boréales à {place} ce soir – prévisions | Northseek",
+  "placeMetaDescription": "Verrez-vous les aurores boréales à {place} ce soir ? Prévisions en direct pour {place} ({region}) : activité aurorale, nébulosité, obscurité et lune réunies en un score.",
+  "placeHeroTitle": "Aurores boréales à {place} ce soir",
+  "placeSummary": "Ce soir à {place} ({region}), il fait nuit de {from} à {to}, avec une nébulosité moyenne de {cloud} % pendant les heures sombres et une activité aurorale prévue jusqu'à Kp {kp}. Le score ci-dessous est mis à jour toutes les quelques minutes.",
+  "placeSummaryFallback": "Prévisions d'aurores boréales en direct pour {place} ({region}) : activité, nébulosité, obscurité et clair de lune réunis en un score, mis à jour toutes les quelques minutes.",
+  "allPlacesTitle": "Prévisions d'aurores par lieu",
+  "breadcrumbIceland": "Islande",
+  "regions": {
+    "Höfuðborgarsvæðið": "Région de la capitale",
+    "Suðurland": "Sud de l'Islande",
+    "Norðurland": "Nord de l'Islande",
+    "Suðausturland": "Sud-est de l'Islande",
+    "Snæfellsnes": "Snæfellsnes",
+    "Austurland": "Est de l'Islande",
+    "Vestfirðir": "Fjords de l'Ouest",
+    "Reykjanes": "Reykjanes",
+    "Suðurnes": "Suðurnes",
+    "Vesturland": "Ouest de l'Islande",
+    "Norðurland vestra": "Nord-ouest de l'Islande",
+    "Norðurland eystra": "Nord-est de l'Islande"
+  }
 }

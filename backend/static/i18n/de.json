@@ -146,5 +146,28 @@
   "moonLastQuarter": "Letztes Viertel",
   "moonWaningCrescent": "Abnehmende Sichel",
   "allRightsReserved": "Alle Rechte vorbehalten.",
-  "listSeparator": ", "
+  "listSeparator": ", ",
+  "metaTitle": "Polarlicht-Vorhersage Island heute Nacht – Aktivität, Wolken & Dunkelheit | Northseek",
+  "metaDescription": "Wo und wann siehst du heute Nacht Polarlichter in Island? Polarlichtaktivität, Bewölkung, Dunkelheit und Mond in einer Punktzahl für Orte in ganz Island, live aktualisiert.",
+  "placeMetaTitle": "Polarlichter in {place} heute Nacht – Polarlicht-Vorhersage | Northseek",
+  "placeMetaDescription": "Siehst du heute Nacht Polarlichter in {place}? Live-Polarlichtvorhersage für {place} ({region}): Aktivität, Bewölkung, Dunkelheit und Mond in einer Punktzahl.",
+  "placeHeroTitle": "Polarlichter in {place} heute Nacht",
+  "placeSummary": "Heute Nacht ist es in {place} ({region}) von {from} bis {to} dunkel, mit durchschnittlich {cloud}% Bewölkung in den dunklen Stunden und einer vorhergesagten Polarlichtaktivität bis Kp {kp}. Die Punktzahl unten wird alle paar Minuten aktualisiert.",
+  "placeSummaryFallback": "Live-Polarlichtvorhersage für {place} ({region}): Aktivität, Bewölkung, Dunkelheit und Mondlicht in einer Punktzahl, alle paar Minuten aktualisiert.",
+  "allPlacesTitle": "Polarlicht-Vorhersage nach Ort",
+  "breadcrumbIceland": "Island",
+  "regions": {
+    "Höfuðborgarsvæðið": "Hauptstadtregion",
+    "Suðurland": "Südisland",
+    "Norðurland": "Nordisland",
+    "Suðausturland": "Südostisland",
+    "Snæfellsnes": "Snæfellsnes",
+    "Austurland": "Ostisland",
+    "Vestfirðir": "Westfjorde",
+    "Reykjanes": "Reykjanes",
+    "Suðurnes": "Suðurnes",
+    "Vesturland": "Westisland",
+    "Norðurland vestra": "Nordwestisland",
+    "Norðurland eystra": "Nordostisland"
+  }
 }
