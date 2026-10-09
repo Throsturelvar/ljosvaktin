@@ -8,8 +8,8 @@
     "binding": "ASSETS",
     "run_worker_first": true
   },
-  "analytics_engine_datasets": [
-    { "binding": "MAELING", "dataset": "northseek_uppruni" }
+  "d1_databases": [
+    { "binding": "MAELING_DB", "database_name": "northseek-maeling", "database_id": "71444dbf-4b68-4677-99e2-549b1a309bd2" }
   ],
   "services": [
     {
