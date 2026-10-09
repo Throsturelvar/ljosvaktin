@@ -5,6 +5,8 @@
 // - www.northseek.net er áframsent á northseek.net.
 // - Öll svör fá örugga hausa (sjá medHausum); myndir og tákn eru geymd í
 //   vafra í einn dag.
+// - Heimsóknir með ?utm_source=… (t.d. QR-kóðinn) eru taldar í Workers
+//   Analytics Engine (sjá skraUppruna).
 
 const API_PATHS = new Set(["/api/vakt", "/api/skor"]);
 
@@ -93,6 +95,25 @@ function medHausum(response, url) {
   return out;
 }
 
+// Talning á heimsóknum eftir uppruna (utm_source), t.d. QR-kóðanum. Aðeins
+// uppruni, herferð og land eru skráð, engar IP-tölur. writeDataPoint bíður
+// ekki eftir svari og villa hér má aldrei stöðva síðuna.
+function skraUppruna(request, url, env) {
+  const uppruni = url.searchParams.get("utm_source");
+  if (!uppruni || !env.MAELING || request.method !== "GET") return;
+  if (API_PATHS.has(url.pathname) || VAFRAMINNI.test(url.pathname)) return;
+  try {
+    const stutt = (x) => (x || "").toLowerCase().slice(0, 64);
+    env.MAELING.writeDataPoint({
+      indexes: [stutt(uppruni)],
+      blobs: [stutt(uppruni), stutt(url.searchParams.get("utm_campaign")), request.cf?.country || "", url.pathname],
+      doubles: [1],
+    });
+  } catch (error) {
+    console.error("Analytics Engine skráning mistókst", error);
+  }
+}
+
 export default {
   async fetch(request, env, ctx) {
     return medHausum(await svara(request, env, ctx), new URL(request.url));
@@ -106,6 +127,8 @@ async function svara(request, env, ctx) {
     url.hostname = "northseek.net";
     return Response.redirect(url.toString(), 301);
   }
+
+  skraUppruna(request, url, env);
 
   if (API_PATHS.has(url.pathname)) {
     if (request.method !== "GET" && request.method !== "HEAD") {
