@@ -54,6 +54,14 @@ const FYRIRTAEKI = {
   },
 };
 
+const STADGENGLAR = [
+  { nafn: "Fyrirtæki A", gerd: "Bus · large group", brottfor: "20:30", uti: ["21:15", "23:30"], verd: "from 9.990 kr", endurbokun: true, litur: "#6FF0B4" },
+  { nafn: "Fyrirtæki B", gerd: "Boat · from the harbour", brottfor: "21:00", uti: ["21:00", "23:00"], verd: "from 12.900 kr", endurbokun: true, litur: "#E9C26B" },
+  { nafn: "Fyrirtæki C", gerd: "Photo tour · max 8", brottfor: "20:00", uti: ["21:00", "00:30"], verd: "from 24.500 kr", litur: "#B8BFCD" },
+];
+
+const SJALFGEFID = { gerd: "Northern lights tour", brottfor: "20:30", uti: ["21:00", "23:30"], endurbokun: true, litur: "#E9C26B" };
+
 const SYNI_TEXTAR = {
   en: {
     kicker: "Aurora tours tonight",
@@ -195,7 +203,7 @@ function bokunarSlod(f) {
 
 function taknHtml(f) {
   return f.takn
-    ? `<span class="syni-logo med-mynd" style="background:${hreinsa(f.taknGrunnur || "#FFFFFF")}"><img src="${hreinsa(f.takn)}" alt="" loading="lazy"></span>`
+    ? `<span class="syni-logo med-mynd" style="background:${hreinsa(f.taknGrunnur || "#FFFFFF")}"><img src="${hreinsa(f.takn)}" alt="" loading="lazy" onerror="this.parentNode.style.background='${hreinsa(f.litur)}';this.replaceWith('${hreinsa(upphafsstafir(f.nafn)).replace(/'/g, "")}')"></span>`
     : `<span class="syni-logo" style="background:${hreinsa(f.litur)}">${hreinsa(upphafsstafir(f.nafn))}</span>`;
 }
 
