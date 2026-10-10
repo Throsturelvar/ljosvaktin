@@ -97,7 +97,7 @@ a.syni-boka:focus-visible,a.syni-utlinur:focus-visible{outline:2px solid var(--b
 }
 .syni-lbl{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--daufari)}
 .syni-mynd{
-  aspect-ratio:16/6;
+  aspect-ratio:16/4;
   max-width:100%;
   border-radius:var(--br);
   display:grid;place-items:center;
