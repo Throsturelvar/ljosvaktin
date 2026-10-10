@@ -149,5 +149,28 @@
   "moonLastQuarter": "Síðasta kvartil",
   "moonWaningCrescent": "Dvínandi mánasigð",
   "allRightsReserved": "Allur réttur áskilinn.",
-  "listSeparator": ", "
+  "listSeparator": ", ",
+  "metaTitle": "Norðurljósaspá fyrir Ísland í kvöld – virkni, skýjahula og myrkur | Northseek",
+  "metaDescription": "Hvar og hvenær sjást norðurljós á Íslandi í kvöld? Norðurljósavirkni, skýjahula, myrkur og tungl sameinuð í eina einkunn fyrir staði um allt land, uppfært í rauntíma.",
+  "placeMetaTitle": "Norðurljós við {place} í kvöld – norðurljósaspá | Northseek",
+  "placeMetaDescription": "Sjást norðurljós við {place} í kvöld? Lifandi norðurljósaspá fyrir {place} ({region}): virkni, skýjahula, myrkur og tungl sameinuð í eina einkunn.",
+  "placeHeroTitle": "Norðurljós við {place} í kvöld",
+  "placeSummary": "Í kvöld er dimmt við {place} ({region}) frá {from} til {to}, skýjahula að meðaltali {cloud}% á dimmu tímunum og spáð norðurljósavirkni allt að Kp {kp}. Einkunnin hér fyrir neðan uppfærist á nokkurra mínútna fresti.",
+  "placeSummaryFallback": "Lifandi norðurljósaspá fyrir {place} ({region}): virkni, skýjahula, myrkur og tunglsljós sameinuð í eina einkunn, uppfærð á nokkurra mínútna fresti.",
+  "allPlacesTitle": "Norðurljósaspá eftir stöðum",
+  "breadcrumbIceland": "Ísland",
+  "regions": {
+    "Höfuðborgarsvæðið": "Höfuðborgarsvæðið",
+    "Suðurland": "Suðurland",
+    "Norðurland": "Norðurland",
+    "Suðausturland": "Suðausturland",
+    "Snæfellsnes": "Snæfellsnes",
+    "Austurland": "Austurland",
+    "Vestfirðir": "Vestfirðir",
+    "Reykjanes": "Reykjanes",
+    "Suðurnes": "Suðurnes",
+    "Vesturland": "Vesturland",
+    "Norðurland vestra": "Norðurland vestra",
+    "Norðurland eystra": "Norðurland eystra"
+  }
 }

@@ -7,6 +7,10 @@
 //   vafra í einn dag.
 // - Heimsóknir með ?utm_source=… (t.d. QR-kóðinn) eru taldar í D1
 //   (sjá skraUppruna) og sýndar á lokaðri síðu /maeling (sjá maelingSida).
+// - Forsíða, tungumálasíður og staðasíður eru þýddar á þjóninum og
+//   /sitemap.xml búið til (sjá seo.js).
+
+import { greinaSlod, svaraSidu, sitemap } from "./seo.js";
 
 const API_PATHS = new Set(["/api/vakt", "/api/skor"]);
 
@@ -241,6 +245,25 @@ async function svara(request, env, ctx) {
       return new Response("Method not allowed", { status: 405 });
     }
     return apiResponse(url, env, ctx);
+  }
+
+  if (request.method === "GET" || request.method === "HEAD") {
+    if (url.pathname === "/sitemap.xml") return sitemap();
+
+    const slod = greinaSlod(url.pathname);
+    if (slod?.framsenda) {
+      return Response.redirect(new URL(slod.framsenda + url.search, url).toString(), 301);
+    }
+    if (slod) {
+      const vakt = () => apiResponse(new URL("/api/vakt?dagur=0", url), env, ctx);
+      try {
+        return await svaraSidu(request, env, slod, vakt);
+      } catch (villa) {
+        // Óþýdd forsíða er betri en villusíða.
+        console.error("SEO-síða mistókst", villa);
+        return env.ASSETS.fetch(new Request(new URL("/", url), request));
+      }
+    }
   }
 
   return env.ASSETS.fetch(request);

@@ -1055,20 +1055,67 @@ footer{
   .merki img{width:min(290px,78vw)}
 }
 
+
+/* ---------- Staðatenglar (allir staðir sem venjulegir tenglar) ---------- */
+.stadatenglar{display:block;margin:30px 0 0;font-size:inherit}
+.stadatenglar h3{margin:0 0 10px;font-size:15px;font-weight:600;color:var(--daufur);letter-spacing:.02em}
+.stadatenglar ul{list-style:none;margin:0;padding:0;columns:4 150px;column-gap:20px}
+.stadatenglar li{break-inside:avoid;padding:3px 0;font-size:15px}
+.stadatenglar a{color:var(--daufur);text-decoration:none;border-bottom:1px solid var(--lina-syn)}
+.stadatenglar a:hover{color:var(--bein);border-bottom-color:var(--gull)}
+.stadatenglar a[aria-current]{color:var(--gull)}
 </style>
 <script>
-// Byrjar að sækja vistað tungumál strax, áður en aðalskriftan keyrir.
-try {
-  var vistadTungumal = localStorage.getItem("ljosvaktin_language");
-  if (vistadTungumal && vistadTungumal !== "en" && /^[a-z]{2}(-[A-Za-z]{4})?$/.test(vistadTungumal)) {
-    var forhledsla = document.createElement("link");
-    forhledsla.rel = "preload";
-    forhledsla.as = "fetch";
-    forhledsla.crossOrigin = "anonymous";
-    forhledsla.href = "/i18n/" + vistadTungumal + ".json";
-    document.head.appendChild(forhledsla);
+// Hvert tungumál á sína slóð (/de/ …; enska er á /), sjá seo.js. Á undirslóðum
+// ræður slóðin (data-lang frá þjóninum). Á forsíðunni gildir vistað val, síðan
+// tungumál vafrans; sé það annað en enska er farið strax á slóð þess.
+var TUNGUMALASLODIR = { en: "", is: "is", pl: "pl", de: "de", fr: "fr", es: "es", "zh-Hans": "zh-hans", "zh-Hant": "zh-hant" };
+
+// Tungumál vafrans -> kóði síðunnar. Kínverska skiptist í hefðbundið letur
+// (zh-Hant: Taívan, Hong Kong, Makaó) og einfaldað (zh-Hans: annað).
+function vafraKodi(lang) {
+  var kodi = String(lang || "").toLowerCase();
+  if (kodi === "zh" || kodi.indexOf("zh-") === 0) {
+    return /-(hant|tw|hk|mo)(-|$)/.test(kodi) ? "zh-Hant" : "zh-Hans";
   }
-} catch (e) {}
+  return kodi.split("-")[0];
+}
+
+function sidaSlod(lang, stadurId) {
+  var forskeyti = TUNGUMALASLODIR[lang] ? "/" + TUNGUMALASLODIR[lang] : "";
+  return forskeyti + (stadurId ? "/places/" + stadurId.replace(/_/g, "-") : "") + "/";
+}
+
+var sidaTungumal = document.documentElement.getAttribute("data-lang");
+if (!TUNGUMALASLODIR.hasOwnProperty(sidaTungumal)) {
+  sidaTungumal = null;
+  try { sidaTungumal = localStorage.getItem("ljosvaktin_language"); } catch (e) {}
+  if (!TUNGUMALASLODIR.hasOwnProperty(sidaTungumal)) {
+    sidaTungumal = "en";
+    var vafraMal = navigator.languages || [navigator.language];
+    for (var i = 0; i < vafraMal.length; i++) {
+      if (TUNGUMALASLODIR.hasOwnProperty(vafraKodi(vafraMal[i]))) { sidaTungumal = vafraKodi(vafraMal[i]); break; }
+    }
+  }
+  if (sidaTungumal !== "en" && location.pathname === "/") {
+    // utm_*-breyturnar eru þegar taldar á fyrstu beiðninni (skraUppruna í
+    // worker.js); án þeirra telst heimsóknin ekki tvisvar.
+    var leit = location.search.replace(/^\?/, "").split("&").filter(function (p) {
+      return p && !/^utm_/i.test(p);
+    }).join("&");
+    location.replace(sidaSlod(sidaTungumal) + (leit ? "?" + leit : "") + location.hash);
+  }
+}
+
+// Byrjar að sækja þýðinguna strax, áður en aðalskriftan keyrir.
+if (sidaTungumal !== "en") {
+  var forhledsla = document.createElement("link");
+  forhledsla.rel = "preload";
+  forhledsla.as = "fetch";
+  forhledsla.crossOrigin = "anonymous";
+  forhledsla.href = "/i18n/" + sidaTungumal + ".json";
+  document.head.appendChild(forhledsla);
+}
 </script>
 </head>
 
@@ -1284,6 +1331,9 @@ const TRANSLATIONS = {
     "heroKnowWhen": "right place.",
     "heroKnowWhere": "right time.",
     "heroCopy": "Find your best chance to see the Northern Lights in Iceland tonight — with aurora activity, clouds, darkness and moonlight combined into one simple score.",
+    "metaTitle": "Northern Lights Forecast Iceland Tonight – Aurora, Clouds & Darkness | Northseek",
+    "placeMetaTitle": "Northern Lights at {place} Tonight – Aurora Forecast | Northseek",
+    "placeHeroTitle": "Northern Lights at {place} tonight",
     "chooseLocation": "Choose a location",
     "findMe": "Find me",
     "language": "Language",
@@ -1435,35 +1485,9 @@ const LANGUAGES = [
   ...document.querySelectorAll("#tungumalVal option")
 ].map(option => option.value);
 
-function lesaVistadTungumal(){
-  try {
-    return localStorage.getItem("ljosvaktin_language");
-  } catch (_) {
-    return null;
-  }
-}
-
-// Tungumál vafrans -> kóði síðunnar. Kínverska skiptist í hefðbundið letur
-// (zh-Hant: Taívan, Hong Kong, Makaó) og einfaldað (zh-Hans: annað).
-function vafraKodi(lang){
-  const kodi = String(lang || "").toLowerCase();
-  if(kodi === "zh" || kodi.startsWith("zh-")){
-    return /-(hant|tw|hk|mo)(-|$)/.test(kodi) ? "zh-Hant" : "zh-Hans";
-  }
-  return kodi.split("-")[0];
-}
-
-// Vistað val gildir fyrst, síðan tungumál vafrans, annars enska.
+// Tungumálið er ákveðið í <head> (slóð, vistað val eða vafri).
 function veljaTungumal(){
-  const vistad = lesaVistadTungumal();
-  if(LANGUAGES.includes(vistad)) return vistad;
-
-  for(const lang of navigator.languages || [navigator.language]){
-    const kodi = vafraKodi(lang);
-    if(LANGUAGES.includes(kodi)) return kodi;
-  }
-
-  return "en";
+  return LANGUAGES.includes(sidaTungumal) ? sidaTungumal : "en";
 }
 
 let tungumal = veljaTungumal();
@@ -1531,11 +1555,7 @@ async function setLanguage(lang){
   const tokst = await hladaTungumal(lang);
   if(beidni !== tungumalBeidni) return;
 
-  if(tokst){
-    try {
-      localStorage.setItem("ljosvaktin_language", lang);
-    } catch (_) {}
-  } else {
+  if(!tokst){
     lang = "en";
   }
 
@@ -1595,7 +1615,8 @@ let metnir = [];
 let n = 0;
 let nottUpphaf = 0;
 let valinn = null;
-let valinnNafn = null;
+// Staðasíður (/places/<staður>/) byrja á sínum stað.
+let valinnNafn = document.documentElement.dataset.stadurNafn || null;
 let sidastaGeimvedur = null;
 
 
@@ -2324,6 +2345,33 @@ function teiknaKort(){
    SELECT LOCATION
    ========================================================================= */
 
+// Þegar notandinn velur stað fær hann slóð staðarins (til að deila) og
+// fyrirsögnin og titillinn fylgja.
+function merkjaStad(p){
+
+  const html = document.documentElement;
+
+  if(!p || html.dataset.stadur === p.id)
+    return;
+
+  html.dataset.stadur = p.id;
+  html.dataset.stadurNafn = p.nafn;
+
+  try {
+    history.replaceState(null, "", sidaSlod(tungumal, p.id) + location.hash);
+  } catch (_) {}
+
+  document.title = t("placeMetaTitle", { place: p.nafn });
+
+  const fyrirsogn = document.getElementById("hero-title");
+  fyrirsogn.removeAttribute("data-i18n");
+  fyrirsogn.textContent = t("placeHeroTitle", { place: p.nafn });
+
+  const inngangur = document.querySelector(".hero-copy");
+  inngangur.setAttribute("data-i18n", "heroCopy");
+  inngangur.textContent = t("heroCopy");
+}
+
 function veljaStad(nafn){
 
   const p =
@@ -2336,6 +2384,7 @@ function veljaStad(nafn){
 
   valinn = p;
   valinnNafn = p.nafn;
+  merkjaStad(p);
 
   teikna();
 
@@ -3195,6 +3244,8 @@ function teikna(){
         valinnNafn =
           valinn.nafn;
 
+        merkjaStad(valinn);
+
         teikna();
       }
     );
@@ -3718,6 +3769,8 @@ document
             valinnNafn =
               nálægastur.nafn;
 
+            merkjaStad(nálægastur);
+
 
             stada.textContent =
               t(
@@ -3766,9 +3819,16 @@ document
     "change",
     e => {
 
-      setLanguage(
-        e.target.value
-      );
+      // Vistað val ræður forsíðunni næst; slóðin ræður síðunni.
+      try {
+        localStorage.setItem("ljosvaktin_language", e.target.value);
+      } catch (_) {}
+
+      location.href =
+        sidaSlod(
+          e.target.value,
+          document.documentElement.dataset.stadur
+        ) + location.hash;
     }
   );
 

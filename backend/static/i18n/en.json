@@ -146,5 +146,28 @@
   "moonLastQuarter": "Last quarter",
   "moonWaningCrescent": "Waning crescent",
   "allRightsReserved": "All rights reserved.",
-  "listSeparator": ", "
+  "listSeparator": ", ",
+  "metaTitle": "Northern Lights Forecast Iceland Tonight – Aurora, Clouds & Darkness | Northseek",
+  "metaDescription": "Where and when to see the northern lights in Iceland tonight. Aurora activity, cloud cover, darkness and moon combined into one score for places around Iceland, updated live.",
+  "placeMetaTitle": "Northern Lights at {place} Tonight – Aurora Forecast | Northseek",
+  "placeMetaDescription": "Will you see the northern lights at {place} tonight? Live aurora forecast for {place}, {region}: aurora activity, cloud cover, darkness and moon combined into one score.",
+  "placeHeroTitle": "Northern Lights at {place} tonight",
+  "placeSummary": "Tonight at {place} ({region}) it is dark from {from} to {to}, with average cloud cover of {cloud}% during the dark hours and aurora activity forecast up to Kp {kp}. The score below updates every few minutes.",
+  "placeSummaryFallback": "Live aurora forecast for {place} ({region}): aurora activity, cloud cover, darkness and moonlight combined into one score, updated every few minutes.",
+  "allPlacesTitle": "Aurora forecast by place",
+  "breadcrumbIceland": "Iceland",
+  "regions": {
+    "Höfuðborgarsvæðið": "Capital Region",
+    "Suðurland": "South Iceland",
+    "Norðurland": "North Iceland",
+    "Suðausturland": "Southeast Iceland",
+    "Snæfellsnes": "Snæfellsnes",
+    "Austurland": "East Iceland",
+    "Vestfirðir": "Westfjords",
+    "Reykjanes": "Reykjanes",
+    "Suðurnes": "Suðurnes",
+    "Vesturland": "West Iceland",
+    "Norðurland vestra": "Northwest Iceland",
+    "Norðurland eystra": "Northeast Iceland"
+  }
 }

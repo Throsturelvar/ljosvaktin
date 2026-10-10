@@ -146,5 +146,28 @@
   "moonLastQuarter": "Ostatnia kwadra",
   "moonWaningCrescent": "Ubywający sierp",
   "allRightsReserved": "Wszelkie prawa zastrzeżone.",
-  "listSeparator": ", "
+  "listSeparator": ", ",
+  "metaTitle": "Prognoza zorzy polarnej Islandia dziś w nocy – aktywność, chmury i ciemność | Northseek",
+  "metaDescription": "Gdzie i kiedy zobaczyć zorzę polarną na Islandii dziś w nocy? Aktywność zorzy, zachmurzenie, ciemność i księżyc połączone w jedną ocenę dla miejsc w całej Islandii, na żywo.",
+  "placeMetaTitle": "Zorza polarna – {place} dziś w nocy – prognoza | Northseek",
+  "placeMetaDescription": "Czy zobaczysz zorzę polarną dziś w nocy? Prognoza na żywo dla miejsca {place} ({region}): aktywność zorzy, zachmurzenie, ciemność i księżyc w jednej ocenie.",
+  "placeHeroTitle": "Zorza polarna – {place} dziś w nocy",
+  "placeSummary": "Dziś w nocy w miejscu {place} ({region}) jest ciemno od {from} do {to}, średnie zachmurzenie w ciemnych godzinach wynosi {cloud}%, a prognozowana aktywność zorzy sięga Kp {kp}. Ocena poniżej odświeża się co kilka minut.",
+  "placeSummaryFallback": "Prognoza zorzy na żywo dla miejsca {place} ({region}): aktywność, zachmurzenie, ciemność i światło księżyca w jednej ocenie, odświeżanej co kilka minut.",
+  "allPlacesTitle": "Prognoza zorzy według miejsca",
+  "breadcrumbIceland": "Islandia",
+  "regions": {
+    "Höfuðborgarsvæðið": "Region stołeczny",
+    "Suðurland": "Islandia Południowa",
+    "Norðurland": "Islandia Północna",
+    "Suðausturland": "Islandia Południowo-Wschodnia",
+    "Snæfellsnes": "Snæfellsnes",
+    "Austurland": "Islandia Wschodnia",
+    "Vestfirðir": "Fiordy Zachodnie",
+    "Reykjanes": "Reykjanes",
+    "Suðurnes": "Suðurnes",
+    "Vesturland": "Islandia Zachodnia",
+    "Norðurland vestra": "Islandia Północno-Zachodnia",
+    "Norðurland eystra": "Islandia Północno-Wschodnia"
+  }
 }
