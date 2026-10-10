@@ -58,8 +58,9 @@ function stadirMedGogn(clouds, sunmoon, dagur) {
   return STADIR.filter((place) => hefurGogn(place, clouds, sunmoon, dagur));
 }
 
-// Mest tveir staðir mega vanta gögn; viðmiðunarstaðurinn (STADIR[0]) aldrei.
-const MEST_VANTAR = 2;
+// Mest fjóra staði mega vanta gögn (t.d. nýja staði fyrir fyrstu cron-keyrslur);
+// viðmiðunarstaðinn (STADIR[0]) aldrei.
+const MEST_VANTAR = 4;
 
 export function isReady(kp, clouds, sunmoon, dagur = 0) {
   if (!kp || !Array.isArray(kp.forecast) || !kp.forecast.length) return false;
