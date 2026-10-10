@@ -51,6 +51,21 @@ const FYRIRTAEKI = {
       texti: { en: "Two hours on Faxaflói bay, away from the city lights. Departs 21:00 from the Old Harbour.", is: "Tvær klukkustundir á Faxaflóa, fjarri borgarljósunum. Brottför 21:00 frá Gömlu höfninni." },
     },
   },
+  guidetoiceland: {
+    nafn: "Guide to Iceland",
+    len: "guidetoiceland.is",
+    gerd: { en: "Northern lights tours across Iceland", is: "Norðurljósaferðir um allt land" },
+    slod: "https://guidetoiceland.is/book-trips-holiday/nature-tours/northern-lights",
+    litur: "#336699",
+    takn: "/syni/guidetoiceland/takn.png",
+    taknGrunnur: "#336699",
+    merki: "/syni/guidetoiceland/logo.svg",
+    mynd: "/syni/guidetoiceland/nordurljos.jpg",
+    auglysing: {
+      fyrirsogn: { en: "Compare northern lights tours", is: "Berðu saman norðurljósaferðir" },
+      texti: { en: "Small-group, super jeep and photography tours from Reykjavík, Akureyri and beyond.", is: "Smáhópar, ofurjeppar og ljósmyndaferðir frá Reykjavík, Akureyri og víðar." },
+    },
+  },
 };
 
 const STADGENGLAR = [
