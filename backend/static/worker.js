@@ -11,6 +11,7 @@
 //   /sitemap.xml búið til (sjá seo.js).
 
 import { greinaSlod, svaraSidu, sitemap } from "./seo.js";
+import { syniSvar } from "./syni-worker.js";
 
 const API_PATHS = new Set(["/api/vakt", "/api/skor"]);
 
@@ -239,6 +240,11 @@ async function svara(request, env, ctx) {
   if (url.pathname === "/maeling") return maelingSida(request, env);
 
   skraUppruna(request, url, env, ctx);
+
+  if (url.pathname.startsWith("/syni/") && request.method === "GET") {
+    const syni = await syniSvar(request, url, ctx);
+    if (syni) return syni;
+  }
 
   if (API_PATHS.has(url.pathname)) {
     if (request.method !== "GET" && request.method !== "HEAD") {

@@ -1,46 +1,58 @@
 // Sýnishorn auglýsingasvæða (aðeins á grein auglysingar-syni, fer ekki í main).
 //
-// Slóðin ?syni=<lykill eða nafn> setur fyrirtæki inn í bæði svæðin:
+// Slóðin ?syni=<lykill, lén eða nafn> setur fyrirtæki inn í bæði svæðin:
 //   1. „Aurora tours tonight“ fyrir neðan Next hour (samstarf með Book now)
 //   2. Auglýsingabox í 8. reit staðanetsins
-// Lykill úr FYRIRTAEKI gefur skráðar upplýsingar; annað er notað sem nafn
-// með sjálfgefnum gildum, t.d. ?syni=Arctic%20Trip. Án ?syni birtast
-// staðgenglar (Fyrirtæki A/B/C). Valið geymist í sessionStorage því
-// staðarval og tungumálaval skipta um slóð án leitarstrengs.
+// Leitað er í þessari röð:
+//   - lykill eða lén í FYRIRTAEKI (handvirkt, t.d. ?syni=elding eða ?syni=elding.is)
+//   - annað lén (t.d. ?syni=sagatravel.is): sérkenni sótt sjálfkrafa um
+//     /syni/merki (sjá syni-worker.js); ?nafn=… yfirskrifar nafnið
+//   - annað: notað sem nafn með sjálfgefnum gildum (t.d. ?syni=Arctic%20Trip)
+// Án ?syni birtast staðgenglar (Fyrirtæki A/B/C). Valið geymist í
+// sessionStorage því staðarval og tungumálaval skipta um slóð án leitarstrengs.
 //
 // index.html kallar á window.syniTeikna() í lok teikna(); hér eru notaðar
-// víðværu breyturnar valinn, nott, tungumal og klstLokTexti þaðan.
+// víðværu breyturnar valinn, valinnNafn, nott, tungumal og klstLokTexti þaðan.
 
 // Nýtt fyrirtæki: bæta við færslu. Allir reitir nema nafn eru valfrjálsir.
-//   gerd      ferðategund og brottfararstaður (enska)
+// Textareitir mega vera strengur eða { en, is }.
+//   len       lén, svo ?syni=<lén> finni færsluna
+//   gerd      ferðategund og brottfararstaður
 //   brottfor  sótt / brottför, "HH:MM"
 //   uti       tíminn á staðnum, ["HH:MM", "HH:MM"]; borið saman við besta gluggann
 //   verd      t.d. "from 12.990 kr"; sleppt ef tómt
 //   endurbokun  true = „Free retry if no lights“
+//   eiginleiki  annar grænn punktur í stað endurbókunar
 //   slod      bókunarsíða
 //   stadur    staður sem er valinn sjálfkrafa (nafn eins og í /api/vakt)
-//   litur     litur merkisins
+//   litur     litur fyrirtækisins (upphafsstafir ef ekkert tákn, rammi á boxi)
+//   takn      lítið merki á ferðakorti; taknGrunnur = bakgrunnur þess
+//   merki     orðmerki (lógó) yfir mynd í boxinu; best hvítt eða ljóst
+//   mynd      mynd í ferðakorti og boxi
 //   auglysing { fyrirsogn, texti } fyrir boxið
+// Myndir fyrirtækja eru í /syni/<lykill>/.
 const FYRIRTAEKI = {
   elding: {
     nafn: "Elding",
-    gerd: "Boat · Reykjavík Old Harbour",
+    len: "elding.is",
+    gerd: { en: "Boat · Old Harbour, Reykjavík", is: "Sigling · Gamla höfnin, Reykjavík" },
     brottfor: "21:00",
     uti: ["21:00", "23:00"],
-    endurbokun: true,
-    slod: "https://elding.is/is/ferdir/nordurljos",
+    eiginleiki: { en: "Sails whenever sea conditions allow", is: "Siglt þegar sjólag leyfir" },
+    slod: { en: "https://elding.is/tours/northern-lights", is: "https://elding.is/is/ferdir/nordurljos" },
     stadur: "Reykjavík / Grótta",
-    litur: "#5FB4E6",
+    litur: "#EF4136",
+    takn: "/syni/elding/takn.png",
+    taknGrunnur: "#0A101C",
+    merki: "/syni/elding/logo.svg",
+    mynd: "/syni/elding/sigling.jpg",
+    myndBreid: "/syni/elding/sigling-breid.jpg",
+    auglysing: {
+      fyrirsogn: { en: "Northern Lights Cruise from Reykjavík", is: "Norðurljósasigling frá Reykjavík" },
+      texti: { en: "Two hours on Faxaflói bay, away from the city lights. Departs 21:00 from the Old Harbour.", is: "Tvær klukkustundir á Faxaflóa, fjarri borgarljósunum. Brottför 21:00 frá Gömlu höfninni." },
+    },
   },
 };
-
-const STADGENGLAR = [
-  { nafn: "Fyrirtæki A", gerd: "Bus · large group", brottfor: "20:30", uti: ["21:15", "23:30"], verd: "from 9.990 kr", endurbokun: true, litur: "#6FF0B4" },
-  { nafn: "Fyrirtæki B", gerd: "Boat · from the harbour", brottfor: "21:00", uti: ["21:00", "23:00"], verd: "from 12.900 kr", endurbokun: true, litur: "#E9C26B" },
-  { nafn: "Fyrirtæki C", gerd: "Photo tour · max 8", brottfor: "20:00", uti: ["21:00", "00:30"], verd: "from 24.500 kr", litur: "#B8BFCD" },
-];
-
-const SJALFGEFID = { gerd: "Northern lights tour", brottfor: "20:30", uti: ["21:00", "23:30"], endurbokun: true, litur: "#E9C26B" };
 
 const SYNI_TEXTAR = {
   en: {
@@ -98,15 +110,29 @@ function hreinsa(x) {
 }
 
 function lesaSyni() {
-  let gildi = new URLSearchParams(location.search).get("syni");
+  const leit = new URLSearchParams(location.search);
+  let gildi = leit.get("syni");
+  let nafn = leit.get("nafn");
   try {
-    if (gildi !== null) sessionStorage.setItem("northseek_syni", gildi);
-    else gildi = sessionStorage.getItem("northseek_syni");
+    if (gildi !== null) {
+      sessionStorage.setItem("northseek_syni", gildi);
+      sessionStorage.setItem("northseek_syni_nafn", nafn || "");
+    } else {
+      gildi = sessionStorage.getItem("northseek_syni");
+      nafn = sessionStorage.getItem("northseek_syni_nafn");
+    }
   } catch (_) {}
   gildi = (gildi || "").trim().slice(0, 60);
   if (!gildi) return null;
-  const skrad = FYRIRTAEKI[gildi.toLowerCase()];
-  return { ...SJALFGEFID, ...(skrad || { nafn: gildi }) };
+
+  const lykill = gildi.toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/.*$/, "");
+  const skrad = FYRIRTAEKI[lykill] || Object.values(FYRIRTAEKI).find((f) => f.len === lykill);
+  if (skrad) return { ...SJALFGEFID, ...skrad, ...(nafn ? { nafn } : {}) };
+
+  if (/^([a-z0-9-]+\.)+[a-z]{2,}$/.test(lykill)) {
+    return { ...SJALFGEFID, nafn: nafn || lykill, len: lykill, slod: `https://${lykill}/`, sjalfvirkt: true, nafnFast: !!nafn };
+  }
+  return { ...SJALFGEFID, nafn: gildi };
 }
 
 const syniFyrirtaeki = lesaSyni();
@@ -114,6 +140,30 @@ const syniFyrirtaeki = lesaSyni();
 // Velja stað fyrirtækisins ef slóðin nefnir engan stað.
 if (syniFyrirtaeki?.stadur && !document.documentElement.dataset.stadurNafn) {
   valinnNafn = syniFyrirtaeki.stadur;
+}
+
+// Sjálfvirk sérkenni: teiknað strax með léninu, aftur þegar þau berast.
+if (syniFyrirtaeki?.sjalfvirkt) {
+  fetch("/syni/merki?d=" + encodeURIComponent(syniFyrirtaeki.len))
+    .then((svar) => (svar.ok ? svar.json() : null))
+    .then((g) => {
+      if (!g) return;
+      if (g.nafn && !syniFyrirtaeki.nafnFast) syniFyrirtaeki.nafn = g.nafn;
+      if (g.takn) { syniFyrirtaeki.takn = g.takn; syniFyrirtaeki.taknGrunnur = "#FFFFFF"; }
+      if (g.mynd) syniFyrirtaeki.mynd = syniFyrirtaeki.myndBreid = g.mynd;
+      if (g.litur) syniFyrirtaeki.litur = g.litur;
+      window.syniTeikna();
+    })
+    .catch(() => {});
+}
+
+function ml(x) {
+  return x && typeof x === "object" ? (x[tungumal] ?? x.en ?? "") : (x ?? "");
+}
+
+// Slóð sem fer inn í style="…url()": aðeins öruggir stafir.
+function cssSlod(u) {
+  return String(u || "").replace(/[^A-Za-z0-9\/._~:?&=%+#-]/g, "");
 }
 
 // Mínútur frá hádegi, svo nóttin sé samfelld yfir miðnætti.
@@ -133,7 +183,7 @@ function upphafsstafir(nafn) {
 function bokunarSlod(f) {
   if (!f.slod) return null;
   try {
-    const u = new URL(f.slod);
+    const u = new URL(ml(f.slod));
     u.searchParams.set("utm_source", "northseek");
     u.searchParams.set("utm_medium", "partner");
     u.searchParams.set("utm_campaign", (valinn?.id || "").replace(/_/g, "-"));
@@ -143,25 +193,33 @@ function bokunarSlod(f) {
   }
 }
 
+function taknHtml(f) {
+  return f.takn
+    ? `<span class="syni-logo med-mynd" style="background:${hreinsa(f.taknGrunnur || "#FFFFFF")}"><img src="${hreinsa(f.takn)}" alt="" loading="lazy"></span>`
+    : `<span class="syni-logo" style="background:${hreinsa(f.litur)}">${hreinsa(upphafsstafir(f.nafn))}</span>`;
+}
+
 function ferdakort(f, gluggi, daufur) {
   const passar = gluggi && f.uti && skarast(f.uti, gluggi);
   const slod = bokunarSlod(f);
   const hnappur = slod
     ? `<a class="syni-boka" href="${hreinsa(slod)}" target="_blank" rel="sponsored noopener">${st("book")}</a>`
     : `<span class="syni-boka" role="presentation">${st("book")}</span>`;
+  const graent = f.eiginleiki ? ml(f.eiginleiki) : f.endurbokun ? st("retry") : "";
   return `
-    <article class="syni-ferd${daufur ? " daufur" : ""}">
+    <article class="syni-ferd${daufur ? " daufur" : ""}${f.mynd ? " med-mynd" : ""}">
+      ${f.mynd ? `<div class="syni-ferd-mynd" style="background-image:url('${cssSlod(f.mynd)}')"></div>` : ""}
       <div class="syni-fyrirtaeki">
-        <span class="syni-logo" style="background:${hreinsa(f.litur)}">${hreinsa(upphafsstafir(f.nafn))}</span>
-        <div><div class="syni-nafn">${hreinsa(f.nafn)}</div><div class="syni-gerd">${hreinsa(f.gerd)}</div></div>
+        ${taknHtml(f)}
+        <div><div class="syni-nafn">${hreinsa(f.nafn)}</div><div class="syni-gerd">${hreinsa(ml(f.gerd))}</div></div>
       </div>
       <div class="syni-linur">
         ${f.brottfor ? `<div><span>${st("pickup")}</span><span>${hreinsa(f.brottfor)}</span></div>` : ""}
         ${f.uti ? `<div><span>${st("atSite")}</span><span class="${passar ? "passar" : ""}">${hreinsa(f.uti[0])}–${hreinsa(f.uti[1])}</span></div>` : ""}
       </div>
-      ${f.endurbokun ? `<span class="syni-trygging">${st("retry")}</span>` : ""}
+      ${graent ? `<span class="syni-trygging">${hreinsa(graent)}</span>` : ""}
       <div class="syni-nedst">
-        <span class="syni-verd">${f.verd ? hreinsa(f.verd) : ""}</span>
+        <span class="syni-verd">${f.verd ? hreinsa(ml(f.verd)) : ""}</span>
         ${hnappur}
       </div>
     </article>`;
@@ -202,15 +260,21 @@ function ferdirHtml() {
 function auglysingHtml() {
   const f = syniFyrirtaeki || { nafn: "Dæmi Gisting", auglysing: { fyrirsogn: "Warm cabins under dark skies", texti: "Stay outside the city lights. 15% off for Northseek visitors." } };
   const nafn = hreinsa(f.nafn);
-  const slod = f.slod ? hreinsa(bokunarSlod(f)) : null;
+  const slod = f.slod ? bokunarSlod(f) : null;
   const tengill = slod
-    ? `<a class="syni-utlinur" href="${slod}" target="_blank" rel="sponsored noopener">${st("heimsaekja", { name: nafn })}</a>`
+    ? `<a class="syni-utlinur" href="${hreinsa(slod)}" target="_blank" rel="sponsored noopener">${st("heimsaekja", { name: nafn })}</a>`
     : `<span class="syni-utlinur">${st("heimsaekja", { name: nafn })}</span>`;
+  const mynd = f.myndBreid || f.mynd;
+  const yfir = f.merki
+    ? `<img class="syni-mynd-merki" src="${hreinsa(f.merki)}" alt="${nafn}">`
+    : f.takn
+      ? taknHtml(f)
+      : `<span>${hreinsa(upphafsstafir(f.nafn))}</span>`;
   return `
     <span class="syni-lbl">${st("augl")}</span>
-    <div class="syni-mynd" role="img" aria-label="${nafn}"><span>${hreinsa(upphafsstafir(f.nafn))}</span></div>
-    <span class="syni-fyr">${f.auglysing?.fyrirsogn ? hreinsa(f.auglysing.fyrirsogn) : st("auglFyrirsogn", { name: nafn })}</span>
-    <span class="syni-lysing">${f.auglysing?.texti ? hreinsa(f.auglysing.texti) : st("auglTexti", { name: nafn })}</span>
+    <div class="syni-mynd${mynd ? " med-mynd" : ""}" role="img" aria-label="${nafn}"${mynd ? ` style="background-image:url('${cssSlod(mynd)}')"` : ""}>${yfir}</div>
+    <span class="syni-fyr">${f.auglysing?.fyrirsogn ? hreinsa(ml(f.auglysing.fyrirsogn)) : st("auglFyrirsogn", { name: nafn })}</span>
+    <span class="syni-lysing">${f.auglysing?.texti ? hreinsa(ml(f.auglysing.texti)) : st("auglTexti", { name: nafn })}</span>
     ${tengill}`;
 }
 
