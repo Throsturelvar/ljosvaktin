@@ -207,8 +207,9 @@ function taknHtml(f) {
     : `<span class="syni-logo" style="background:${hreinsa(f.litur)}">${hreinsa(upphafsstafir(f.nafn))}</span>`;
 }
 
-function ferdakort(f, gluggi, daufur) {
-  const passar = gluggi && f.uti && skarast(f.uti, gluggi);
+// Eitt fyrirtæki í línu: mynd, nafn og tegund, svo bókunarhnappur.
+// Brottfarar- og staðartímar eru ekki sýndir (aðeins notaðir í FYRIRTAEKI til minnis).
+function ferdakort(f, daufur) {
   const slod = bokunarSlod(f);
   const hnappur = slod
     ? `<a class="syni-boka" href="${hreinsa(slod)}" target="_blank" rel="sponsored noopener">${st("book")}</a>`
@@ -217,17 +218,15 @@ function ferdakort(f, gluggi, daufur) {
   return `
     <article class="syni-ferd${daufur ? " daufur" : ""}${f.mynd ? " med-mynd" : ""}">
       ${f.mynd ? `<div class="syni-ferd-mynd" style="background-image:url('${cssSlod(f.mynd)}')"></div>` : ""}
-      <div class="syni-fyrirtaeki">
-        ${taknHtml(f)}
-        <div><div class="syni-nafn">${hreinsa(f.nafn)}</div><div class="syni-gerd">${hreinsa(ml(f.gerd))}</div></div>
+      <div class="syni-midja">
+        <div class="syni-fyrirtaeki">
+          ${taknHtml(f)}
+          <div><div class="syni-nafn">${hreinsa(f.nafn)}</div><div class="syni-gerd">${hreinsa(ml(f.gerd))}</div></div>
+        </div>
+        ${graent ? `<span class="syni-trygging">${hreinsa(graent)}</span>` : ""}
       </div>
-      <div class="syni-linur">
-        ${f.brottfor ? `<div><span>${st("pickup")}</span><span>${hreinsa(f.brottfor)}</span></div>` : ""}
-        ${f.uti ? `<div><span>${st("atSite")}</span><span class="${passar ? "passar" : ""}">${hreinsa(f.uti[0])}–${hreinsa(f.uti[1])}</span></div>` : ""}
-      </div>
-      ${graent ? `<span class="syni-trygging">${hreinsa(graent)}</span>` : ""}
       <div class="syni-nedst">
-        <span class="syni-verd">${f.verd ? hreinsa(ml(f.verd)) : ""}</span>
+        ${f.verd ? `<span class="syni-verd">${hreinsa(ml(f.verd))}</span>` : ""}
         ${hnappur}
       </div>
     </article>`;
@@ -240,8 +239,8 @@ function ferdirHtml() {
     : null;
 
   const ferdir = syniFyrirtaeki
-    ? [syniFyrirtaeki, { ...STADGENGLAR[0], nafn: st("annar"), verd: "" }, { ...STADGENGLAR[2], nafn: st("annar"), verd: "" }]
-    : STADGENGLAR;
+    ? [syniFyrirtaeki, { ...STADGENGLAR[0], nafn: st("annar"), verd: "" }]
+    : STADGENGLAR.slice(0, 2);
 
   const einkunn = s.best;
   const titill = einkunn >= 0.6 ? st("titillGott", { place: s.nafn })
@@ -249,8 +248,7 @@ function ferdirHtml() {
     : st("titill", { place: s.nafn });
 
   const win = gluggi ? `<b>${gluggi[0]}–${gluggi[1]}</b>` : null;
-  const einhverPassar = gluggi && ferdir.some((f) => f.uti && skarast(f.uti, gluggi));
-  const tenging = win ? st(einhverPassar ? "gluggiPassar" : "gluggi", { win }) : "";
+  const tenging = win ? st("gluggi", { win }) : "";
 
   return `
     <div class="syni-haus">
@@ -260,7 +258,7 @@ function ferdirHtml() {
     <h2 class="syni-titill">${hreinsa(titill)}</h2>
     ${tenging ? `<p class="syni-tenging">${tenging}</p>` : ""}
     <div class="syni-rod">
-      ${ferdir.map((f, i) => ferdakort(f, gluggi, syniFyrirtaeki && i > 0)).join("")}
+      ${ferdir.map((f, i) => ferdakort(f, syniFyrirtaeki && i > 0)).join("")}
     </div>
     <p class="syni-fotur">${st("fotur")}</p>`;
 }
