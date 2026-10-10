@@ -41,6 +41,8 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/suncalc/1.9.0/suncalc.min.js"></script>
+<link rel="stylesheet" href="/syni.css">
+<meta name="robots" content="noindex,nofollow">
 
 <style>
 :root{
@@ -3253,6 +3255,8 @@ function teikna(){
 
   val.value =
     s.nafn;
+
+  window.syniTeikna?.();
 }
 
 
@@ -3854,6 +3858,8 @@ setInterval(
 );
 
 </script>
+
+<script src="/syni.js"></script>
 
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"fa1a8ca15b3041faa3d37c930fdde74b","r":1,"spa":2}' crossorigin="anonymous"></script>
 </body>
