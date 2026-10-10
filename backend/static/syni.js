@@ -38,7 +38,6 @@ const FYRIRTAEKI = {
     gerd: { en: "Boat · Old Harbour, Reykjavík", is: "Sigling · Gamla höfnin, Reykjavík" },
     brottfor: "21:00",
     uti: ["21:00", "23:00"],
-    eiginleiki: { en: "Sails whenever sea conditions allow", is: "Siglt þegar sjólag leyfir" },
     slod: { en: "https://elding.is/tours/northern-lights", is: "https://elding.is/is/ferdir/nordurljos" },
     stadur: "Reykjavík / Grótta",
     litur: "#EF4136",
@@ -260,7 +259,7 @@ function ferdirHtml() {
     <div class="syni-rod">
       ${ferdir.map((f, i) => ferdakort(f, syniFyrirtaeki && i > 0)).join("")}
     </div>
-    <p class="syni-fotur">${st("fotur")}</p>`;
+`;
 }
 
 function auglysingHtml() {
