@@ -60,7 +60,7 @@ const STADGENGLAR = [
   { nafn: "Fyrirtæki C", gerd: "Photo tour · max 8", brottfor: "20:00", uti: ["21:00", "00:30"], verd: "from 24.500 kr", litur: "#B8BFCD" },
 ];
 
-const SJALFGEFID = { gerd: "Northern lights tour", brottfor: "20:30", uti: ["21:00", "23:30"], endurbokun: true, litur: "#E9C26B" };
+const SJALFGEFID = { gerd: "Northern lights tour", brottfor: "20:30", uti: ["21:00", "23:30"], endurbokun: false, litur: "#E9C26B" };
 
 const SYNI_TEXTAR = {
   en: {
@@ -68,7 +68,7 @@ const SYNI_TEXTAR = {
     partner: "Partner",
     titill: "Tours from {place} tonight",
     titillGott: "Good night for it – tours from {place}",
-    titillLagt: "Low chance tonight – tours with free retry",
+    titillLagt: "Low chance tonight – tours from {place}",
     gluggi: "Tonight's best window is {win}.",
     gluggiPassar: "Tonight's best window is {win}. These tours are out at that time.",
     pickup: "Pick-up",
@@ -89,7 +89,7 @@ const SYNI_TEXTAR = {
     partner: "Samstarf",
     titill: "Ferðir frá {place} í kvöld",
     titillGott: "Gott kvöld til þess – ferðir frá {place}",
-    titillLagt: "Litlar líkur í kvöld – ferðir með fríri endurbókun",
+    titillLagt: "Litlar líkur í kvöld – ferðir frá {place}",
     gluggi: "Besti gluggi kvöldsins er {win}.",
     gluggiPassar: "Besti gluggi kvöldsins er {win}. Þessar ferðir eru úti á þeim tíma.",
     pickup: "Sótt",
@@ -245,7 +245,7 @@ function ferdirHtml() {
 
   const einkunn = s.best;
   const titill = einkunn >= 0.6 ? st("titillGott", { place: s.nafn })
-    : einkunn < 0.25 ? st("titillLagt")
+    : einkunn < 0.25 ? st("titillLagt", { place: s.nafn })
     : st("titill", { place: s.nafn });
 
   const win = gluggi ? `<b>${gluggi[0]}–${gluggi[1]}</b>` : null;
