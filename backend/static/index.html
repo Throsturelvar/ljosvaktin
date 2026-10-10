@@ -157,6 +157,21 @@ nav a:hover{
   color:var(--bein);
   border-bottom-color:var(--gull-dimm);
 }
+nav a.nav-samband{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  color:var(--gull);
+}
+nav a.nav-samband svg{
+  width:17px;
+  height:17px;
+  flex:none;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.6;
+  stroke-linejoin:round;
+}
 .tungumal-val{
   min-width:124px;
   font-size:15.5px;
@@ -1135,7 +1150,7 @@ if (sidaTungumal !== "en") {
   <div class="haus-haegri">
     <nav>
       <a href="#stadir" data-i18n="navPlaces">Places</a>
-      <a href="#gogn" data-i18n="navData">About the data</a>
+      <a class="nav-samband" href="mailto:northseeknet@gmail.com?subject=Northseek"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="1.5"/><path d="m3.5 6.5 8.5 6.5 8.5-6.5"/></svg><span data-i18n="navContact">Contact</span></a>
     </nav>
 
     <div class="veljari">
@@ -1325,7 +1340,7 @@ const TRANSLATIONS = {
   // og sótt þegar þau eru valin. Nýtt tungumál: bæta við <option> í #tungumalVal og /i18n/<kóði>.json.
   en: {
     "navPlaces": "Places",
-    "navData": "About the data",
+    "navContact": "Contact",
     "facebookGroup": "Facebook group",
     "allRightsReserved": "All rights reserved.",
     "listSeparator": ", ",
