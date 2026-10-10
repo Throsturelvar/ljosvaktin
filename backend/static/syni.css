@@ -108,8 +108,11 @@ a.syni-boka:focus-visible,a.syni-utlinur:focus-visible{outline:2px solid var(--b
 .syni-utlinur{color:var(--gull);font-weight:700;font-size:14.5px;text-decoration:none;margin-top:auto}
 
 @media (max-width:720px){
-  .syni-ferd,.syni-ferd.med-mynd{grid-template-columns:minmax(0,1fr) auto;padding:12px}
-  .syni-ferd-mynd{grid-column:1 / -1}
+  .syni-ferd{grid-template-columns:minmax(0,1fr);gap:12px;padding:12px}
+  .syni-ferd.med-mynd{grid-template-columns:88px minmax(0,1fr)}
+  .syni-ferd-mynd{aspect-ratio:1}
+  .syni-nedst{grid-column:1 / -1}
+  .syni-boka{flex:1;text-align:center}
 }
 
 /* ---------- Sérkenni fyrirtækja: tákn, mynd, orðmerki ---------- */
