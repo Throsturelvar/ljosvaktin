@@ -95,6 +95,8 @@ a.syni-boka:focus-visible,a.syni-utlinur:focus-visible{outline:2px solid var(--b
   flex-direction:column;
   gap:8px;
 }
+/* Tveggja raða hár reitur, svo staðarkortin í sömu röð teygist ekki. */
+@media (min-width:721px){ .syni-augl{grid-row:span 2} }
 .syni-lbl{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--daufari)}
 .syni-mynd{
   aspect-ratio:16/4;
