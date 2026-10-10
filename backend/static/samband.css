@@ -1,0 +1,80 @@
+/* Tillögur að „Contact us“ (sjá samband.js). Notar liti síðunnar úr :root. */
+
+.samband-umslag{
+  width:17px;height:17px;flex:none;
+  fill:none;stroke:currentColor;stroke-width:1.6;stroke-linejoin:round;
+}
+
+/* A: tengill í valmynd */
+nav a.samband-a{display:inline-flex;align-items:center;gap:7px;color:var(--gull)}
+nav a.samband-a:hover{color:var(--gull);border-bottom-color:var(--gull-dimm)}
+
+/* B: borði fyrir ofan haus */
+.samband-b{
+  display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:4px 10px;
+  padding:9px 0 8px;
+  border-bottom:1px solid var(--lina-syn);
+  font-size:14px;color:var(--daufari);
+}
+.samband-b a{display:inline-flex;align-items:center;gap:6px;color:var(--gull);text-decoration:none;font-weight:600}
+.samband-b a:hover{text-decoration:underline;text-underline-offset:3px}
+.samband-b .samband-umslag{width:15px;height:15px}
+
+/* C: lína undir inngangi */
+.samband-c{
+  display:flex;align-items:flex-start;gap:10px;
+  margin:22px 0 0;max-width:34em;
+  font-size:16px;line-height:1.5;color:var(--daufari);
+}
+.samband-c .samband-umslag{margin-top:3px;color:var(--gull)}
+.samband-c a{color:var(--bein);text-decoration:underline;text-decoration-color:var(--gull-dimm);text-underline-offset:4px}
+.samband-c a:hover{text-decoration-color:var(--gull)}
+
+/* D: hnappur með glugga */
+.samband-d{position:relative}
+.samband-d-hnappur{
+  display:inline-flex;align-items:center;gap:8px;
+  font:inherit;font-size:15.5px;
+  color:var(--gull);background:transparent;
+  border:1px solid var(--gull-dimm);border-radius:var(--br);
+  padding:7px 14px;cursor:pointer;
+}
+.samband-d-hnappur:hover,.samband-d-hnappur[aria-expanded="true"]{border-color:var(--gull);background:rgba(233,194,107,.08)}
+.samband-d-gluggi{
+  position:absolute;right:0;top:calc(100% + 8px);z-index:50;
+  width:min(320px,calc(100vw - 32px));
+  background:var(--flotur);
+  border:1px solid var(--lina-syn);border-radius:var(--br);
+  box-shadow:0 14px 34px rgba(0,0,0,.45);
+  padding:14px 16px;
+}
+.samband-d-gluggi p{margin:0 0 10px;font-size:14.5px;line-height:1.45;color:var(--daufur)}
+.samband-d-rod{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.samband-d-rod a{color:var(--bein);font-weight:600;text-decoration:none;font-size:15px}
+.samband-d-rod a:hover{color:var(--gull)}
+.samband-afrita{
+  font:inherit;font-size:13.5px;font-weight:600;
+  color:var(--djup);background:var(--gull);
+  border:0;border-radius:var(--br);padding:5px 10px;cursor:pointer;
+}
+@media (max-width:720px){
+  .samband-d-gluggi{right:auto;left:0}
+}
+
+/* Rofi milli tillagna (aðeins í sýnishorni) */
+.samband-rofi{
+  position:fixed;left:12px;bottom:12px;z-index:1001;
+  display:flex;align-items:center;gap:4px;
+  padding:5px 6px 5px 12px;
+  background:#F28DB8;color:var(--djup);
+  border-radius:999px;
+  font-size:12.5px;font-weight:600;
+  box-shadow:0 6px 18px rgba(0,0,0,.35);
+}
+.samband-rofi span{margin-right:6px}
+.samband-rofi a{
+  display:grid;place-items:center;
+  width:24px;height:24px;border-radius:50%;
+  color:var(--djup);text-decoration:none;
+}
+.samband-rofi a[aria-current]{background:var(--djup);color:#F28DB8}
