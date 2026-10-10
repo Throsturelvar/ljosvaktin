@@ -1098,7 +1098,12 @@ if (!TUNGUMALASLODIR.hasOwnProperty(sidaTungumal)) {
     }
   }
   if (sidaTungumal !== "en" && location.pathname === "/") {
-    location.replace(sidaSlod(sidaTungumal) + location.search + location.hash);
+    // utm_*-breyturnar eru þegar taldar á fyrstu beiðninni (skraUppruna í
+    // worker.js); án þeirra telst heimsóknin ekki tvisvar.
+    var leit = location.search.replace(/^\?/, "").split("&").filter(function (p) {
+      return p && !/^utm_/i.test(p);
+    }).join("&");
+    location.replace(sidaSlod(sidaTungumal) + (leit ? "?" + leit : "") + location.hash);
   }
 }
 
