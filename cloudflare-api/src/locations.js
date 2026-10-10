@@ -20,6 +20,7 @@ export const STADIR = [
   { id: "mosfellsbaer", nafn: "Mosfellsbæjarheiði", hluti: "Höfuðborgarsvæðið", lat: 64.1655, lon: -21.6903 },
   { id: "kleifarvatn", nafn: "Kleifarvatn", hluti: "Reykjanes", lat: 63.9169, lon: -22.0503 },
   { id: "selfoss", nafn: "Selfoss", hluti: "Suðurland", lat: 63.9333, lon: -20.9833 },
+  { id: "hveragerdi", nafn: "Hveragerði", hluti: "Suðurland", lat: 64.0003, lon: -21.1868 },
   { id: "vestmannaeyjar", nafn: "Vestmannaeyjar", hluti: "Suðurland", lat: 63.4427, lon: -20.2734 },
   { id: "landmannalaugar", nafn: "Landmannalaugar", hluti: "Suðurland", lat: 63.9932, lon: -19.0623 },
   { id: "blaa_lonid", nafn: "Bláa lónið", hluti: "Reykjanes", lat: 63.8804, lon: -22.4495 },

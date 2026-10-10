@@ -47,14 +47,24 @@ function hasNight(rawDays, dagur) {
   return !!days && days.length >= dagur + 2;
 }
 
+function hefurGogn(place, clouds, sunmoon, dagur) {
+  const cloud = clouds?.stadir?.[place.id];
+  return !!cloud && Object.keys(cloud).length > 0 && hasNight(sunmoon?.stadir?.[place.id], dagur);
+}
+
+// Staðir sem hafa skýja- og sól-/tunglgögn fyrir nóttina. Nýr staður bíður
+// þannig fyrstu cron-keyrslna (allt að ~2 klst.) án þess að stöðva API-ið.
+function stadirMedGogn(clouds, sunmoon, dagur) {
+  return STADIR.filter((place) => hefurGogn(place, clouds, sunmoon, dagur));
+}
+
+// Mest tveir staðir mega vanta gögn; viðmiðunarstaðurinn (STADIR[0]) aldrei.
+const MEST_VANTAR = 2;
+
 export function isReady(kp, clouds, sunmoon, dagur = 0) {
   if (!kp || !Array.isArray(kp.forecast) || !kp.forecast.length) return false;
-  for (const place of STADIR) {
-    const days = sunmoon?.stadir?.[place.id];
-    const cloud = clouds?.stadir?.[place.id];
-    if (!cloud || !Object.keys(cloud).length || !hasNight(days, dagur)) return false;
-  }
-  return true;
+  if (!hefurGogn(STADIR[0], clouds, sunmoon, dagur)) return false;
+  return stadirMedGogn(clouds, sunmoon, dagur).length >= STADIR.length - MEST_VANTAR;
 }
 
 export function diagnosticStatus(kp, clouds, sunmoon) {
@@ -135,7 +145,7 @@ export function vakt(dagur, kp, clouds, sunmoon, solar, ovation = null) {
   const ovationIndex = {};
   if (dagur === 0) for (const x of ovation?.stadir || []) ovationIndex[x.id] = x.virkni_ovation;
 
-  const output = STADIR.map((place) => {
+  const output = stadirMedGogn(clouds, sunmoon, dagur).map((place) => {
     const cloud = loadCloud(clouds.stadir[place.id]);
     const atDusk = scoring.naestigildi(cloud, dusk);
     return {
@@ -196,7 +206,7 @@ export function skor(dagur, kp, clouds, sunmoon, ovation) {
   const ovationIndex = {};
   for (const x of ovation?.stadir || []) ovationIndex[x.id] = x.virkni_ovation;
 
-  const results = STADIR.map((place) => {
+  const results = stadirMedGogn(clouds, sunmoon, dagur).map((place) => {
     const pid = place.id;
     const days = loadDays(sunmoon.stadir[pid]);
     const cloud = loadCloud(clouds.stadir[pid]);
