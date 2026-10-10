@@ -30,6 +30,13 @@ async function geymt(request, ctx, smida) {
   return svar;
 }
 
+// HTMLRewriter skilar texta og eigindum óafkóðuðum (t.d. S&yacute;sli).
+const NEFND = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " ", aacute: "á", eacute: "é", iacute: "í", oacute: "ó", uacute: "ú", yacute: "ý", eth: "ð", thorn: "þ", aelig: "æ", ouml: "ö", Aacute: "Á", Eacute: "É", Iacute: "Í", Oacute: "Ó", Uacute: "Ú", Yacute: "Ý", ETH: "Ð", THORN: "Þ", AElig: "Æ", Ouml: "Ö", ndash: "–", mdash: "—" };
+function afkoda(x) {
+  return x.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (m, k) =>
+    k[0] === "#" ? String.fromCodePoint(k[1] === "x" || k[1] === "X" ? parseInt(k.slice(2), 16) : Number(k.slice(1))) : (NEFND[k] ?? m));
+}
+
 function stærð(sizes) {
   const m = /(\d+)x(\d+)/.exec(sizes || "");
   return m ? Number(m[1]) : 0;
@@ -79,7 +86,7 @@ async function lesaMerki(len) {
   const ummyndun = (u) => (u ? "/syni/mynd?u=" + encodeURIComponent(u) : "");
   g.tokn.sort((a, b) => b.vaegi - a.vaegi);
   const takn = g.tokn.length ? fullt(g.tokn[0].href) : fullt("/favicon.ico");
-  const nafn = (g.nafn || g.titill.split(/\s[|–—-]\s/)[0] || len).trim().slice(0, 60);
+  const nafn = afkoda(g.nafn || g.titill.split(/\s[|–—-]\s/)[0] || len).trim().slice(0, 60);
   const litur = /^#[0-9a-f]{3,8}$/i.test(g.litur.trim()) ? g.litur.trim() : "";
 
   return { len, nafn, takn: ummyndun(takn), mynd: ummyndun(fullt(g.mynd)), litur };
