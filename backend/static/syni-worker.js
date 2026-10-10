@@ -95,6 +95,8 @@ async function lesaMerki(len) {
 async function saekjaMynd(u) {
   let slod;
   try { slod = new URL(u); } catch (_) { return new Response("Bad url", { status: 400 }); }
+  // Sumar síður gefa og:image með http:// þótt myndin sé líka á https.
+  if (slod.protocol === "http:") slod.protocol = "https:";
   if (slod.protocol !== "https:" || !LEN.test(slod.hostname)) return new Response("Bad url", { status: 400 });
   const svar = await fetch(slod, { headers: { "User-Agent": VAFRI }, redirect: "follow", signal: AbortSignal.timeout(6000) });
   const gerd = svar.headers.get("Content-Type") || "";
