@@ -169,5 +169,20 @@
     "Vesturland": "Islandia Zachodnia",
     "Norðurland vestra": "Islandia Północno-Zachodnia",
     "Norðurland eystra": "Islandia Północno-Wschodnia"
-  }
+  },
+  "toursKicker": "Wycieczki na zorzę dziś",
+  "toursPartner": "Partner",
+  "toursTitle": "Wycieczki i noclegi – {place}",
+  "toursBook": "Zarezerwuj",
+  "toursSeeStays": "Zobacz noclegi",
+  "toursDisclosure": "Linki partnerskie – Northseek może otrzymać prowizję bez dodatkowych kosztów dla Ciebie.",
+  "gtiReykjavik": "Wycieczki na zorzę z Reykjavíku",
+  "gtiBoat": "Rejs na zorzę z Reykjavíku",
+  "gtiAkureyri": "Wycieczka na zorzę z Akureyri",
+  "gtiHotels": "Hotele na zorzę polarną",
+  "gtiAll": "Wszystkie wycieczki na zorzę na Islandii",
+  "toursSeeTrip": "Zobacz wycieczkę",
+  "gtiTripSouth": "6-dniowa podróż autem za zorzą – południowe wybrzeże",
+  "gtiTripRing": "10-dniowa podróż autem za zorzą dookoła Islandii",
+  "gtiTripSub": "Auto, hotele i plan podróży · samodzielnie"
 }

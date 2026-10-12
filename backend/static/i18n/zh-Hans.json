@@ -169,5 +169,20 @@
     "Vesturland": "西冰岛",
     "Norðurland vestra": "西北冰岛",
     "Norðurland eystra": "东北冰岛"
-  }
+  },
+  "toursKicker": "今晚极光团",
+  "toursPartner": "合作伙伴",
+  "toursTitle": "{place}附近的行程和住宿",
+  "toursBook": "立即预订",
+  "toursSeeStays": "查看住宿",
+  "toursDisclosure": "合作链接——Northseek 可能获得佣金，您无需额外付费。",
+  "gtiReykjavik": "雷克雅未克出发的极光团",
+  "gtiBoat": "雷克雅未克出发的极光游船",
+  "gtiAkureyri": "阿克雷里出发的极光团",
+  "gtiHotels": "适合看极光的酒店",
+  "gtiAll": "冰岛全部极光团",
+  "toursSeeTrip": "查看行程",
+  "gtiTripSouth": "6天极光自驾游 – 南岸",
+  "gtiTripRing": "10天极光环岛自驾游",
+  "gtiTripSub": "含租车、酒店和行程 · 自驾"
 }

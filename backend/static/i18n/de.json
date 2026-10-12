@@ -169,5 +169,20 @@
     "Vesturland": "Westisland",
     "Norðurland vestra": "Nordwestisland",
     "Norðurland eystra": "Nordostisland"
-  }
+  },
+  "toursKicker": "Polarlichttouren heute Abend",
+  "toursPartner": "Partner",
+  "toursTitle": "Touren und Unterkünfte – {place}",
+  "toursBook": "Jetzt buchen",
+  "toursSeeStays": "Unterkünfte ansehen",
+  "toursDisclosure": "Partnerlinks – Northseek erhält ggf. eine Provision, für dich ohne Mehrkosten.",
+  "gtiReykjavik": "Polarlichttouren ab Reykjavík",
+  "gtiBoat": "Polarlicht-Bootstour ab Reykjavík",
+  "gtiAkureyri": "Polarlichttour ab Akureyri",
+  "gtiHotels": "Hotels für Polarlichter",
+  "gtiAll": "Alle Polarlichttouren in Island",
+  "toursSeeTrip": "Reise ansehen",
+  "gtiTripSouth": "6-tägiger Polarlicht-Roadtrip – Südküste",
+  "gtiTripRing": "10-tägiger Polarlicht-Roadtrip rund um Island",
+  "gtiTripSub": "Auto, Hotels und Reiseplan · Selbstfahrer"
 }

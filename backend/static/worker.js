@@ -149,17 +149,25 @@ async function maelingSida(request, env) {
   }
   const db = env.MAELING_DB;
   const [dagar, uppruni, lond, herferdir] = await Promise.all([
-    db.prepare(`SELECT dagur, uppruni, SUM(fjoldi) n FROM heimsoknir WHERE dagur >= date('now', '-29 days')
+    db.prepare(`SELECT dagur, uppruni, SUM(fjoldi) n FROM heimsoknir WHERE dagur >= date('now', '-29 days') AND uppruni NOT LIKE 'ut:%'
                 GROUP BY dagur, uppruni ORDER BY dagur`).all(),
     db.prepare(`SELECT uppruni,
                   SUM(fjoldi) alls,
                   SUM(CASE WHEN dagur >= date('now', '-6 days') THEN fjoldi ELSE 0 END) vika,
                   SUM(CASE WHEN dagur = date('now') THEN fjoldi ELSE 0 END) idag
-                FROM heimsoknir GROUP BY uppruni ORDER BY alls DESC`).all(),
-    db.prepare(`SELECT uppruni, land, SUM(fjoldi) n FROM heimsoknir GROUP BY uppruni, land ORDER BY n DESC LIMIT 40`).all(),
-    db.prepare(`SELECT uppruni, herferd, SUM(fjoldi) n FROM heimsoknir WHERE herferd != '' GROUP BY uppruni, herferd ORDER BY n DESC LIMIT 20`).all(),
+                FROM heimsoknir WHERE uppruni NOT LIKE 'ut:%' GROUP BY uppruni ORDER BY alls DESC`).all(),
+    db.prepare(`SELECT uppruni, land, SUM(fjoldi) n FROM heimsoknir WHERE uppruni NOT LIKE 'ut:%' GROUP BY uppruni, land ORDER BY n DESC LIMIT 40`).all(),
+    db.prepare(`SELECT uppruni, herferd, SUM(fjoldi) n FROM heimsoknir WHERE herferd != '' AND uppruni NOT LIKE 'ut:%' GROUP BY uppruni, herferd ORDER BY n DESC LIMIT 20`).all(),
   ]);
-  return new Response(maelingHtml(dagar.results, uppruni.results, lond.results, herferdir.results), {
+  // Smellir á samstarfshlekki (/go/gti): herferð er "<spjald>/<staður>".
+  const smellir = await db.prepare(`SELECT
+      substr(herferd, 1, instr(herferd, '/') - 1) spjald,
+      substr(herferd, instr(herferd, '/') + 1) stadur,
+      SUM(fjoldi) alls,
+      SUM(CASE WHEN dagur >= date('now', '-6 days') THEN fjoldi ELSE 0 END) vika,
+      SUM(CASE WHEN dagur = date('now') THEN fjoldi ELSE 0 END) idag
+    FROM heimsoknir WHERE uppruni = 'ut:guidetoiceland' GROUP BY herferd ORDER BY alls DESC`).all();
+  return new Response(maelingHtml(dagar.results, uppruni.results, lond.results, herferdir.results, smellir.results), {
     headers: { ...LOKAD_HAUSAR, "Content-Type": "text/html; charset=utf-8" },
   });
 }
@@ -167,7 +175,7 @@ async function maelingSida(request, env) {
 const esc = (x) => String(x).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 const tala = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
-function maelingHtml(dagar, uppruni, lond, herferdir) {
+function maelingHtml(dagar, uppruni, lond, herferdir, smellir = []) {
   const LITIR = ["#E9C26B", "#5FD3A0", "#7FA7F0", "#E58A6B", "#B68CF0"];
   const litur = Object.fromEntries(uppruni.map((u, i) => [u.uppruni, LITIR[i % LITIR.length]]));
   // síðustu 30 dagar, staflaðar súlur eftir uppruna
@@ -189,6 +197,24 @@ function maelingHtml(dagar, uppruni, lond, herferdir) {
     : `<p class="tomt">Engar heimsóknir enn. Þær birtast hér um leið og einhver opnar slóð með <code>?utm_source=…</code>, t.d. með því að skanna QR-kóðann.</p>`;
   const landaRadir = lond.map((r) => `<tr><td>${esc(r.uppruni)}</td><td>${esc(r.land || "?")}</td><td class="n">${tala(r.n)}</td></tr>`).join("");
   const herfRadir = herferdir.map((r) => `<tr><td>${esc(r.uppruni)}</td><td>${esc(r.herferd)}</td><td class="n">${tala(r.n)}</td></tr>`).join("");
+  const summa = (lykill) => smellir.reduce((a, r) => a + r[lykill], 0);
+  const eftirSpjaldi = {};
+  for (const r of smellir) eftirSpjaldi[r.spjald] = (eftirSpjaldi[r.spjald] || 0) + r.alls;
+  const spjaldRadir = Object.entries(eftirSpjaldi).sort((a, b) => b[1] - a[1])
+    .map(([k, n]) => `<tr><td>${esc(k)}</td><td class="n">${tala(n)}</td></tr>`).join("");
+  const smellRadir = smellir.slice(0, 20)
+    .map((r) => `<tr><td>${esc(r.stadur)}</td><td>${esc(r.spjald)}</td><td class="n">${tala(r.vika)}</td><td class="n">${tala(r.alls)}</td></tr>`).join("");
+  const smellaHluti = `
+<div><h1>Smellir á Guide to Iceland</h1><p class="undir">Talið þegar smellt er á hnapp í „Aurora tours tonight“ á northseek.net (<code>/go/gti</code>). Bókanir og þóknun sjást aðeins á Guide to Iceland-reikningnum.</p></div>
+<div class="reitir">
+<div class="reitur"><div class="heiti">Í dag</div><div class="stor">${tala(summa("idag"))}</div></div>
+<div class="reitur"><div class="heiti">Síðustu 7 dagar</div><div class="stor">${tala(summa("vika"))}</div></div>
+<div class="reitur"><div class="heiti">Alls</div><div class="stor">${tala(summa("alls"))}</div></div>
+</div>
+<div class="tvo">
+<div class="kort"><h2>Eftir spjaldi</h2>${spjaldRadir ? `<table><tr><th>Spjald</th><th class="n">Alls</th></tr>${spjaldRadir}</table>` : `<p class="tomt">Engir smellir enn.</p>`}</div>
+<div class="kort"><h2>Eftir stað</h2>${smellRadir ? `<table><tr><th>Staður</th><th>Spjald</th><th class="n">7 d.</th><th class="n">Alls</th></tr>${smellRadir}</table>` : `<p class="tomt">Engir smellir enn.</p>`}</div>
+</div>`;
   return `<!doctype html><html lang="is"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow"><title>Northseek mæling</title>
 <style>
@@ -219,7 +245,7 @@ th{color:var(--daufur);font-weight:500;font-size:12px;text-transform:uppercase;l
 <div class="tvo">
 <div class="kort"><h2>Lönd</h2>${landaRadir ? `<table><tr><th>Uppruni</th><th>Land</th><th class="n">Fjöldi</th></tr>${landaRadir}</table>` : `<p class="tomt">Ekkert enn.</p>`}</div>
 <div class="kort"><h2>Herferðir (utm_campaign)</h2>${herfRadir ? `<table><tr><th>Uppruni</th><th>Herferð</th><th class="n">Fjöldi</th></tr>${herfRadir}</table>` : `<p class="tomt">Engin herferð skráð enn.</p>`}</div>
-</div></div></body></html>`;
+</div>${smellaHluti}</div></body></html>`;
 }
 
 export default {
@@ -227,6 +253,48 @@ export default {
     return medHausum(await svara(request, env, ctx), new URL(request.url));
   },
 };
+
+// /go/gti?k=<lykill>&s=<staður>: þóknunarhlekkir Guide to Iceland í
+// „Aurora tours tonight“ (sjá ferdir.js). Aðeins slóðir úr GTI_SLODIR, svo
+// þetta verði ekki opin framsending. Smellir á northseek.net eru taldir í
+// heimsoknir með uppruna "ut:guidetoiceland" og herferð "<lykill>/<staður>".
+const GTI_AUDKENNI = "1143913";
+const GTI_SLODIR = {
+  reykjavik: "/book-trips-holiday/nature-tours/northern-lights",
+  sigling: "/book-holiday-trips/northern-lights-by-boat",
+  akureyri: "/book-holiday-trips/the-northern-lights-akureyri",
+  gisting: "/accommodation/northern-lights-hotels-iceland",
+  allar: "/book-trips-holiday/nature-tours/northern-lights",
+  pakki_sudur: "/book-holiday-trips/6-day-winter-self-drive-tour-magical-south-iceland",
+  pakki_hringur: "/book-holiday-trips/10-day-winter-self-drive-tour-the-circle-of-iceland",
+};
+
+function gtiFramsending(request, url, env, ctx) {
+  const lykill = url.searchParams.get("k") || "";
+  const slod = GTI_SLODIR[lykill] || GTI_SLODIR.allar;
+  const stadur = (url.searchParams.get("s") || "").toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 40);
+
+  if (url.hostname === "northseek.net" && env.MAELING_DB && !BOTTAR.test(request.headers.get("User-Agent") || "")) {
+    const dagur = new Date().toISOString().slice(0, 10);
+    ctx.waitUntil(
+      env.MAELING_DB.prepare(
+        `INSERT INTO heimsoknir (dagur, uppruni, herferd, land, fjoldi) VALUES (?1, ?2, ?3, ?4, 1)
+         ON CONFLICT (dagur, uppruni, herferd, land) DO UPDATE SET fjoldi = fjoldi + 1`,
+      ).bind(dagur, "ut:guidetoiceland", `${GTI_SLODIR[lykill] ? lykill : "allar"}/${stadur}`, request.cf?.country || "")
+        .run()
+        .catch((error) => console.error("Talning smells mistókst", error)),
+    );
+  }
+
+  return new Response(null, {
+    status: 302,
+    headers: {
+      Location: `https://guidetoiceland.is${slod}?a=${GTI_AUDKENNI}`,
+      "Cache-Control": "no-store",
+      "X-Robots-Tag": "noindex, nofollow",
+    },
+  });
+}
 
 async function svara(request, env, ctx) {
   const url = new URL(request.url);
@@ -237,6 +305,7 @@ async function svara(request, env, ctx) {
   }
 
   if (url.pathname === "/maeling") return maelingSida(request, env);
+  if (url.pathname === "/go/gti") return gtiFramsending(request, url, env, ctx);
 
   skraUppruna(request, url, env, ctx);
 

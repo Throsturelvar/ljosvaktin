@@ -172,5 +172,20 @@
     "Vesturland": "Vesturland",
     "Norðurland vestra": "Norðurland vestra",
     "Norðurland eystra": "Norðurland eystra"
-  }
+  },
+  "toursKicker": "Norðurljósaferðir í kvöld",
+  "toursPartner": "Samstarf",
+  "toursTitle": "Ferðir og gisting – {place}",
+  "toursBook": "Bóka",
+  "toursSeeStays": "Skoða gistingu",
+  "toursDisclosure": "Samstarfshlekkir – Northseek gæti fengið þóknun, án aukakostnaðar fyrir þig.",
+  "gtiReykjavik": "Norðurljósaferðir frá Reykjavík",
+  "gtiBoat": "Norðurljósasigling frá Reykjavík",
+  "gtiAkureyri": "Norðurljósaferð frá Akureyri",
+  "gtiHotels": "Norðurljósahótel",
+  "gtiAll": "Allar norðurljósaferðir á Íslandi",
+  "toursSeeTrip": "Skoða ferð",
+  "gtiTripSouth": "6 daga norðurljósaferð á eigin bíl – suðurströnd",
+  "gtiTripRing": "10 daga norðurljósaferð á eigin bíl um Ísland",
+  "gtiTripSub": "Bíll, gisting og ferðaáætlun · á eigin vegum"
 }

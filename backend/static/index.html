@@ -41,6 +41,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/suncalc/1.9.0/suncalc.min.js"></script>
+<link rel="stylesheet" href="/ferdir.css">
 
 <style>
 :root{
@@ -1338,6 +1339,21 @@ const TRANSLATIONS = {
   en: {
     "navPlaces": "Places",
     "navContact": "Contact",
+    "toursKicker": "Aurora tours tonight",
+    "toursPartner": "Partner",
+    "toursTitle": "Tours and stays – {place}",
+    "toursBook": "Book now",
+    "toursSeeStays": "See stays",
+    "toursDisclosure": "Partner links – Northseek may earn a commission at no extra cost to you.",
+    "gtiReykjavik": "Northern lights tours from Reykjavík",
+    "gtiBoat": "Northern lights cruise from Reykjavík",
+    "gtiAkureyri": "Northern lights tour from Akureyri",
+    "gtiHotels": "Hotels for northern lights",
+    "gtiAll": "All northern lights tours in Iceland",
+    "toursSeeTrip": "See trip",
+    "gtiTripSouth": "6-day aurora road trip – South Coast",
+    "gtiTripRing": "10-day aurora road trip around Iceland",
+    "gtiTripSub": "Car, hotels and itinerary · self-drive",
     "facebookGroup": "Facebook group",
     "allRightsReserved": "All rights reserved.",
     "listSeparator": ", ",
@@ -3268,6 +3284,8 @@ function teikna(){
 
   val.value =
     s.nafn;
+
+  window.ferdirTeikna?.();
 }
 
 
@@ -3870,6 +3888,7 @@ setInterval(
 
 </script>
 
+<script src="/ferdir.js"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"fa1a8ca15b3041faa3d37c930fdde74b","r":1,"spa":2}' crossorigin="anonymous"></script>
 </body>
 </html>
