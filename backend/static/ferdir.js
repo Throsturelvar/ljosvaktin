@@ -5,7 +5,7 @@
 // telur smellinn og framsendir (sjá GTI_SLODIR í worker.js).
 //
 // Tvö spjöld eftir landshluta valins staðar. Nýtt spjald: bæta við SPJOLD
-// hér, slóð í GTI_SLODIR í worker.js og texta í /i18n/*.json (+ en í index.html).
+// hér, mynd í /images/gti/<lykill>.jpg, slóð í GTI_SLODIR í worker.js og texta í /i18n/*.json (+ en í index.html).
 //
 // index.html kallar á window.ferdirTeikna() í lok teikna(); hér eru notaðar
 // víðværu breyturnar valinn og t() þaðan.
@@ -28,12 +28,13 @@
   const hreinsa = (x) =>
     String(x).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
-  function spjald(lykill, stadurId, medMynd) {
+  // Hvert spjald hefur sína mynd í /images/gti/<lykill>.jpg (myndir frá GTI).
+  function spjald(lykill, stadurId) {
     const s = SPJOLD[lykill];
     const slod = `/go/gti?k=${lykill}&s=${encodeURIComponent(stadurId)}`;
     return `
-      <article class="ferd${medMynd ? " med-mynd" : ""}">
-        ${medMynd ? '<div class="ferd-mynd" role="presentation"></div>' : ""}
+      <article class="ferd">
+        <div class="ferd-mynd" role="presentation" style="background-image:url('/images/gti/${lykill}.jpg')"></div>
         <div class="ferd-midja">
           <img class="ferd-takn" src="/images/gti/takn.png" alt="" width="34" height="34" loading="lazy">
           <div>
@@ -65,7 +66,7 @@
       </div>
       <h2 class="ferdir-titill" id="ferdir-titill">${hreinsa(t("toursTitle", { place: valinn.nafn }))}</h2>
       <div class="ferdir-rod">
-        ${spjoldFyrir(valinn.hluti || "").map((k, i) => spjald(k, valinn.id, i === 0)).join("")}
+        ${spjoldFyrir(valinn.hluti || "").map((k) => spjald(k, valinn.id)).join("")}
       </div>
       <p class="ferdir-fotur">${hreinsa(t("toursDisclosure"))}</p>`;
   };
