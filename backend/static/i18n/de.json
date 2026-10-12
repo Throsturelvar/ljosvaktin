@@ -180,5 +180,12 @@
   "gtiBoat": "Polarlicht-Bootstour ab Reykjavík",
   "gtiAkureyri": "Polarlichttour ab Akureyri",
   "gtiHotels": "Hotels für Polarlichter",
-  "gtiAll": "Alle Polarlichttouren in Island"
+  "gtiAll": "Alle Polarlichttouren in Island",
+  "toursSeeCars": "Autos ansehen",
+  "gtiCarKef": "Mietwagen am Flughafen Keflavík",
+  "gtiCarRvk": "Mietwagen in Reykjavík",
+  "gtiCarAey": "Mietwagen in Akureyri",
+  "gtiCarRoam": "Fahr zwischen Polarlicht-Orten · {km} km entfernt",
+  "gtiCarNear": "Fahr zwischen Polarlicht-Orten · Abholung in der Nähe",
+  "gtiCarDrive": "Fahr zwischen Polarlicht-Orten"
 }

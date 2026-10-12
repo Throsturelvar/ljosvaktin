@@ -180,5 +180,12 @@
   "gtiBoat": "Northern lights cruise from Reykjavík",
   "gtiAkureyri": "Northern lights tour from Akureyri",
   "gtiHotels": "Hotels for northern lights",
-  "gtiAll": "All northern lights tours in Iceland"
+  "gtiAll": "All northern lights tours in Iceland",
+  "toursSeeCars": "See cars",
+  "gtiCarKef": "Car rental at Keflavík Airport",
+  "gtiCarRvk": "Car rental in Reykjavík",
+  "gtiCarAey": "Car rental in Akureyri",
+  "gtiCarRoam": "Drive between aurora spots · {km} km away",
+  "gtiCarNear": "Drive between aurora spots · pickup nearby",
+  "gtiCarDrive": "Drive between aurora spots"
 }

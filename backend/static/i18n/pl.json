@@ -180,5 +180,12 @@
   "gtiBoat": "Rejs na zorzę z Reykjavíku",
   "gtiAkureyri": "Wycieczka na zorzę z Akureyri",
   "gtiHotels": "Hotele na zorzę polarną",
-  "gtiAll": "Wszystkie wycieczki na zorzę na Islandii"
+  "gtiAll": "Wszystkie wycieczki na zorzę na Islandii",
+  "toursSeeCars": "Zobacz auta",
+  "gtiCarKef": "Wynajem aut na lotnisku Keflavík",
+  "gtiCarRvk": "Wynajem aut w Reykjavíku",
+  "gtiCarAey": "Wynajem aut w Akureyri",
+  "gtiCarRoam": "Jedź między miejscami zorzy · {km} km stąd",
+  "gtiCarNear": "Jedź między miejscami zorzy · odbiór w pobliżu",
+  "gtiCarDrive": "Jedź między miejscami zorzy"
 }

@@ -180,5 +180,12 @@
   "gtiBoat": "雷克雅維克出發的極光遊船",
   "gtiAkureyri": "阿克雷里出發的極光團",
   "gtiHotels": "適合看極光的飯店",
-  "gtiAll": "冰島全部極光團"
+  "gtiAll": "冰島全部極光團",
+  "toursSeeCars": "查看車輛",
+  "gtiCarKef": "凱夫拉維克機場租車",
+  "gtiCarRvk": "雷克雅維克租車",
+  "gtiCarAey": "阿克雷里租車",
+  "gtiCarRoam": "自駕追尋極光 · 距此 {km} 公里",
+  "gtiCarNear": "自駕追尋極光 · 附近即可取車",
+  "gtiCarDrive": "自駕追尋極光"
 }

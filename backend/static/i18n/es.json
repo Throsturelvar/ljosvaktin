@@ -180,5 +180,12 @@
   "gtiBoat": "Crucero de auroras boreales desde Reikiavik",
   "gtiAkureyri": "Tour de auroras boreales desde Akureyri",
   "gtiHotels": "Hoteles para ver auroras",
-  "gtiAll": "Todos los tours de auroras boreales en Islandia"
+  "gtiAll": "Todos los tours de auroras boreales en Islandia",
+  "toursSeeCars": "Ver coches",
+  "gtiCarKef": "Alquiler de coches en el aeropuerto de Keflavík",
+  "gtiCarRvk": "Alquiler de coches en Reikiavik",
+  "gtiCarAey": "Alquiler de coches en Akureyri",
+  "gtiCarRoam": "Conduce entre lugares de auroras · a {km} km",
+  "gtiCarNear": "Conduce entre lugares de auroras · recogida cerca",
+  "gtiCarDrive": "Conduce entre lugares de auroras"
 }

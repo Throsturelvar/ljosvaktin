@@ -265,6 +265,9 @@ const GTI_SLODIR = {
   akureyri: "/book-holiday-trips/the-northern-lights-akureyri",
   gisting: "/accommodation/northern-lights-hotels-iceland",
   allar: "/book-trips-holiday/nature-tours/northern-lights",
+  bill_kef: "/iceland-car-rentals/rent-a-car-in-keflavik",
+  bill_rvk: "/iceland-car-rentals/rent-a-car-in-reykjavik",
+  bill_aey: "/iceland-car-rentals/rent-a-car-in-akureyri",
 };
 
 function gtiFramsending(request, url, env, ctx) {
