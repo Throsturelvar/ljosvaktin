@@ -181,11 +181,8 @@
   "gtiAkureyri": "Excursion aurores boréales depuis Akureyri",
   "gtiHotels": "Hôtels pour voir les aurores",
   "gtiAll": "Toutes les excursions aurores boréales en Islande",
-  "toursSeeCars": "Voir les voitures",
-  "gtiCarKef": "Location de voiture à l’aéroport de Keflavík",
-  "gtiCarRvk": "Location de voiture à Reykjavík",
-  "gtiCarAey": "Location de voiture à Akureyri",
-  "gtiCarRoam": "Roulez d’un spot d’aurores à l’autre · à {km} km",
-  "gtiCarNear": "Roulez d’un spot d’aurores à l’autre · retrait à proximité",
-  "gtiCarDrive": "Roulez d’un spot d’aurores à l’autre"
+  "toursSeeTrip": "Voir le voyage",
+  "gtiTripSouth": "Road trip aurores de 6 jours – côte sud",
+  "gtiTripRing": "Road trip aurores de 10 jours autour de l’Islande",
+  "gtiTripSub": "Voiture, hôtels et itinéraire · en autotour"
 }

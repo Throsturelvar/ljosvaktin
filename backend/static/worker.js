@@ -265,9 +265,8 @@ const GTI_SLODIR = {
   akureyri: "/book-holiday-trips/the-northern-lights-akureyri",
   gisting: "/accommodation/northern-lights-hotels-iceland",
   allar: "/book-trips-holiday/nature-tours/northern-lights",
-  bill_kef: "/iceland-car-rentals/rent-a-car-in-keflavik",
-  bill_rvk: "/iceland-car-rentals/rent-a-car-in-reykjavik",
-  bill_aey: "/iceland-car-rentals/rent-a-car-in-akureyri",
+  pakki_sudur: "/book-holiday-trips/6-day-winter-self-drive-tour-magical-south-iceland",
+  pakki_hringur: "/book-holiday-trips/10-day-winter-self-drive-tour-the-circle-of-iceland",
 };
 
 function gtiFramsending(request, url, env, ctx) {

@@ -181,11 +181,8 @@
   "gtiAkureyri": "阿克雷里出发的极光团",
   "gtiHotels": "适合看极光的酒店",
   "gtiAll": "冰岛全部极光团",
-  "toursSeeCars": "查看车辆",
-  "gtiCarKef": "凯夫拉维克机场租车",
-  "gtiCarRvk": "雷克雅未克租车",
-  "gtiCarAey": "阿克雷里租车",
-  "gtiCarRoam": "自驾追寻极光 · 距此 {km} 公里",
-  "gtiCarNear": "自驾追寻极光 · 附近即可取车",
-  "gtiCarDrive": "自驾追寻极光"
+  "toursSeeTrip": "查看行程",
+  "gtiTripSouth": "6天极光自驾游 – 南岸",
+  "gtiTripRing": "10天极光环岛自驾游",
+  "gtiTripSub": "含租车、酒店和行程 · 自驾"
 }

@@ -4,7 +4,7 @@
 // Guide to Iceland. Hlekkirnir fara um /go/gti?k=<lykill>&s=<staður>, sem
 // telur smellinn og framsendir (sjá GTI_SLODIR í worker.js).
 //
-// Tvö spjöld eftir landshluta valins staðar og bílaleiga á næstu stöð. Nýtt spjald: bæta við SPJOLD
+// Þrjú spjöld eftir landshluta valins staðar. Nýtt spjald: bæta við SPJOLD
 // hér, mynd í /images/gti/<lykill>.jpg, slóð í GTI_SLODIR í worker.js og texta í /i18n/*.json (+ en í index.html).
 //
 // index.html kallar á window.ferdirTeikna() í lok teikna(); hér eru notaðar
@@ -17,45 +17,15 @@
     akureyri: { titill: "gtiAkureyri", hnappur: "toursBook" },
     gisting: { titill: "gtiHotels", hnappur: "toursSeeStays" },
     allar: { titill: "gtiAll", hnappur: "toursBook" },
+    // Þriðja spjaldið: norðurljósapakkar með bíl og gistingu (8% þóknun).
+    pakki_sudur: { titill: "gtiTripSouth", hnappur: "toursSeeTrip", undir: "gtiTripSub", mynd: "bill" },
+    pakki_hringur: { titill: "gtiTripRing", hnappur: "toursSeeTrip", undir: "gtiTripSub", mynd: "bill" },
   };
 
-  // Þriðja spjaldið: bílaleiga GTI á næstu afhendingarstöð við valinn stað
-  // (beinlínufjarlægð). Frá Suðausturlandi og Vestfjörðum er styttra að aka
-  // til Reykjavíkur en beina línan segir, svo Akureyri er ekki í boði þar.
-  // Fjarlægð er bara sýnd þegar hún er stutt, því beina línan vanmetur akstur.
-  // Allar nota sömu mynd, /images/gti/bill.jpg.
-  const BILALEIGUR = [
-    { lykill: "bill_kef", titill: "gtiCarKef", lat: 63.985, lon: -22.6056 },
-    { lykill: "bill_rvk", titill: "gtiCarRvk", lat: 64.1466, lon: -21.9426 },
-    { lykill: "bill_aey", titill: "gtiCarAey", lat: 65.6835, lon: -18.1002 },
-  ];
-
-  function km(a, b) {
-    const r = Math.PI / 180;
-    const x = Math.sin(((b.lat - a.lat) * r) / 2) ** 2 +
-      Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(((b.lon - a.lon) * r) / 2) ** 2;
-    return 12742 * Math.asin(Math.sqrt(x));
-  }
-
-  function naestaBilaleiga(stadur) {
-    const kostir = /^(Suðausturland|Vestfirðir)$/.test(stadur.hluti || "")
-      ? BILALEIGUR.filter((b) => b.lykill !== "bill_aey")
-      : BILALEIGUR;
-    const b = kostir.reduce((x, y) => (km(stadur, y) < km(stadur, x) ? y : x));
-    const fjarlaegd = Math.round(km(stadur, b) / 5) * 5;
-    return {
-      lykill: b.lykill,
-      titill: t(b.titill),
-      undir: fjarlaegd < 15 ? t("gtiCarNear") : fjarlaegd <= 60 ? t("gtiCarRoam", { km: fjarlaegd }) : t("gtiCarDrive"),
-      hnappur: t("toursSeeCars"),
-      mynd: "bill",
-    };
-  }
-
   function spjoldFyrir(hluti) {
-    if (/^Norðurland/.test(hluti)) return ["akureyri", "gisting"];
-    if (/^(Höfuðborgarsvæðið|Reykjanes|Suðurnes|Suðurland|Vesturland)$/.test(hluti)) return ["reykjavik", "sigling"];
-    return ["gisting", "allar"];
+    if (/^Norðurland/.test(hluti)) return ["akureyri", "gisting", "pakki_hringur"];
+    if (/^(Höfuðborgarsvæðið|Reykjanes|Suðurnes|Suðurland|Vesturland)$/.test(hluti)) return ["reykjavik", "sigling", "pakki_sudur"];
+    return ["gisting", "allar", "pakki_hringur"];
   }
 
   const hreinsa = (x) =>
@@ -79,15 +49,16 @@
   }
 
   function spjoldin() {
-    const ferdir = spjoldFyrir(valinn.hluti || "").map((lykill) => ({
-      lykill,
-      titill: t(SPJOLD[lykill].titill),
-      undir: "Guide to Iceland",
-      hnappur: t(SPJOLD[lykill].hnappur),
-      mynd: lykill,
-    }));
-    if (Number.isFinite(valinn.lat) && Number.isFinite(valinn.lon)) ferdir.push(naestaBilaleiga(valinn));
-    return ferdir;
+    return spjoldFyrir(valinn.hluti || "").map((lykill) => {
+      const s = SPJOLD[lykill];
+      return {
+        lykill,
+        titill: t(s.titill),
+        undir: s.undir ? t(s.undir) : "Guide to Iceland",
+        hnappur: t(s.hnappur),
+        mynd: s.mynd || lykill,
+      };
+    });
   }
 
   window.ferdirTeikna = function () {

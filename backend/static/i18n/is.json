@@ -184,11 +184,8 @@
   "gtiAkureyri": "Norðurljósaferð frá Akureyri",
   "gtiHotels": "Norðurljósahótel",
   "gtiAll": "Allar norðurljósaferðir á Íslandi",
-  "toursSeeCars": "Skoða bíla",
-  "gtiCarKef": "Bílaleiga á Keflavíkurflugvelli",
-  "gtiCarRvk": "Bílaleiga í Reykjavík",
-  "gtiCarAey": "Bílaleiga á Akureyri",
-  "gtiCarRoam": "Keyrðu á milli norðurljósastaða · {km} km héðan",
-  "gtiCarNear": "Keyrðu á milli norðurljósastaða · sótt í nágrenninu",
-  "gtiCarDrive": "Keyrðu á milli norðurljósastaða"
+  "toursSeeTrip": "Skoða ferð",
+  "gtiTripSouth": "6 daga norðurljósaferð á eigin bíl – suðurströnd",
+  "gtiTripRing": "10 daga norðurljósaferð á eigin bíl um Ísland",
+  "gtiTripSub": "Bíll, gisting og ferðaáætlun · á eigin vegum"
 }

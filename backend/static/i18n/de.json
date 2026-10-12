@@ -181,11 +181,8 @@
   "gtiAkureyri": "Polarlichttour ab Akureyri",
   "gtiHotels": "Hotels für Polarlichter",
   "gtiAll": "Alle Polarlichttouren in Island",
-  "toursSeeCars": "Autos ansehen",
-  "gtiCarKef": "Mietwagen am Flughafen Keflavík",
-  "gtiCarRvk": "Mietwagen in Reykjavík",
-  "gtiCarAey": "Mietwagen in Akureyri",
-  "gtiCarRoam": "Fahr zwischen Polarlicht-Orten · {km} km entfernt",
-  "gtiCarNear": "Fahr zwischen Polarlicht-Orten · Abholung in der Nähe",
-  "gtiCarDrive": "Fahr zwischen Polarlicht-Orten"
+  "toursSeeTrip": "Reise ansehen",
+  "gtiTripSouth": "6-tägiger Polarlicht-Roadtrip – Südküste",
+  "gtiTripRing": "10-tägiger Polarlicht-Roadtrip rund um Island",
+  "gtiTripSub": "Auto, Hotels und Reiseplan · Selbstfahrer"
 }
