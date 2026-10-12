@@ -16,14 +16,15 @@ function todayUtc() {
 }
 
 // Skilar dögunum frá og með kvöldi nóttarinnar sem er í gangi, eða null ef
-// dagurinn í dag vantar. Fyrir sólarupprás er nóttin sú sem hófst í gærkvöldi,
-// svo gestir eftir miðnætti sjá áfram nóttina sem er í gangi, ekki næsta kvöld.
+// dagurinn í dag vantar. Þar til myrkri lýkur (dawn, sól á −6°) er nóttin sú
+// sem hófst í gærkvöldi, svo gestir eftir miðnætti sjá áfram nóttina sem er í
+// gangi. Eftir það tekur næsta kvöld við. Án myrkurs (sumar) gildir sólarupprás.
 function daysFromToday(rawDays, now = Date.now()) {
   if (!Array.isArray(rawDays)) return null;
   const idx = rawDays.findIndex((d) => d && d.dags === utcDateString(now));
   if (idx < 0) return null;
-  const sunrise = dt(rawDays[idx]["solarupprás"]);
-  if (idx > 0 && sunrise !== null && now < sunrise) return rawDays.slice(idx - 1);
+  const lok = dt(rawDays[idx].dawn) ?? dt(rawDays[idx]["solarupprás"]);
+  if (idx > 0 && lok !== null && now < lok) return rawDays.slice(idx - 1);
   return rawDays.slice(idx);
 }
 
@@ -133,11 +134,12 @@ export function vakt(dagur, kp, clouds, sunmoon, solar, ovation = null) {
   const sunrise = tomorrow["solarupprás"];
   const dusk = tonight.dusk;
   const dawn = tomorrow.dawn;
-  // Nóttin í nótt sýnir aðeins klukkustundirnar sem eru eftir, frá og með
-  // þeirri sem er í gangi.
+  // Bandið nær frá rökkri til birtingar (sól á −6°); vefurinn dempar
+  // rökkurendana eftir sólarhæð. Nóttin í nótt sýnir aðeins klukkustundirnar
+  // sem eru eftir, frá og með þeirri sem er í gangi.
   const nowHour = Math.floor(Date.now() / HOUR) * HOUR;
   const hours = scoring
-    .naeturklukkustundir(sunset, sunrise)
+    .naeturklukkustundir(dusk, dawn)
     .filter((t) => dagur > 0 || t >= nowHour);
   if (!hours.length || !dusk || !dawn) return null;
   const moonRise = tonight.tungl_upp || tomorrow.tungl_upp;

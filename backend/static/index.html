@@ -1221,7 +1221,7 @@ if (sidaTungumal !== "en") {
   <div class="gluggi" id="gluggi"></div>
 
   <p class="skyringar" data-i18n="watchExplanation">
-    Green shows aurora activity, grey shows cloud cover — the band runs from sunset to sunrise.
+    Green shows aurora activity, grey shows cloud cover — the band runs from dusk to dawn, and the faded ends are twilight.
   </p>
 
 </div>
@@ -1371,7 +1371,7 @@ const TRANSLATIONS = {
     "scoreOutOf": "score out of 100",
     "loading": "Loading the latest data …",
     "tonightWatch": "Tonight's watch",
-    "watchExplanation": "Green shows aurora activity, grey shows cloud cover — the band runs from sunset to sunrise.",
+    "watchExplanation": "Green shows aurora activity, grey shows cloud cover — the band runs from dusk to dawn, and the faded ends are twilight.",
     "placesTitle": "Places around Iceland",
     "placesIntro": "Aurora activity is broadly the same across Iceland — clouds determine where it can be seen. The score combines activity, clouds, darkness and moonlight; 100 is a perfect night.",
     "mapLegend": "Point size and colour show tonight's score; the grey ring shows cloud cover.",
@@ -1419,7 +1419,8 @@ const TRANSLATIONS = {
     "feelsCalm": "It is {temp}° outside with almost no wind.",
     "moonRise": "The moon is {percent}% full and rises at {time}.",
     "moonPhase": "The moon is {percent}% illuminated ({phase}).",
-    "sunsetSunrise": "Sunset {sunset} — sunrise {sunrise}",
+    "darkWindow": "Dark {from} — {to}",
+    "twilightOnly": "No full darkness — twilight {from} — {to}",
     "bestWindow": "The best window is {from}–{to}, with {cloud}% cloud cover.",
     "noWindow": "No useful viewing window tonight. Check the list below — elsewhere in Iceland it may be clearer.",
     "auroraTonight": "Aurora activity tonight",
@@ -1713,7 +1714,8 @@ function klstTimi(i){
 }
 
 
-/* Myrkur á stað út frá hæð sólar: 0 við −3°, 1 við −12° og neðar.
+/* Myrkur á stað út frá hæð sólar: 0 við −6° (ljósaskipti, of bjart),
+   vex jafnt í rökkrinu og er 1 við −12° og neðar (fullt myrkur).
    Án SunCalc er notast við myrkurstíma Reykjavíkur. */
 function myrkurStadar(s, i){
 
@@ -1725,7 +1727,7 @@ function myrkurStadar(s, i){
       klstTimi(i), s.lat, s.lon
     ).altitude * GRADUR;
 
-  return klemma((-solHaed - 3) / 9);
+  return klemma((-solHaed - 6) / 6);
 }
 
 
@@ -1759,6 +1761,32 @@ function stig(kp, sky, myrkur, tunglThattur){
     myrkur *
     tunglThattur
   );
+}
+
+
+/* Fullt myrkur (sól undir −12°) á völdum stað. Bandið sjálft nær frá
+   −6° til −6° (myrkurFra/myrkurTil frá API) og endarnir eru rökkur. */
+function myrkurLina(){
+
+  const klukka = d =>
+    d && !isNaN(d) ? d.toISOString().slice(11,16) : null;
+
+  if(typeof SunCalc !== "undefined" && valinn){
+
+    const fra = klukka(
+      SunCalc.getTimes(new Date(nottUpphaf + 12*3600e3), valinn.lat, valinn.lon).nauticalDusk
+    );
+    const til = klukka(
+      SunCalc.getTimes(new Date(nottUpphaf + 36*3600e3), valinn.lat, valinn.lon).nauticalDawn
+    );
+
+    if(fra && til)
+      return t("darkWindow",{ from:fra, to:til });
+
+    return t("twilightOnly",{ from:nott.myrkurFra, to:nott.myrkurTil });
+  }
+
+  return t("darkWindow",{ from:nott.myrkurFra, to:nott.myrkurTil });
 }
 
 
@@ -2648,13 +2676,7 @@ function teikna(){
   document
     .getElementById("band-timi")
     .textContent =
-      t(
-        "sunsetSunrise",
-        {
-          sunset:nott.solsetur,
-          sunrise:nott.solarupprás
-        }
-      );
+      myrkurLina();
 
 
   /* ---------- Hourly bars ---------- */
