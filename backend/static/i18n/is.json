@@ -172,5 +172,16 @@
     "Vesturland": "Vesturland",
     "Norðurland vestra": "Norðurland vestra",
     "Norðurland eystra": "Norðurland eystra"
-  }
+  },
+  "toursKicker": "Norðurljósaferðir í kvöld",
+  "toursPartner": "Samstarf",
+  "toursTitle": "Ferðir og gisting – {place}",
+  "toursBook": "Bóka",
+  "toursSeeStays": "Skoða gistingu",
+  "toursDisclosure": "Samstarfshlekkir – Northseek gæti fengið þóknun, án aukakostnaðar fyrir þig.",
+  "gtiReykjavik": "Norðurljósaferðir frá Reykjavík",
+  "gtiBoat": "Norðurljósasigling frá Reykjavík",
+  "gtiAkureyri": "Norðurljósaferð frá Akureyri",
+  "gtiHotels": "Norðurljósahótel",
+  "gtiAll": "Allar norðurljósaferðir á Íslandi"
 }

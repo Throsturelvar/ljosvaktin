@@ -169,5 +169,16 @@
     "Vesturland": "West Iceland",
     "Norðurland vestra": "Northwest Iceland",
     "Norðurland eystra": "Northeast Iceland"
-  }
+  },
+  "toursKicker": "Aurora tours tonight",
+  "toursPartner": "Partner",
+  "toursTitle": "Tours and stays – {place}",
+  "toursBook": "Book now",
+  "toursSeeStays": "See stays",
+  "toursDisclosure": "Partner links – Northseek may earn a commission at no extra cost to you.",
+  "gtiReykjavik": "Northern lights tours from Reykjavík",
+  "gtiBoat": "Northern lights cruise from Reykjavík",
+  "gtiAkureyri": "Northern lights tour from Akureyri",
+  "gtiHotels": "Hotels for northern lights",
+  "gtiAll": "All northern lights tours in Iceland"
 }

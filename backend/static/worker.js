@@ -228,6 +228,46 @@ export default {
   },
 };
 
+// /go/gti?k=<lykill>&s=<staður>: þóknunarhlekkir Guide to Iceland í
+// „Aurora tours tonight“ (sjá ferdir.js). Aðeins slóðir úr GTI_SLODIR, svo
+// þetta verði ekki opin framsending. Smellir á northseek.net eru taldir í
+// heimsoknir með uppruna "ut:guidetoiceland" og herferð "<lykill>/<staður>".
+const GTI_AUDKENNI = "1143913";
+const GTI_SLODIR = {
+  reykjavik: "/book-trips-holiday/nature-tours/northern-lights",
+  sigling: "/book-holiday-trips/northern-lights-by-boat",
+  akureyri: "/book-holiday-trips/the-northern-lights-akureyri",
+  gisting: "/accommodation/northern-lights-hotels-iceland",
+  allar: "/book-trips-holiday/nature-tours/northern-lights",
+};
+
+function gtiFramsending(request, url, env, ctx) {
+  const lykill = url.searchParams.get("k") || "";
+  const slod = GTI_SLODIR[lykill] || GTI_SLODIR.allar;
+  const stadur = (url.searchParams.get("s") || "").toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 40);
+
+  if (url.hostname === "northseek.net" && env.MAELING_DB && !BOTTAR.test(request.headers.get("User-Agent") || "")) {
+    const dagur = new Date().toISOString().slice(0, 10);
+    ctx.waitUntil(
+      env.MAELING_DB.prepare(
+        `INSERT INTO heimsoknir (dagur, uppruni, herferd, land, fjoldi) VALUES (?1, ?2, ?3, ?4, 1)
+         ON CONFLICT (dagur, uppruni, herferd, land) DO UPDATE SET fjoldi = fjoldi + 1`,
+      ).bind(dagur, "ut:guidetoiceland", `${GTI_SLODIR[lykill] ? lykill : "allar"}/${stadur}`, request.cf?.country || "")
+        .run()
+        .catch((error) => console.error("Talning smells mistókst", error)),
+    );
+  }
+
+  return new Response(null, {
+    status: 302,
+    headers: {
+      Location: `https://guidetoiceland.is${slod}?a=${GTI_AUDKENNI}`,
+      "Cache-Control": "no-store",
+      "X-Robots-Tag": "noindex, nofollow",
+    },
+  });
+}
+
 async function svara(request, env, ctx) {
   const url = new URL(request.url);
 
@@ -237,6 +277,7 @@ async function svara(request, env, ctx) {
   }
 
   if (url.pathname === "/maeling") return maelingSida(request, env);
+  if (url.pathname === "/go/gti") return gtiFramsending(request, url, env, ctx);
 
   skraUppruna(request, url, env, ctx);
 

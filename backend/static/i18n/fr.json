@@ -169,5 +169,16 @@
     "Vesturland": "Ouest de l'Islande",
     "Norðurland vestra": "Nord-ouest de l'Islande",
     "Norðurland eystra": "Nord-est de l'Islande"
-  }
+  },
+  "toursKicker": "Excursions aurores ce soir",
+  "toursPartner": "Partenaire",
+  "toursTitle": "Excursions et hébergements – {place}",
+  "toursBook": "Réserver",
+  "toursSeeStays": "Voir les hébergements",
+  "toursDisclosure": "Liens partenaires – Northseek peut percevoir une commission, sans surcoût pour vous.",
+  "gtiReykjavik": "Excursions aurores boréales depuis Reykjavík",
+  "gtiBoat": "Croisière aurores boréales depuis Reykjavík",
+  "gtiAkureyri": "Excursion aurores boréales depuis Akureyri",
+  "gtiHotels": "Hôtels pour voir les aurores",
+  "gtiAll": "Toutes les excursions aurores boréales en Islande"
 }
