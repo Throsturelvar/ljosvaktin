@@ -1102,8 +1102,21 @@ function sidaSlod(lang, stadurId) {
   return forskeyti + (stadurId ? "/places/" + stadurId.replace(/_/g, "-") : "") + "/";
 }
 
+// Valið tungumál er líka í kökunni ns_lang svo þjónninn (worker.js) geti
+// vísað forsíðunni / beint á rétta tungumálaslóð.
+function vistaTungumal(lang) {
+  try { localStorage.setItem("ljosvaktin_language", lang); } catch (e) {}
+  document.cookie = "ns_lang=" + lang + "; path=/; max-age=31536000; samesite=lax; secure";
+}
+
+try {
+  var vistadMal = localStorage.getItem("ljosvaktin_language");
+  if (TUNGUMALASLODIR.hasOwnProperty(vistadMal) && document.cookie.indexOf("ns_lang=") === -1) vistaTungumal(vistadMal);
+} catch (e) {}
+
 var sidaTungumal = document.documentElement.getAttribute("data-lang");
 if (!TUNGUMALASLODIR.hasOwnProperty(sidaTungumal)) {
+  // Þjónninn sér venjulega um þetta; hér er aðeins varaleið.
   sidaTungumal = null;
   try { sidaTungumal = localStorage.getItem("ljosvaktin_language"); } catch (e) {}
   if (!TUNGUMALASLODIR.hasOwnProperty(sidaTungumal)) {
@@ -3875,9 +3888,7 @@ document
     e => {
 
       // Vistað val ræður forsíðunni næst; slóðin ræður síðunni.
-      try {
-        localStorage.setItem("ljosvaktin_language", e.target.value);
-      } catch (_) {}
+      vistaTungumal(e.target.value);
 
       location.href =
         sidaSlod(

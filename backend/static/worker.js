@@ -10,7 +10,7 @@
 // - Forsíða, tungumálasíður og staðasíður eru þýddar á þjóninum og
 //   /sitemap.xml búið til (sjá seo.js).
 
-import { greinaSlod, svaraSidu, sitemap } from "./seo.js";
+import { greinaSlod, svaraSidu, sitemap, slodFyrir, TUNGUMAL } from "./seo.js";
 
 const API_PATHS = new Set(["/api/vakt", "/api/skor"]);
 
@@ -106,6 +106,61 @@ function medHausum(response, url) {
 // villa hér má aldrei stöðva síðuna.
 const BOTTAR = /bot|crawl|spider|slurp|preview|facebookexternalhit|facebot|embedly|curl|wget|python|go-http|java\/|okhttp|headless|scan|monitor|lighthouse/i;
 
+// Sami uppruni á ekki að dreifast á mörg heiti: "QR code", "qr`" og
+// "qr-code" verða öll "qr". Aðeins bókstafir, tölur, punktur, - og _.
+const UPPRUNA_SAMHEITI = { qrcode: "qr", "qr-code": "qr", qr_code: "qr" };
+
+function samraemaUppruna(uppruni) {
+  const hreint = (uppruni || "").toLowerCase().trim().replace(/\s+/g, "-")
+    .replace(/[^a-z0-9._-]/g, "").replace(/^[-.]+|[-.]+$/g, "").slice(0, 64);
+  return UPPRUNA_SAMHEITI[hreint] || hreint;
+}
+
+// Forsíðan / vísar fólki á sína tungumálaslóð (t.d. /de/) strax á
+// þjóninum. Áður gerði skrifta í <head> það, svo forsíðan taldist tvisvar
+// og Web Analytics missti uppruna heimsóknarinnar. 302-tilvísun heldur
+// tilvísanda (referrer). Val notandans er í kökunni ns_lang (sett í
+// index.html), annars ræður Accept-Language. Bottar fá alltaf ensku
+// forsíðuna (x-default í hreflang).
+const MAL_KAKA = /(?:^|;\s*)ns_lang=([A-Za-z-]+)/;
+
+function vafraMal(kodi) {
+  const k = kodi.toLowerCase();
+  if (k === "zh" || k.startsWith("zh-")) return /-(hant|tw|hk|mo)(-|$)/.test(k) ? "zh-Hant" : "zh-Hans";
+  return k.split("-")[0];
+}
+
+function forsiduTungumal(request) {
+  const kaka = (request.headers.get("Cookie") || "").match(MAL_KAKA);
+  if (kaka && Object.hasOwn(TUNGUMAL, kaka[1])) return kaka[1];
+  const oskir = (request.headers.get("Accept-Language") || "").split(",")
+    .map((hluti, i) => {
+      const [kodi, ...stillingar] = hluti.trim().split(";");
+      const q = stillingar.map((s) => s.trim()).find((s) => s.startsWith("q="));
+      return { kodi, q: q ? Number(q.slice(2)) || 0 : 1, i };
+    })
+    .filter((o) => o.kodi && o.kodi !== "*" && o.q > 0)
+    .sort((a, b) => b.q - a.q || a.i - b.i);
+  for (const o of oskir) {
+    const mal = vafraMal(o.kodi);
+    if (Object.hasOwn(TUNGUMAL, mal)) return mal;
+  }
+  return "en";
+}
+
+function tungumalaFramsending(request, url) {
+  if (url.pathname !== "/" || BOTTAR.test(request.headers.get("User-Agent") || "")) return null;
+  const mal = forsiduTungumal(request);
+  if (mal === "en") return null;
+  // utm_* eru þegar talin (skraUppruna) og fylgja ekki, svo ekkert teljist tvisvar.
+  const leit = [...url.searchParams].filter(([k]) => !/^utm_/i.test(k));
+  const slod = slodFyrir(mal) + (leit.length ? `?${new URLSearchParams(leit)}` : "");
+  return new Response(null, {
+    status: 302,
+    headers: { Location: slod, "Cache-Control": "no-store", Vary: "Cookie, Accept-Language" },
+  });
+}
+
 function skraUppruna(request, url, env, ctx) {
   const uppruni = url.searchParams.get("utm_source");
   if (!uppruni || !env.MAELING_DB || request.method !== "GET") return;
@@ -117,7 +172,7 @@ function skraUppruna(request, url, env, ctx) {
     env.MAELING_DB.prepare(
       `INSERT INTO heimsoknir (dagur, uppruni, herferd, land, fjoldi) VALUES (?1, ?2, ?3, ?4, 1)
        ON CONFLICT (dagur, uppruni, herferd, land) DO UPDATE SET fjoldi = fjoldi + 1`,
-    ).bind(dagur, stutt(uppruni), stutt(url.searchParams.get("utm_campaign")), request.cf?.country || "")
+    ).bind(dagur, samraemaUppruna(uppruni), stutt(url.searchParams.get("utm_campaign")), request.cf?.country || "")
       .run()
       .catch((error) => console.error("Talning mistókst", error)),
   );
@@ -318,6 +373,9 @@ async function svara(request, env, ctx) {
 
   if (request.method === "GET" || request.method === "HEAD") {
     if (url.pathname === "/sitemap.xml") return sitemap();
+
+    const framsending = tungumalaFramsending(request, url);
+    if (framsending) return framsending;
 
     const slod = greinaSlod(url.pathname);
     if (slod?.framsenda) {
