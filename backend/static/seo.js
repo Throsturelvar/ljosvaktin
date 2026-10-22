@@ -29,7 +29,6 @@ export const STADIR = [
   ["reykjavik", "Reykjavík / Grótta", "Höfuðborgarsvæðið", 64.1548, -21.9469],
   ["thingvellir", "Þingvellir", "Suðurland", 64.2559, -21.1298],
   ["akureyri", "Akureyri", "Norðurland", 65.6885, -18.1262],
-  ["vik", "Vík í Mýrdal", "Suðurland", 63.4186, -19.006],
   ["jokulsarlon", "Jökulsárlón", "Suðausturland", 64.0784, -16.23],
   ["kirkjufell", "Kirkjufell", "Snæfellsnes", 64.9337, -23.3167],
   ["gullfoss", "Gullfoss", "Suðurland", 64.3271, -20.1199],
@@ -48,10 +47,13 @@ export const STADIR = [
   ["kleifarvatn", "Kleifarvatn", "Reykjanes", 63.9169, -22.0503],
   ["selfoss", "Selfoss", "Suðurland", 63.9333, -20.9833],
   ["hveragerdi", "Hveragerði", "Suðurland", 64.0003, -21.1868],
+  ["hvolsvollur", "Hvolsvöllur", "Suðurland", 63.7524, -20.2246],
+  ["kirkjubaejarklaustur", "Kirkjubæjarklaustur", "Suðurland", 63.7895, -18.0593],
   ["vestmannaeyjar", "Vestmannaeyjar", "Suðurland", 63.4427, -20.2734],
   ["landmannalaugar", "Landmannalaugar", "Suðurland", 63.9932, -19.0623],
   ["blaa_lonid", "Bláa lónið", "Reykjanes", 63.8804, -22.4495],
   ["gardur", "Garður", "Suðurnes", 64.0503, -22.7075],
+  ["reykjanesbaer", "Reykjanesbær", "Suðurnes", 64.0049, -22.5624],
   ["akranes", "Akranes", "Vesturland", 64.3155, -22.0699],
   ["borgarnes", "Borgarnes", "Vesturland", 64.5384, -21.9215],
   ["bolungarvik", "Bolungarvík", "Vestfirðir", 66.1552, -23.2519],
@@ -67,6 +69,9 @@ export const STADIR = [
 ].map(([id, nafn, hluti, lat, lon]) => ({ id, slug: id.replace(/_/g, "-"), nafn, hluti, lat, lon }));
 
 const STADUR_EFTIR_SLUG = new Map(STADIR.map((s) => [s.slug, s]));
+
+// Staðir sem hafa verið teknir út: gömlu slóðirnar framsendast á næsta stað.
+const FJARLAEGDIR = { vik: "reynisfjara" };
 const TUNGUMAL_EFTIR_SLOD = new Map(
   Object.entries(TUNGUMAL).filter(([, v]) => v.slod).map(([kodi, v]) => [v.slod, kodi]),
 );
@@ -92,7 +97,9 @@ export function greinaSlod(pathname) {
   let stadur = null;
   if (hlutar.length) {
     if (hlutar.length !== 2 || hlutar[0] !== "places") return null;
-    stadur = STADUR_EFTIR_SLUG.get(hlutar[1].toLowerCase());
+    const slug = hlutar[1].toLowerCase();
+    stadur = STADUR_EFTIR_SLUG.get(slug);
+    if (!stadur && FJARLAEGDIR[slug]) return { framsenda: slodFyrir(lang, STADUR_EFTIR_SLUG.get(FJARLAEGDIR[slug])) };
     if (!stadur) return null;
   }
 

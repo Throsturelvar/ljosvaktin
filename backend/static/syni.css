@@ -141,3 +141,8 @@ a.syni-boka:focus-visible,a.syni-utlinur:focus-visible{outline:2px solid var(--b
 }
 .syni-mynd > *{position:relative}
 .syni-mynd-merki{height:34px;width:auto;max-width:70%;display:block}
+
+/* Sýnishornið sýnir auglýsandann í „Aurora tours tonight“; Guide to
+   Iceland-kortin af main (#ferdir, ferdir.js) eru falin svo svæðið birtist
+   ekki tvisvar. */
+#ferdir { display: none !important; }

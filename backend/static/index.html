@@ -41,6 +41,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/suncalc/1.9.0/suncalc.min.js"></script>
+<link rel="stylesheet" href="/ferdir.css">
 <link rel="stylesheet" href="/syni.css">
 <meta name="robots" content="noindex,nofollow">
 
@@ -1103,8 +1104,21 @@ function sidaSlod(lang, stadurId) {
   return forskeyti + (stadurId ? "/places/" + stadurId.replace(/_/g, "-") : "") + "/";
 }
 
+// Valið tungumál er líka í kökunni ns_lang svo þjónninn (worker.js) geti
+// vísað forsíðunni / beint á rétta tungumálaslóð.
+function vistaTungumal(lang) {
+  try { localStorage.setItem("ljosvaktin_language", lang); } catch (e) {}
+  document.cookie = "ns_lang=" + lang + "; path=/; max-age=31536000; samesite=lax; secure";
+}
+
+try {
+  var vistadMal = localStorage.getItem("ljosvaktin_language");
+  if (TUNGUMALASLODIR.hasOwnProperty(vistadMal) && document.cookie.indexOf("ns_lang=") === -1) vistaTungumal(vistadMal);
+} catch (e) {}
+
 var sidaTungumal = document.documentElement.getAttribute("data-lang");
 if (!TUNGUMALASLODIR.hasOwnProperty(sidaTungumal)) {
+  // Þjónninn sér venjulega um þetta; hér er aðeins varaleið.
   sidaTungumal = null;
   try { sidaTungumal = localStorage.getItem("ljosvaktin_language"); } catch (e) {}
   if (!TUNGUMALASLODIR.hasOwnProperty(sidaTungumal)) {
@@ -1222,7 +1236,7 @@ if (sidaTungumal !== "en") {
   <div class="gluggi" id="gluggi"></div>
 
   <p class="skyringar" data-i18n="watchExplanation">
-    Green shows aurora activity, grey shows cloud cover — the band runs from sunset to sunrise.
+    Green shows aurora activity, grey shows cloud cover — the band runs from dusk to dawn, and the faded ends are twilight.
   </p>
 
 </div>
@@ -1340,6 +1354,21 @@ const TRANSLATIONS = {
   en: {
     "navPlaces": "Places",
     "navContact": "Contact",
+    "toursKicker": "Aurora tours tonight",
+    "toursPartner": "Partner",
+    "toursTitle": "Tours and stays – {place}",
+    "toursBook": "Book now",
+    "toursSeeStays": "See stays",
+    "toursDisclosure": "Partner links – Northseek may earn a commission at no extra cost to you.",
+    "gtiReykjavik": "Northern lights tours from Reykjavík",
+    "gtiBoat": "Northern lights cruise from Reykjavík",
+    "gtiAkureyri": "Northern lights tour from Akureyri",
+    "gtiHotels": "Hotels for northern lights",
+    "gtiAll": "All northern lights tours in Iceland",
+    "toursSeeTrip": "See trip",
+    "gtiTripSouth": "6-day aurora road trip – South Coast",
+    "gtiTripRing": "10-day aurora road trip around Iceland",
+    "gtiTripSub": "Car, hotels and itinerary · self-drive",
     "facebookGroup": "Facebook group",
     "allRightsReserved": "All rights reserved.",
     "listSeparator": ", ",
@@ -1357,7 +1386,7 @@ const TRANSLATIONS = {
     "scoreOutOf": "score out of 100",
     "loading": "Loading the latest data …",
     "tonightWatch": "Tonight's watch",
-    "watchExplanation": "Green shows aurora activity, grey shows cloud cover — the band runs from sunset to sunrise.",
+    "watchExplanation": "Green shows aurora activity, grey shows cloud cover — the band runs from dusk to dawn, and the faded ends are twilight.",
     "placesTitle": "Places around Iceland",
     "placesIntro": "Aurora activity is broadly the same across Iceland — clouds determine where it can be seen. The score combines activity, clouds, darkness and moonlight; 100 is a perfect night.",
     "mapLegend": "Point size and colour show tonight's score; the grey ring shows cloud cover.",
@@ -1405,7 +1434,8 @@ const TRANSLATIONS = {
     "feelsCalm": "It is {temp}° outside with almost no wind.",
     "moonRise": "The moon is {percent}% full and rises at {time}.",
     "moonPhase": "The moon is {percent}% illuminated ({phase}).",
-    "sunsetSunrise": "Sunset {sunset} — sunrise {sunrise}",
+    "darkWindow": "Dark {from} — {to}",
+    "twilightOnly": "No full darkness — twilight {from} — {to}",
     "bestWindow": "The best window is {from}–{to}, with {cloud}% cloud cover.",
     "noWindow": "No useful viewing window tonight. Check the list below — elsewhere in Iceland it may be clearer.",
     "auroraTonight": "Aurora activity tonight",
@@ -1699,7 +1729,8 @@ function klstTimi(i){
 }
 
 
-/* Myrkur á stað út frá hæð sólar: 0 við −3°, 1 við −12° og neðar.
+/* Myrkur á stað út frá hæð sólar: 0 við −6° (ljósaskipti, of bjart),
+   vex jafnt í rökkrinu og er 1 við −12° og neðar (fullt myrkur).
    Án SunCalc er notast við myrkurstíma Reykjavíkur. */
 function myrkurStadar(s, i){
 
@@ -1711,7 +1742,7 @@ function myrkurStadar(s, i){
       klstTimi(i), s.lat, s.lon
     ).altitude * GRADUR;
 
-  return klemma((-solHaed - 3) / 9);
+  return klemma((-solHaed - 6) / 6);
 }
 
 
@@ -1745,6 +1776,32 @@ function stig(kp, sky, myrkur, tunglThattur){
     myrkur *
     tunglThattur
   );
+}
+
+
+/* Fullt myrkur (sól undir −12°) á völdum stað. Bandið sjálft nær frá
+   −6° til −6° (myrkurFra/myrkurTil frá API) og endarnir eru rökkur. */
+function myrkurLina(){
+
+  const klukka = d =>
+    d && !isNaN(d) ? d.toISOString().slice(11,16) : null;
+
+  if(typeof SunCalc !== "undefined" && valinn){
+
+    const fra = klukka(
+      SunCalc.getTimes(new Date(nottUpphaf + 12*3600e3), valinn.lat, valinn.lon).nauticalDusk
+    );
+    const til = klukka(
+      SunCalc.getTimes(new Date(nottUpphaf + 36*3600e3), valinn.lat, valinn.lon).nauticalDawn
+    );
+
+    if(fra && til)
+      return t("darkWindow",{ from:fra, to:til });
+
+    return t("twilightOnly",{ from:nott.myrkurFra, to:nott.myrkurTil });
+  }
+
+  return t("darkWindow",{ from:nott.myrkurFra, to:nott.myrkurTil });
 }
 
 
@@ -2634,13 +2691,7 @@ function teikna(){
   document
     .getElementById("band-timi")
     .textContent =
-      t(
-        "sunsetSunrise",
-        {
-          sunset:nott.solsetur,
-          sunrise:nott.solarupprás
-        }
-      );
+      myrkurLina();
 
 
   /* ---------- Hourly bars ---------- */
@@ -3271,6 +3322,7 @@ function teikna(){
   val.value =
     s.nafn;
 
+  window.ferdirTeikna?.();
   window.syniTeikna?.();
 }
 
@@ -3839,9 +3891,7 @@ document
     e => {
 
       // Vistað val ræður forsíðunni næst; slóðin ræður síðunni.
-      try {
-        localStorage.setItem("ljosvaktin_language", e.target.value);
-      } catch (_) {}
+      vistaTungumal(e.target.value);
 
       location.href =
         sidaSlod(
@@ -3874,8 +3924,8 @@ setInterval(
 
 </script>
 
+<script src="/ferdir.js"></script>
 <script src="/syni.js"></script>
-
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"fa1a8ca15b3041faa3d37c930fdde74b","r":1,"spa":2}' crossorigin="anonymous"></script>
 </body>
 </html>

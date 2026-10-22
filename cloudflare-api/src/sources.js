@@ -3,7 +3,7 @@
 
 import { STADIR } from "./locations.js";
 import { ovationVirkni } from "./scoring.js";
-import { pyRound, pyIso, utcDateString, naiveUtc } from "./pyutil.js";
+import { pyRound, pyIso, utcDateString, naiveUtc, dt } from "./pyutil.js";
 
 const KP_URL = "https://services.swpc.noaa.gov/products/noaa-planetary-k-index-forecast.json";
 const OVATION_URL = "https://services.swpc.noaa.gov/json/ovation_aurora_latest.json";
@@ -184,6 +184,14 @@ function timeIso(day, value) {
   return pyIso(ms);
 }
 
+// Sólsetur og rökkur geta verið eftir miðnætti (maí, júlí–ágúst, sólsetur í
+// júní). API-ið gefur þá klukkuna eina, svo tími fyrir hádegi er á næsta degi.
+function kvoldTimi(day, value) {
+  const iso = timeIso(day, value);
+  if (iso === null || Number(iso.slice(11, 13)) >= 12) return iso;
+  return pyIso(dt(iso) + 86400000);
+}
+
 // Frá gærdeginum (nóttin sem er í gangi eftir miðnætti) og fimm daga fram,
 // svo nóttin eftir tvo daga er enn til staðar áður en staðurinn er endurnýjaður.
 const SUNMOON_DAYS = 6;
@@ -199,9 +207,9 @@ function sunmoonDays(data) {
     if (Number.isNaN(pct)) throw new Error("Invalid moon_illumination");
     return {
       dags: day,
-      solsetur: timeIso(day, r.sunset),
+      solsetur: kvoldTimi(day, r.sunset),
       "solarupprás": timeIso(day, r.sunrise),
-      dusk: timeIso(day, r.dusk),
+      dusk: kvoldTimi(day, r.dusk),
       dawn: timeIso(day, r.dawn),
       tungl_birta_pct: pct,
       tungl_fasi_heiti: r.moon_phase ?? null,
