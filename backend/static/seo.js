@@ -20,6 +20,7 @@ export const TUNGUMAL = {
   de: { slod: "de", og: "de_DE" },
   fr: { slod: "fr", og: "fr_FR" },
   es: { slod: "es", og: "es_ES" },
+  it: { slod: "it", og: "it_IT" },
   "zh-Hans": { slod: "zh-hans", og: "zh_CN" },
   "zh-Hant": { slod: "zh-hant", og: "zh_TW" },
 };

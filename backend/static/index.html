@@ -26,7 +26,7 @@
   "description": "Northern lights forecast for Iceland: aurora activity, cloud cover, darkness and moon combined into one score for places around Iceland.",
   "applicationCategory": "WeatherApplication",
   "operatingSystem": "Any",
-  "inLanguage": ["en", "is", "pl", "de", "fr", "es", "zh-Hans", "zh-Hant"],
+  "inLanguage": ["en", "is", "pl", "de", "fr", "es", "it", "zh-Hans", "zh-Hant"],
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" }
 }
 </script>
@@ -1085,7 +1085,7 @@ footer{
 // Hvert tungumál á sína slóð (/de/ …; enska er á /), sjá seo.js. Á undirslóðum
 // ræður slóðin (data-lang frá þjóninum). Á forsíðunni gildir vistað val, síðan
 // tungumál vafrans; sé það annað en enska er farið strax á slóð þess.
-var TUNGUMALASLODIR = { en: "", is: "is", pl: "pl", de: "de", fr: "fr", es: "es", "zh-Hans": "zh-hans", "zh-Hant": "zh-hant" };
+var TUNGUMALASLODIR = { en: "", is: "is", pl: "pl", de: "de", fr: "fr", es: "es", it: "it", "zh-Hans": "zh-hans", "zh-Hant": "zh-hant" };
 
 // Tungumál vafrans -> kóði síðunnar. Kínverska skiptist í hefðbundið letur
 // (zh-Hant: Taívan, Hong Kong, Makaó) og einfaldað (zh-Hans: annað).
@@ -1172,6 +1172,7 @@ if (sidaTungumal !== "en") {
         <option value="de">Deutsch</option>
         <option value="fr">Français</option>
         <option value="es">Español</option>
+        <option value="it">Italiano</option>
         <option value="zh-Hans">简体中文</option>
         <option value="zh-Hant">繁體中文</option>
       </select>
