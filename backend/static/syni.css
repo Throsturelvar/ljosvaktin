@@ -75,9 +75,10 @@
   padding:9px 16px;
   text-decoration:none;
   white-space:nowrap;
+  border:0;font-family:inherit;line-height:inherit;cursor:pointer;
 }
-a.syni-boka:hover{filter:brightness(1.08)}
-a.syni-boka:focus-visible,a.syni-utlinur:focus-visible{outline:2px solid var(--bein);outline-offset:2px}
+a.syni-boka:hover,button.syni-boka:hover{filter:brightness(1.08)}
+a.syni-boka:focus-visible,button.syni-boka:focus-visible,a.syni-utlinur:focus-visible{outline:2px solid var(--bein);outline-offset:2px}
 .syni-fotur{margin:0;font-size:13.5px;color:var(--daufari)}
 
 /* ---------- Svæði 2: box í staðaneti ---------- */

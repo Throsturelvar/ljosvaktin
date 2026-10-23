@@ -39,6 +39,8 @@ const FYRIRTAEKI = {
     brottfor: "21:00",
     uti: ["21:00", "23:00"],
     slod: { en: "https://elding.is/tours/northern-lights", is: "https://elding.is/is/ferdir/nordurljos" },
+    // Söluleið Northseek í Bókun hjá Eldingu (10% þóknun); vara 1312 = Norðurljósasigling.
+    bokun: { leid: "b375a780-a9f3-4c6a-ba46-6e0be1bb15ab", vara: 1312 },
     stadur: "Reykjavík / Grótta",
     litur: "#EF4136",
     takn: "/syni/elding/takn.png",
@@ -215,6 +217,25 @@ function bokunarSlod(f) {
   }
 }
 
+// Fyrirtæki með söluleið í Bókun: „Book now“ opnar bókunarglugga Bókun
+// beint á Northseek, svo bókunin skráist á söluleið Northseek. Skriftan er
+// aðeins sótt einu sinni; Bókun finnur nýja hnappa sjálft þegar kortin eru
+// teiknuð upp á nýtt.
+const BOKUN_SKRIFTA = "https://widgets.bokun.io/assets/javascripts/apps/build/BokunWidgetsLoader.js";
+
+function bokunHnappur(f, klasi, texti) {
+  const slod = `https://widgets.bokun.io/online-sales/${f.bokun.leid}/experience-calendar/${f.bokun.vara}?partialView=1`;
+  return `<button type="button" class="${klasi} bokunButton" data-src="${hreinsa(slod)}">${texti}</button>`;
+}
+
+function saekjaBokun(f) {
+  if (!f?.bokun || document.querySelector(`script[src^="${BOKUN_SKRIFTA}"]`)) return;
+  const s = document.createElement("script");
+  s.src = `${BOKUN_SKRIFTA}?bookingChannelUUID=${encodeURIComponent(f.bokun.leid)}`;
+  s.async = true;
+  document.body.appendChild(s);
+}
+
 function taknHtml(f) {
   return f.takn
     ? `<span class="syni-logo med-mynd" style="background:${hreinsa(f.taknGrunnur || "#FFFFFF")}"><img src="${hreinsa(f.takn)}" alt="" loading="lazy" onerror="this.parentNode.style.background='${hreinsa(f.litur)}';this.replaceWith('${hreinsa(upphafsstafir(f.nafn)).replace(/'/g, "")}')"></span>`
@@ -225,7 +246,9 @@ function taknHtml(f) {
 // Brottfarar- og staðartímar eru ekki sýndir (aðeins notaðir í FYRIRTAEKI til minnis).
 function ferdakort(f, daufur) {
   const slod = bokunarSlod(f);
-  const hnappur = slod
+  const hnappur = f.bokun
+    ? bokunHnappur(f, "syni-boka", st("book"))
+    : slod
     ? `<a class="syni-boka" href="${hreinsa(slod)}" target="_blank" rel="sponsored noopener">${st("book")}</a>`
     : `<span class="syni-boka" role="presentation">${st("book")}</span>`;
   const graent = f.eiginleiki ? ml(f.eiginleiki) : f.endurbokun ? st("retry") : "";
@@ -322,6 +345,7 @@ window.syniTeikna = function () {
     document.getElementById("geimvedur").after(ferdir);
   }
   ferdir.innerHTML = ferdirHtml();
+  saekjaBokun(syniFyrirtaeki);
 
   // teikna() byggir listann upp á nýtt, svo boxið er sett inn í hvert sinn.
   const listi = document.getElementById("listi");
