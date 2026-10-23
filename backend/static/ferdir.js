@@ -54,8 +54,9 @@
   }
 
   // Smellur á bókunarhnapp er talinn án þess að tefja bókunargluggann.
+  // Hnappur í auglýsingunni í staðalistanum er talinn sem staðurinn "listi".
   document.addEventListener("click", (e) => {
-    const takki = e.target.closest?.("#ferdir .bokunButton[data-ferd]");
+    const takki = e.target.closest?.(".bokunButton[data-ferd]");
     if (!takki) return;
     try {
       navigator.sendBeacon(`/go/smellur?f=${encodeURIComponent(takki.dataset.ferd)}&s=${encodeURIComponent(takki.dataset.stadur || "")}`);
@@ -99,8 +100,34 @@
     });
   }
 
+  // Auglýsing Eldingar í staðalistanum (#listi), jafn stór og staðarkortin.
+  // teikna() byggir listann upp á nýtt, svo hún er sett inn í hvert sinn.
+  const AUGL_SAETI = 7; // á eftir 7 fyrstu stöðunum
+
+  function auglysing() {
+    const listi = document.getElementById("listi");
+    if (!listi) return;
+    listi.querySelector(".ferd-augl")?.remove();
+    const s = { ...SPJOLD.elding, lykill: "elding", hnappur: t("toursBook") };
+    const augl = document.createElement("aside");
+    augl.className = "ferd-augl";
+    augl.setAttribute("aria-label", `${t("toursAd")} · Elding`);
+    augl.innerHTML = `
+      <div class="ferd-augl-haus">
+        <div class="ferd-augl-mynd" role="presentation" style="background-image:url('${s.myndSlod}')"></div>
+        <div>
+          <span class="ferd-augl-lbl">${hreinsa(t("toursAd"))} · Elding</span>
+          <div class="ferd-nafn">${hreinsa(t(s.titill))}</div>
+        </div>
+      </div>
+      ${bokunHnappur(s, "listi")}`;
+    listi.insertBefore(augl, listi.children[AUGL_SAETI] || null);
+    saekjaBokun(ELDING.leid);
+  }
+
   window.ferdirTeikna = function () {
     if (typeof valinn === "undefined" || !valinn) return;
+    auglysing();
     const geimvedur = document.getElementById("geimvedur");
     if (!geimvedur) return;
 

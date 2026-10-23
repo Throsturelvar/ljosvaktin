@@ -63,3 +63,32 @@
   .ferd .ferd-mynd{aspect-ratio:1}
   .ferd-boka{grid-column:1 / -1}
 }
+
+/* Auglýsing í staðalistanum (sjá auglysing() í ferdir.js): einn reitur,
+   jafn stór og staðarkortin. */
+.ferd-augl{
+  background:linear-gradient(160deg,#1B2638,#121B2A);
+  border:1px solid var(--lina-syn);
+  border-radius:var(--br);
+  padding:12px 14px 13px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  gap:10px;
+}
+.ferd-augl-haus{display:flex;align-items:center;gap:12px;min-width:0}
+.ferd-augl-mynd{
+  width:64px;height:64px;flex:none;
+  border-radius:var(--br);
+  background:var(--djup) center/cover no-repeat;
+}
+.ferd-augl-lbl{
+  display:block;
+  font-size:11.5px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--daufari);
+  margin-bottom:2px;
+}
+.ferd-augl .ferd-nafn{font-size:16px}
+.ferd-augl .ferd-boka{padding:8px 14px}
