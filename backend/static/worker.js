@@ -222,7 +222,14 @@ async function maelingSida(request, env) {
       SUM(CASE WHEN dagur >= date('now', '-6 days') THEN fjoldi ELSE 0 END) vika,
       SUM(CASE WHEN dagur = date('now') THEN fjoldi ELSE 0 END) idag
     FROM heimsoknir WHERE uppruni = 'ut:guidetoiceland' GROUP BY herferd ORDER BY alls DESC`).all();
-  return new Response(maelingHtml(dagar.results, uppruni.results, lond.results, herferdir.results, smellir.results), {
+  // Smellir á bókunarhnapp Eldingar (/go/smellur): herferð er "bokun/<staður>".
+  const elding = await db.prepare(`SELECT
+      substr(herferd, instr(herferd, '/') + 1) stadur,
+      SUM(fjoldi) alls,
+      SUM(CASE WHEN dagur >= date('now', '-6 days') THEN fjoldi ELSE 0 END) vika,
+      SUM(CASE WHEN dagur = date('now') THEN fjoldi ELSE 0 END) idag
+    FROM heimsoknir WHERE uppruni = 'ut:elding' GROUP BY herferd ORDER BY alls DESC`).all();
+  return new Response(maelingHtml(dagar.results, uppruni.results, lond.results, herferdir.results, smellir.results, elding.results), {
     headers: { ...LOKAD_HAUSAR, "Content-Type": "text/html; charset=utf-8" },
   });
 }
@@ -230,7 +237,7 @@ async function maelingSida(request, env) {
 const esc = (x) => String(x).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 const tala = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
-function maelingHtml(dagar, uppruni, lond, herferdir, smellir = []) {
+function maelingHtml(dagar, uppruni, lond, herferdir, smellir = [], elding = []) {
   const LITIR = ["#E9C26B", "#5FD3A0", "#7FA7F0", "#E58A6B", "#B68CF0"];
   const litur = Object.fromEntries(uppruni.map((u, i) => [u.uppruni, LITIR[i % LITIR.length]]));
   // síðustu 30 dagar, staflaðar súlur eftir uppruna
@@ -270,6 +277,17 @@ function maelingHtml(dagar, uppruni, lond, herferdir, smellir = []) {
 <div class="kort"><h2>Eftir spjaldi</h2>${spjaldRadir ? `<table><tr><th>Spjald</th><th class="n">Alls</th></tr>${spjaldRadir}</table>` : `<p class="tomt">Engir smellir enn.</p>`}</div>
 <div class="kort"><h2>Eftir stað</h2>${smellRadir ? `<table><tr><th>Staður</th><th>Spjald</th><th class="n">7 d.</th><th class="n">Alls</th></tr>${smellRadir}</table>` : `<p class="tomt">Engir smellir enn.</p>`}</div>
 </div>`;
+  const eldSumma = (lykill) => elding.reduce((a, r) => a + r[lykill], 0);
+  const eldRadir = elding.slice(0, 20)
+    .map((r) => `<tr><td>${esc(r.stadur)}</td><td class="n">${tala(r.vika)}</td><td class="n">${tala(r.alls)}</td></tr>`).join("");
+  const eldingHluti = `
+<div><h1>Smellir á Eldingu</h1><p class="undir">Talið þegar smellt er á „Bóka“ hjá Eldingu í „Aurora tours tonight“; bókunarglugginn (Bókun, söluleið Northseek) opnast á síðunni. Bókanir og þóknun sjást í Bókun hjá Eldingu.</p></div>
+<div class="reitir">
+<div class="reitur"><div class="heiti">Í dag</div><div class="stor">${tala(eldSumma("idag"))}</div></div>
+<div class="reitur"><div class="heiti">Síðustu 7 dagar</div><div class="stor">${tala(eldSumma("vika"))}</div></div>
+<div class="reitur"><div class="heiti">Alls</div><div class="stor">${tala(eldSumma("alls"))}</div></div>
+</div>
+<div class="kort"><h2>Eftir stað</h2>${eldRadir ? `<table><tr><th>Staður</th><th class="n">7 d.</th><th class="n">Alls</th></tr>${eldRadir}</table>` : `<p class="tomt">Engir smellir enn.</p>`}</div>`;
   return `<!doctype html><html lang="is"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow"><title>Northseek mæling</title>
 <style>
@@ -300,7 +318,7 @@ th{color:var(--daufur);font-weight:500;font-size:12px;text-transform:uppercase;l
 <div class="tvo">
 <div class="kort"><h2>Lönd</h2>${landaRadir ? `<table><tr><th>Uppruni</th><th>Land</th><th class="n">Fjöldi</th></tr>${landaRadir}</table>` : `<p class="tomt">Ekkert enn.</p>`}</div>
 <div class="kort"><h2>Herferðir (utm_campaign)</h2>${herfRadir ? `<table><tr><th>Uppruni</th><th>Herferð</th><th class="n">Fjöldi</th></tr>${herfRadir}</table>` : `<p class="tomt">Engin herferð skráð enn.</p>`}</div>
-</div>${smellaHluti}</div></body></html>`;
+</div>${eldingHluti}${smellaHluti}</div></body></html>`;
 }
 
 export default {
@@ -351,6 +369,30 @@ function gtiFramsending(request, url, env, ctx) {
   });
 }
 
+// POST /go/smellur?f=<fyrirtæki>&s=<staður>: smellur á bókunarhnapp sem
+// opnar bókunarglugga á síðunni sjálfri (t.d. Bókun hjá Eldingu), svo engin
+// framsending fer um /go/. Sent með sendBeacon úr ferdir.js. Talið í
+// heimsoknir með uppruna "ut:<fyrirtæki>" og herferð "bokun/<staður>".
+const SMELLA_FYRIRTAEKI = new Set(["elding"]);
+
+function skraSmell(request, url, env, ctx) {
+  const fyrirtaeki = url.searchParams.get("f") || "";
+  if (request.method !== "POST" || !SMELLA_FYRIRTAEKI.has(fyrirtaeki)) return new Response(null, { status: 400 });
+  const stadur = (url.searchParams.get("s") || "").toLowerCase().replace(/[^a-z0-9_-]/g, "").slice(0, 40);
+  if (url.hostname === "northseek.net" && env.MAELING_DB && !BOTTAR.test(request.headers.get("User-Agent") || "")) {
+    const dagur = new Date().toISOString().slice(0, 10);
+    ctx.waitUntil(
+      env.MAELING_DB.prepare(
+        `INSERT INTO heimsoknir (dagur, uppruni, herferd, land, fjoldi) VALUES (?1, ?2, ?3, ?4, 1)
+         ON CONFLICT (dagur, uppruni, herferd, land) DO UPDATE SET fjoldi = fjoldi + 1`,
+      ).bind(dagur, `ut:${fyrirtaeki}`, `bokun/${stadur}`, request.cf?.country || "")
+        .run()
+        .catch((error) => console.error("Talning smells mistókst", error)),
+    );
+  }
+  return new Response(null, { status: 204, headers: { "Cache-Control": "no-store" } });
+}
+
 async function svara(request, env, ctx) {
   const url = new URL(request.url);
 
@@ -361,6 +403,7 @@ async function svara(request, env, ctx) {
 
   if (url.pathname === "/maeling") return maelingSida(request, env);
   if (url.pathname === "/go/gti") return gtiFramsending(request, url, env, ctx);
+  if (url.pathname === "/go/smellur") return skraSmell(request, url, env, ctx);
 
   skraUppruna(request, url, env, ctx);
 
