@@ -438,5 +438,8 @@ window.syniTeikna = function () {
   listi.insertBefore(augl, listi.children[7] || null);
 };
 
+// Kostaða einingin þarf engin spágögn: teiknuð strax svo síðan hoppi ekki.
+syniKostad();
+
 // Teikna strax ef gögnin komu á undan þessari skrá.
 window.syniTeikna();
