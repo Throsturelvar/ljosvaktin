@@ -1,7 +1,8 @@
 // Northseek frontend Worker (rekstrarútgáfa).
 //
 // - /api/vakt og /api/skor fara í northseek-api-js gegnum Service Binding,
-//   með skyndiminni og varasvari (sjá apiResponse).
+//   með skyndiminni og varasvari (sjá apiResponse). Aðeins fyrir síðuna
+//   sjálfa: engir CORS-hausar og hámark API_TAKMORK kalla á mínútu á IP.
 // - www.northseek.net er áframsent á northseek.net.
 // - Öll svör fá örugga hausa (sjá medHausum); myndir og tákn eru geymd í
 //   vafra í einn dag.
@@ -36,6 +37,8 @@ function cacheKey(url, kind) {
 
 function toClient(body, status, headers, source) {
   const out = new Headers(headers);
+  // Síðan sækir API-ið af sama uppruna; aðrar síður eiga ekki að geta það.
+  out.delete("Access-Control-Allow-Origin");
   out.set("Cache-Control", "no-store");
   out.set("X-Northseek-Cache", source);
   return new Response(body, { status, headers: out });
@@ -352,6 +355,20 @@ function gtiFramsending(request, url, env, ctx) {
   });
 }
 
+// Síðan kallar á /api/vakt einu sinni við hleðslu og svo á 5 mín. fresti, svo
+// 100 á mínútu á IP (stillt í wrangler.jsonc) hindrar bara skröpun, líka bak
+// við samnýttar IP-tölur farsímakerfa. Bilun í takmörkuninni hleypir í gegn.
+async function ofMorgKoll(request, env) {
+  if (!env.API_TAKMORK) return false;
+  try {
+    const { success } = await env.API_TAKMORK.limit({ key: request.headers.get("CF-Connecting-IP") || "ohekkt" });
+    return !success;
+  } catch (villa) {
+    console.error("Hraðatakmörkun mistókst", villa);
+    return false;
+  }
+}
+
 async function svara(request, env, ctx) {
   const url = new URL(request.url);
 
@@ -373,6 +390,12 @@ async function svara(request, env, ctx) {
   if (API_PATHS.has(url.pathname)) {
     if (request.method !== "GET" && request.method !== "HEAD") {
       return new Response("Method not allowed", { status: 405 });
+    }
+    if (await ofMorgKoll(request, env)) {
+      return new Response(JSON.stringify({ villa: "of mörg köll, reyndu aftur eftir mínútu" }), {
+        status: 429,
+        headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", "Retry-After": "60" },
+      });
     }
     return apiResponse(url, env, ctx);
   }
