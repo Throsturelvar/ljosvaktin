@@ -30,6 +30,10 @@
 //   merki     orðmerki (lógó) yfir mynd í boxinu; best hvítt eða ljóst
 //   mynd      mynd í ferðakorti og boxi
 //   auglysing { fyrirsogn, texti } fyrir boxið
+//   kostad    kostuð eining undir hausnum (970×250 tölva, fullbreidd × 100 sími):
+//             { mynd, myndSimi, fyrirsogn, fyrirsognSimi, texti, hnappur, slod, grunnur, hnappLitur }
+//   baraKostad  true = aðeins kostaða einingin (ekki ferðafyrirtæki), svo
+//             ferðasvæðið og boxið eru eins og á aðalsíðunni
 // Myndir fyrirtækja eru í /syni/<lykill>/.
 const FYRIRTAEKI = {
   elding: {
@@ -70,6 +74,25 @@ const FYRIRTAEKI = {
   },
 };
 
+// Icewear er fataframleiðandi, ekki ferðafyrirtæki: aðeins kostaða einingin.
+FYRIRTAEKI.icewear = {
+  nafn: "Icewear",
+  len: "icewear.is",
+  baraKostad: true,
+  merki: "/syni/icewear/merki.svg",
+  kostad: {
+    mynd: "/syni/icewear/peysa.jpg",
+    myndSimi: "/syni/icewear/peysa-simi.jpg",
+    grunnur: "#1F216B",
+    hnappLitur: "#C10024",
+    fyrirsogn: { en: "Dress for a long night under the aurora", is: "Klæddu þig fyrir langa nótt undir norðurljósum" },
+    fyrirsognSimi: { en: "Warm wool for aurora nights", is: "Hlý ull fyrir norðurljósanætur" },
+    texti: { en: "Icelandic wool sweaters, designed and weather-tested in Iceland since 1972.", is: "Íslenskar ullarpeysur, hannaðar og veðurprófaðar á Íslandi frá 1972." },
+    hnappur: { en: "Shop wool sweaters", is: "Skoða ullarpeysur" },
+    slod: { en: "https://icewear.is/en-US/women/sweaters/icelandic-wool-sweaters", is: "https://icewear.is/is-IS/konur/peysur/ullarpeysur" },
+  },
+};
+
 const STADGENGLAR = [
   { nafn: "Fyrirtæki A", gerd: "Bus · large group", brottfor: "20:30", uti: ["21:15", "23:30"], verd: "from 9.990 kr", endurbokun: true, litur: "#6FF0B4" },
   { nafn: "Fyrirtæki B", gerd: "Boat · from the harbour", brottfor: "21:00", uti: ["21:00", "23:00"], verd: "from 12.900 kr", endurbokun: true, litur: "#E9C26B" },
@@ -99,6 +122,7 @@ const SYNI_TEXTAR = {
     heimsaekja: "Visit {name} →",
     bordi: "Preview · how {name} would appear on Northseek",
     bordiAlmennt: "Preview · advertising and partner placements on Northseek",
+    kostad: "Sponsored",
   },
   is: {
     kicker: "Norðurljósaferðir í kvöld",
@@ -120,6 +144,7 @@ const SYNI_TEXTAR = {
     heimsaekja: "Nánar →",
     bordi: "Sýnishorn · svona myndi {name} birtast á Northseek",
     bordiAlmennt: "Sýnishorn · auglýsingar og samstarf á Northseek",
+    kostad: "Kostað",
   },
 };
 
@@ -321,6 +346,55 @@ function auglysingHtml() {
     ${tengill}`;
 }
 
+// Kostuð eining undir hausnum: öll einingin er einn tengill.
+function kostadSlod(k) {
+  try {
+    const u = new URL(ml(k.slod));
+    u.searchParams.set("utm_source", "northseek");
+    u.searchParams.set("utm_medium", "sponsored");
+    u.searchParams.set("utm_campaign", "haus");
+    return u.toString();
+  } catch (_) {
+    return null;
+  }
+}
+
+function kostadHtml(f) {
+  const k = f.kostad;
+  const slod = kostadSlod(k);
+  const nafn = hreinsa(f.nafn);
+  const innihald = `
+      <span class="syni-kostad-mynd" style="background-image:url('${cssSlod(k.mynd)}')"></span>
+      <span class="syni-kostad-mynd simi" style="background-image:url('${cssSlod(k.myndSimi || k.mynd)}')"></span>
+      <span class="syni-kostad-texti" style="background:${hreinsa(k.grunnur || "#16202F")}">
+        ${f.merki ? `<img class="syni-kostad-merki" src="${hreinsa(f.merki)}" alt="${nafn}">` : `<span class="syni-kostad-nafn">${nafn}</span>`}
+        <span class="syni-kostad-fyr">${hreinsa(ml(k.fyrirsogn))}</span>
+        <span class="syni-kostad-fyr simi">${hreinsa(ml(k.fyrirsognSimi || k.fyrirsogn))}</span>
+        <span class="syni-kostad-lysing">${hreinsa(ml(k.texti))}</span>
+        <span class="syni-kostad-hnappur" style="background:${hreinsa(k.hnappLitur || "#E9C26B")}">${hreinsa(ml(k.hnappur))} →</span>
+      </span>`;
+  return `
+    <p class="syni-kostad-lbl">${st("kostad")}</p>
+    ${slod
+      ? `<a class="syni-kostad-eining" href="${hreinsa(slod)}" target="_blank" rel="sponsored noopener" aria-label="${nafn}: ${hreinsa(ml(k.fyrirsogn))}">${innihald}</a>`
+      : `<div class="syni-kostad-eining">${innihald}</div>`}`;
+}
+
+function syniKostad() {
+  let kostad = document.getElementById("syni-kostad");
+  if (!syniFyrirtaeki?.kostad) {
+    kostad?.remove();
+    return;
+  }
+  if (!kostad) {
+    kostad = document.createElement("aside");
+    kostad.id = "syni-kostad";
+    document.querySelector(".wrap > header").after(kostad);
+  }
+  kostad.setAttribute("aria-label", st("kostad"));
+  kostad.innerHTML = kostadHtml(syniFyrirtaeki);
+}
+
 function syniBordi() {
   let bordi = document.getElementById("syni-bordi");
   if (!bordi) {
@@ -336,6 +410,14 @@ function syniBordi() {
 window.syniTeikna = function () {
   if (!valinn || !nott) return;
   syniBordi();
+  syniKostad();
+
+  // Aðeins kostuð eining: ferðasvæðið og boxið eins og á aðalsíðunni.
+  document.documentElement.classList.toggle("syni-bara-kostad", !!syniFyrirtaeki?.baraKostad);
+  if (syniFyrirtaeki?.baraKostad) {
+    document.getElementById("syni-ferdir")?.remove();
+    return;
+  }
 
   let ferdir = document.getElementById("syni-ferdir");
   if (!ferdir) {

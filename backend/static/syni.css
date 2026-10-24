@@ -147,3 +147,80 @@ a.syni-boka:focus-visible,button.syni-boka:focus-visible,a.syni-utlinur:focus-vi
    Iceland-kortin af main (#ferdir, ferdir.js) eru falin svo svæðið birtist
    ekki tvisvar. */
 #ferdir { display: none !important; }
+.syni-bara-kostad #ferdir { display: block !important; }
+
+/* ---------- Kostuð eining undir hausnum ----------
+   970×250 á tölvu (mynd vinstra megin, texti á lit auglýsanda),
+   full breidd × 100 px á síma (ferningsmynd og stutt fyrirsögn). */
+#syni-kostad{
+  width:min(970px,100%);
+  margin:4px auto 26px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.syni-kostad-lbl{
+  margin:0;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--daufari);
+}
+.syni-kostad-eining{
+  display:grid;
+  grid-template-columns:380px minmax(0,1fr);
+  height:250px;
+  border-radius:var(--br);
+  overflow:hidden;
+  color:#FFFFFF;
+  text-decoration:none;
+  border:1px solid var(--lina-syn);
+}
+.syni-kostad-eining:focus-visible{outline:2px solid var(--gull);outline-offset:3px}
+.syni-kostad-mynd{background-size:cover;background-position:center 35%}
+.syni-kostad-mynd.simi,.syni-kostad-fyr.simi{display:none}
+.syni-kostad-texti{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:flex-start;
+  gap:10px;
+  padding:22px 34px;
+}
+.syni-kostad-merki{width:52px;height:52px;display:block}
+.syni-kostad-nafn{font-weight:700;font-size:18px}
+.syni-kostad-fyr{font-size:28px;line-height:1.15;font-weight:700;text-wrap:balance}
+.syni-kostad-lysing{font-size:16px;line-height:1.4;color:rgba(255,255,255,.88);max-width:46ch}
+.syni-kostad-hnappur{
+  margin-top:4px;
+  padding:10px 16px;
+  border-radius:var(--br);
+  font-size:15px;
+  font-weight:700;
+  color:#FFFFFF;
+}
+.syni-kostad-eining:hover .syni-kostad-hnappur{filter:brightness(1.12)}
+
+@media (max-width:760px){
+  #syni-kostad{margin:0 auto 20px}
+  .syni-kostad-eining{grid-template-columns:100px minmax(0,1fr);height:100px}
+  .syni-kostad-mynd{display:none}
+  .syni-kostad-mynd.simi{display:block}
+  .syni-kostad-texti{
+    display:grid;
+    grid-template-columns:auto minmax(0,1fr);
+    grid-template-rows:auto auto;
+    align-content:center;
+    gap:4px 10px;
+    padding:10px 12px;
+  }
+  .syni-kostad-merki{width:34px;height:34px;grid-row:1 / span 2}
+  .syni-kostad-fyr{display:none}
+  .syni-kostad-fyr.simi{display:block;font-size:16px;line-height:1.2}
+  .syni-kostad-lysing{display:none}
+  .syni-kostad-hnappur{
+    margin:0;padding:0;background:none !important;
+    font-size:14px;color:#FFFFFF;text-decoration:underline;text-underline-offset:3px;
+  }
+}
