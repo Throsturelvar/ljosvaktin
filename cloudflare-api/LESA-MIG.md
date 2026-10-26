@@ -37,7 +37,7 @@ JS-útgáfan svaraði 160 af 160.
 
 | Worker | Hlutverk |
 |---|---|
-| `northseek-api-js` | Þessi kóði. https://northseek-api-js.throstur-oskarsson.workers.dev |
+| `northseek-api-js` | Þessi kóði. Engin opinber workers.dev-slóð (workers_dev: false); aðeins náð gegnum Service Binding frá `northseek`. |
 | `northseek` | Framendi. Kóði í `backend/static/` |
 | `northseek-api` | Gamla Python-útgáfan. Keyrir enn cron-verkin þar til skipt er. |
 

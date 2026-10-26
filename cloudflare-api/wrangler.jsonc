@@ -3,7 +3,7 @@
   "account_id": "104ab88bdd490b4bee8113687430acc5",
   "main": "src/index.js",
   "compatibility_date": "2026-09-20",
-  "workers_dev": true,
+  "workers_dev": false,
   "observability": { "enabled": true },
   "kv_namespaces": [
     { "binding": "NORTHSEEK_CACHE", "id": "d8d9b7ad0c984df2b32af5cd61d7c1a4" }
