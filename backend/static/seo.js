@@ -44,7 +44,7 @@ export const STADIR = [
   ["reykjanesviti", "Reykjanesviti", "Reykjanes", 63.8151, -22.7014],
   ["stykkisholmur", "Stykkishólmur", "Snæfellsnes", 65.0761, -22.7266],
   ["oskjuhlid", "Öskjuhlíð", "Höfuðborgarsvæðið", 64.1276, -21.9186],
-  ["mosfellsbaer", "Mosfellsbæjarheiði", "Höfuðborgarsvæðið", 64.1655, -21.6903],
+  ["mosfellsbaer", "Mosfellsheiði", "Höfuðborgarsvæðið", 64.1655, -21.6903],
   ["kleifarvatn", "Kleifarvatn", "Reykjanes", 63.9169, -22.0503],
   ["selfoss", "Selfoss", "Suðurland", 63.9333, -20.9833],
   ["hveragerdi", "Hveragerði", "Suðurland", 64.0003, -21.1868],
